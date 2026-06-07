@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="action_pos_laundry_settings" model="ir.actions.act_window">
+        <field name="name">Laundry POS Settings</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+        <field name="context">{'module': 'pos_laundry'}</field>
+    </record>
+</odoo>

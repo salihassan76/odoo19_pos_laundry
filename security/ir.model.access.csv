@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_laundry_order_type,laundry.order.type,model_laundry_order_type,base.group_user,1,1,1,1
+access_package_rule,package.rule,model_package_rule,,1,1,1,1
+access_package_rule_detail,package.rule.detail,model_package_rule_detail,,1,1,1,1
+access_laundry_configuration,laundry.configuration,model_laundry_configuration,,1,1,1,1

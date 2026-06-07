@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+  <t t-name="pos_laundry.pos_customerscreen">
+
+    <div class="d-flex flex-column h-100 p-2 bg-100">
+
+        
+        <div class="d-flex flex-column h-100 p-2 bg-100">
+            <!-- Search Area -->
+            <div class="controls d-flex justify-content-center p-2 border-bottom bg-view">
+                <div class="pos-search-bar d-flex align-items-center rounded w-100"
+                    style="max-width: 700px;">
+
+                    <div class="search position-relative h-100 d-flex flex-grow-1">
+                        <div class="input-group">
+
+                            <span class="input-group-text">
+                                <i class="fa-fw oi oi-search"
+                                role="img"
+                                aria-label="Search Products"
+                                title="Search Products"/>
+                            </span>
+
+                            <input class="form-control form-control-lg"
+                                type="text"
+                                placeholder="Search Customer, Mobile, eMail ..."
+                                t-model="state.searchTerm"
+                                t-on-input="onSearchInput"/>
+
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+            <!-- Search Area End-->
+
+            <!-- Customer Details -->
+            <div class="overflow-y-auto flex-grow-1 rounded-bottom-3 bg-view p-4">
+
+                <t t-if="state.loading">
+                    <div class="text-center text-muted">Searching...</div>
+                </t>
+
+                <t t-if="!state.loading and state.results.length">
+                    <div class="list-group mx-auto" style="max-width: 800px;">
+
+                        <t t-foreach="state.results" t-as="customer" t-key="customer.id">
+                            <button class="list-group-item list-group-item-action p-3"
+                                    t-on-click="() => this.selectCustomer(customer)">
+
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h5 class="mb-1">
+                                            <t t-out="customer.name"/>
+                                        </h5>
+
+                                        <div class="text-muted">
+                                            Mobile:
+                                            <t t-out="customer.mobile || customer.phone || '-'"/>
+                                        </div>
+
+                                        <div class="text-muted">
+                                            Customer ID:
+                                            <t t-out="customer.id"/>
+                                        </div>
+                                    </div>
+
+                                    <i class="fa fa-chevron-right text-muted"/>
+                                </div>
+
+                            </button>
+                        </t>
+
+                    </div>
+                </t>
+
+                <t t-if="!state.loading and state.searchTerm and !state.results.length">
+                    <div class="text-center mt-4">
+                        <p class="text-muted">No customer found</p>
+
+                        <button class="btn btn-primary"
+                                t-on-click="createNewCustomer">
+                            Start New Order to Create New Customer
+                        </button>
+                    </div>
+                </t>
+
+            </div>
+            <!-- Customer Details End -->
+
+        </div>
+        
+    </div>
+
+</t>
+
+</templates>

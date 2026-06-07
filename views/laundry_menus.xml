@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+
+<!-- Main Laundry Menu -->
+    <menuitem id="menu_laundry_root"
+              name="Laundry"
+              sequence="10"/>
+
+    <!-- Orders -->
+    <menuitem id="menu_laundry_orders"
+              name="Orders"
+              parent="menu_laundry_root"
+              sequence="10"/>
+
+              <!-- Order Types -->
+    <menuitem id="menu_laundry_order_type1"
+              name="Order"
+              parent="menu_laundry_orders"
+              action="action_laundry_order_type"
+              sequence="10"/>
+
+    <!-- Packages -->
+    <menuitem id="menu_laundry_packages"
+              name="Packages"
+              parent="menu_laundry_root"
+              sequence="20"/>
+
+              <menuitem id="menu_laundry_package_rule"
+              name="Packages"
+              parent="menu_laundry_packages"
+              action="action_laundry_package_rule"
+              sequence="10"/>
+
+    <!-- Configuration -->
+    <menuitem id="menu_laundry_configuration"
+              name="Configuration"
+              parent="menu_laundry_root"
+              sequence="30"/>
+
+    <!-- Order Types -->
+    <menuitem id="menu_laundry_order_type"
+              name="Order Types"
+              parent="menu_laundry_configuration"
+              action="action_laundry_order_type"
+              sequence="10"/>
+
+    <!-- POS Categories Action -->
+    <record id="action_laundry_pos_categories" model="ir.actions.act_window">
+        <field name="name">POS Categories</field>
+        <field name="res_model">pos.category</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Products Action -->
+    <record id="action_laundry_products" model="ir.actions.act_window">
+        <field name="name">Products</field>
+        <field name="res_model">product.template</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- POS Categories -->
+    <menuitem id="menu_laundry_pos_categories"
+              name="POS Categories"
+              parent="menu_laundry_configuration"
+              action="action_laundry_pos_categories"
+              sequence="20"/>
+
+    <!-- Products -->
+    <menuitem id="menu_laundry_products"
+              name="Products"
+              parent="menu_laundry_configuration"
+              action="action_laundry_products"
+              sequence="30"/>
+
+    <!-- Laundry Settings Action -->
+    <record id="action_laundry_configuration" model="ir.actions.act_window">
+        <field name="name">Laundry Settings</field>
+        <field name="res_model">laundry.configuration</field>
+        <field name="view_mode">form</field>
+    </record>
+    <!-- Settings -->
+    <menuitem id="menu_laundry_settings"
+            name="Settings"
+            parent="menu_laundry_configuration"
+            action="action_pos_laundry_settings"
+            sequence="90"/>
+    
+
+
+</odoo>

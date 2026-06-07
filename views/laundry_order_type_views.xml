@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- List View -->
+    <record id="view_laundry_order_type_list" model="ir.ui.view">
+        <field name="name">laundry.order.type.list</field>
+        <field name="model">laundry.order.type</field>
+        <field name="arch" type="xml">
+            <list string="Order Types">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="prefix"/>
+                <field name="active"/>
+                <field name="icon_preview" widget="html"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_laundry_order_type_form" model="ir.ui.view">
+        <field name="name">laundry.order.type.form</field>
+        <field name="model">laundry.order.type</field>
+        <field name="arch" type="xml">
+            <form string="Order Type">
+                <sheet>
+
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="prefix"/>
+                            <field name="icon_class"/>
+                            <field name="icon_preview" widget="html"/>
+                            <field name="icon_color"/>
+                        </group>
+
+                        <group>
+                            <field name="sequence"/>
+                            <field name="active"/>
+                        
+                        </group>
+
+                        <group string="POS Categories">
+                            <field name="pos_category_ids"
+                                widget="many2many_tags"
+                                placeholder="Leave empty to show all POS categories"/>
+                        </group>
+                    </group>
+
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_laundry_order_type_search" model="ir.ui.view">
+        <field name="name">laundry.order.type.search</field>
+        <field name="model">laundry.order.type</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="prefix"/>
+
+                <filter name="active"
+                        string="Active"
+                        domain="[('active','=',True)]"/>
+
+                <filter name="inactive"
+                        string="Inactive"
+                        domain="[('active','=',False)]"/>
+            </search>
+        </field>
+    </record>
+
+    
+    
+
+</odoo>

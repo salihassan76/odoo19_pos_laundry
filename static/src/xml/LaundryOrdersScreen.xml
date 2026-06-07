@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="laundry_pos.LaundryOrdersScreen">
+        <div class="controls d-grid d-sm-flex align-items-center justify-content-between gap-2 gap-sm-3 p-2 border-bottom bg-view">
+
+    <div class="d-flex align-items-center flex-grow-1">
+
+        <h2 class="mb-0 me-3 flex-shrink-0">
+            Pending Laundry Orders
+        </h2>
+
+        <div class="search position-relative flex-grow-1"
+             style="max-width: 450px;">
+
+            <div class="input-group">
+
+                <span class="input-group-text">
+                    <i class="fa fa-search"/>
+                </span>
+
+                <input type="text"
+                       class="form-control form-control-lg"
+                       placeholder="Search Orders..."
+                       t-model="state.searchTerm"/>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <button class="btn btn-secondary"
+            t-on-click="() => this.backToRegister()">
+
+        <i class="fa fa-arrow-left me-2"/>
+        Back
+
+    </button>
+
+</div>
+    </t>
+
+</templates>

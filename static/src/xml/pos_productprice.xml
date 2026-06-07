@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="pos_laundry.ProductCardPrice"
+       t-inherit="point_of_sale.ProductCard"
+       t-inherit-mode="extension"
+       owl="1">
+
+        <xpath expr="//div[contains(@class, 'product-content')]" position="inside">
+            <div class="ms-auto fw-bold text-primary small">
+                <t t-esc="env.utils.formatCurrency(props.product.list_price)"/>
+            </div>
+        </xpath>
+
+    </t>
+
+</templates>

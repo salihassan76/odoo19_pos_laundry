@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+  <t t-name="pos_laundry.pos_homescreen">
+
+    <div class="d-flex flex-column h-100 p-4 bg-100">
+
+        
+        <div class="d-flex flex-column h-100 p-4 bg-100">
+            <!-- Search Area -->
+            <div class="controls d-flex justify-content-center p-2 border-bottom bg-view">
+                <div class="pos-search-bar d-flex align-items-center rounded w-100"
+                    style="max-width: 700px;">
+
+                    <div class="search position-relative h-100 d-flex flex-grow-1">
+                        <div class="input-group">
+
+                            <span class="input-group-text">
+                                <i class="fa-fw oi oi-search"
+                                role="img"
+                                aria-label="Search Products"
+                                title="Search Products"/>
+                            </span>
+
+                            <input class="form-control form-control-lg"
+                                type="text"
+                                placeholder="Search Customer,Orders..."/>
+
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Customer Details -->
+            <div class="overflow-y-auto flex-grow-1 rounded-bottom-3 bg-view p-4">
+
+                <div class="d-flex justify-content-center">
+
+                    <div class="card shadow-sm border-0 w-100"
+                        style="max-width: 1000px;">
+
+                        <div class="card-body">
+
+                            <div class="overflow-y-auto flex-grow-1 rounded-bottom-3 bg-view p-3">
+
+                                <div class="o_form_sheet_bg">
+                                    <div class="o_form_sheet p-4 mx-auto" style="max-width: 1000px;">
+
+
+                                        <!-- Customer Header -->
+<div class="row mb-4">
+
+    <!-- Customer Info -->
+    <div >
+
+        <h3 class="mb-1">
+            Sayed Ali Hassan
+        </h3>
+
+        <div class="text-muted">
+            Customer ID: CUST-0001
+        </div>
+
+        <div class="text-muted">
+            Contact: 0123456789
+        </div>
+
+    </div>
+
+    <!-- Customer Stats -->
+    <div class="d-flex flex-wrap gap-3">
+
+        <!-- Outstanding -->
+        <div class="border rounded px-4 py-3 bg-light text-center">
+
+            <div class="text-muted small">
+                Outstanding
+            </div>
+
+            <div class="fs-4 fw-bold text-danger">
+                BD 12.500
+            </div>
+
+        </div>
+
+        <!-- Loyalty -->
+        <div class="border rounded px-4 py-3 bg-light text-center">
+
+            <div class="text-muted small">
+                Loyalty Points
+            </div>
+
+            <div class="fs-4 fw-bold text-primary">
+                1,250
+            </div>
+
+        </div>
+
+        <!-- Membership -->
+        <div class="border rounded px-4 py-3 bg-light text-center">
+
+            <div class="text-muted small">
+                Membership
+            </div>
+
+            <div class="fs-5 fw-bold text-success">
+                Gold Member
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+                                        <!-- Pending Orders -->
+                                        <div class="mb-4">
+                                            <h5 class="border-bottom pb-2 mb-3">
+                                                Pending Orders
+                                            </h5>
+
+                                            <div class="d-flex flex-wrap gap-2">
+                                                <button class="btn btn-outline-warning">
+                                                    <i class="fa fa-clock-o me-1"/>
+                                                    Order #1025
+                                                </button>
+
+                                                <button class="btn btn-outline-warning">
+                                                    <i class="fa fa-clock-o me-1"/>
+                                                    Order #1026
+                                                </button>
+
+                                                <button class="btn btn-outline-warning">
+                                                    <i class="fa fa-clock-o me-1"/>
+                                                    Order #1031
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <!-- Packages -->
+                                        <div>
+                                            <h5 class="border-bottom pb-2 mb-3">
+                                                Active Packages
+                                            </h5>
+
+                                            <div class="d-flex flex-wrap gap-2">
+                                                <button class="btn btn-outline-primary">
+                                                    <i class="fa fa-gift me-1"/>
+                                                    Family Package
+                                                </button>
+
+                                                <button class="btn btn-outline-primary">
+                                                    <i class="fa fa-gift me-1"/>
+                                                    Shoe Cleaning Package
+                                                </button>
+
+                                                <button class="btn btn-outline-primary">
+                                                    <i class="fa fa-gift me-1"/>
+                                                    VIP Laundry Package
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+        <!-- Odoo Style Action Buttons -->
+<div class="border-top bg-view p-3">
+
+    <div class="row g-3 justify-content-center">
+
+        <!-- Walkin -->
+        <div class="col-6 col-md-4 col-xl-2">
+
+            <button class="btn btn-light border w-100 h-100 py-4 shadow-sm"
+                    t-on-click="openNewOrder">
+
+                <div class="d-flex flex-column align-items-center">
+
+                    <i class="fa fa-shopping-basket fa-2x text-primary mb-2"/>
+
+                    <span class="fw-bold">
+                        Walkin / Normal
+                    </span>
+
+                </div>
+
+            </button>
+
+        </div>
+
+        <!-- Express -->
+        <div class="col-6 col-md-4 col-xl-2">
+
+            <button class="btn btn-light border w-100 h-100 py-4 shadow-sm"
+                    t-on-click="openExpressOrder">
+
+                <div class="d-flex flex-column align-items-center">
+
+                    <i class="fa fa-bolt fa-2x text-danger mb-2"/>
+
+                    <span class="fw-bold">
+                        Express
+                    </span>
+
+                </div>
+
+            </button>
+
+        </div>
+
+        <!-- Pickup -->
+        <div class="col-6 col-md-4 col-xl-2">
+
+            <button class="btn btn-light border w-100 h-100 py-4 shadow-sm"
+                    t-on-click="openPickupOrder">
+
+                <div class="d-flex flex-column align-items-center">
+
+                    <i class="fa fa-truck fa-2x text-info mb-2"/>
+
+                    <span class="fw-bold">
+                        Home Pickup
+                    </span>
+
+                </div>
+
+            </button>
+
+        </div>
+
+        <!-- Delivery -->
+        <div class="col-6 col-md-4 col-xl-2">
+
+            <button class="btn btn-light border w-100 h-100 py-4 shadow-sm"
+                    t-on-click="openDeliveryOrder">
+
+                <div class="d-flex flex-column align-items-center">
+
+                    <i class="fa fa-home fa-2x text-warning mb-2"/>
+
+                    <span class="fw-bold">
+                        Home Delivery
+                    </span>
+
+                </div>
+
+            </button>
+
+        </div>
+
+        <!-- Pickup Delivery -->
+        <div class="col-6 col-md-4 col-xl-2">
+
+            <button class="btn btn-light border w-100 h-100 py-4 shadow-sm"
+                    t-on-click="openPickupDeliveryOrder">
+
+                <div class="d-flex flex-column align-items-center">
+
+                    <i class="fa fa-exchange fa-2x text-dark mb-2"/>
+
+                    <span class="fw-bold">
+                        Pickup / Delivery
+                    </span>
+
+                </div>
+
+            </button>
+
+        </div>
+
+        <!-- Pending -
+        <div class="col-6 col-md-4 col-xl-2">
+
+            <button class="btn btn-light border w-100 h-100 py-4 shadow-sm"
+                    t-on-click="openPendingOrders">
+
+                <div class="d-flex flex-column align-items-center">
+
+                    <i class="fa fa-clock-o fa-2x text-secondary mb-2"/>
+
+                    <span class="fw-bold">
+                        Pending Orders
+                    </span>
+
+                </div>
+
+            </button>
+
+        </div>
+        -->
+
+        <!-- Packages -->
+        <div class="col-6 col-md-4 col-xl-2">
+
+            <button class="btn btn-light border w-100 h-100 py-4 shadow-sm"
+                    t-on-click="openNewSubscription">
+
+                <div class="d-flex flex-column align-items-center">
+
+                    <i class="fa fa-gift fa-2x text-success mb-2"/>
+
+                    <span class="fw-bold">
+                        Package Subscription
+                    </span>
+
+                </div>
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+    </div>
+
+</t>
+
+</templates>

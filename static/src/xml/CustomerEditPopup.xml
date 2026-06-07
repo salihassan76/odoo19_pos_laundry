@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="pos_laundry.CustomerEditPopup">
+    <div class="modal d-block" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content rounded-3">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fa fa-user text-primary me-2"/>
+                        Customer Details
+                    </h5>
+                    <button type="button" class="btn-close" t-on-click="cancel"/>
+                </div>
+
+                <div class="modal-body">
+
+                    <div class="row g-3">
+
+                        <div class="col-12 col-md-12">
+                            <label class="form-label fw-bold">Customer Name</label>
+                            <input class="form-control form-control-lg"
+                                   t-model="state.name"
+                                   placeholder="Customer Name"/>
+                        </div>
+
+                        
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold">Phone</label>
+                            <input class="form-control"
+                                   t-model="state.phone"
+                                   placeholder="Phone"/>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold">Email</label>
+                            <input class="form-control"
+                                   t-model="state.email"
+                                   placeholder="Email"/>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold">City</label>
+                            <input class="form-control"
+                                   t-model="state.city"
+                                   placeholder="Area or City"/>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold">Address</label>
+                            <input class="form-control"
+                                   t-model="state.street"
+                                   placeholder="Address / Area / Road / Building"/>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-light btn-lg" t-on-click="cancel">
+                        Cancel
+                    </button>
+
+                    <button class="btn btn-primary btn-lg px-4" t-on-click="save">
+                        <i class="fa fa-save me-2"/>
+                        Save
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</t>
+
+</templates>

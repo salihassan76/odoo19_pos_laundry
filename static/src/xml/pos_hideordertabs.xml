@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="pos_laundry.hideordertabs"
+       t-inherit="pos_restaurant.OrderTabs"
+       t-inherit-mode="extension">
+
+        <xpath expr="//div[hasclass('d-flex flex-grow-1 h-50 overflow-hidden')]"
+               position="replace">
+        </xpath>
+
+    </t>
+
+</templates>

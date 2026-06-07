@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="pos_laundry.pos_orderlistscreen">
+
+        <div class="d-flex flex-column h-100 p-2 bg-100">
+
+            <!-- Main Content -->
+            <div class="overflow-y-auto flex-grow-1 rounded-bottom-3 bg-view p-3">
+
+                <div class="container-fluid">
+
+                    <div class="row g-3">
+
+                        <!-- New Orders -->
+                        <div class="col-12 col-lg-4">
+                            <div class="card shadow-sm border-0 h-100 bg-view rounded-3">
+                                <div class="card-header bg-100 border-bottom">
+                                    <h5 class="mb-0">
+                                        <i class="fa fa-plus-circle me-2 text-primary"/>
+                                        New Orders
+                                    </h5>
+                                </div>
+                                <div class="card-body d-flex flex-column gap-2">
+                                    <button class="btn btn-light border text-start rounded-3">
+                                        Order #1001
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- In Progress Orders -->
+                        <div class="col-12 col-lg-4">
+
+                            <div class="card shadow-sm border-0 h-100 bg-view rounded-3">
+
+                                <div class="card-header bg-100 border-bottom">
+                                    <h5 class="mb-0 text-warning">
+                                        <i class="fa fa-refresh me-2 text-warning"/>
+                                        In Progress
+                                    </h5>
+                                </div>
+
+                                <div class="card-body d-flex flex-column gap-2">
+
+                                    <button class="btn btn-outline-warning text-start">
+                                        Order #2001
+                                    </button>
+
+                                    <button class="btn btn-outline-warning text-start">
+                                        Order #2002
+                                    </button>
+
+                                    <button class="btn btn-outline-warning text-start">
+                                        Order #2003
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <!-- Finished Orders -->
+                        <div class="col-12 col-lg-4">
+
+                            <div class="card shadow-sm border-0 h-100 bg-view rounded-3">
+
+                                <div class="card-header bg-100 border-bottom">
+                                    <h5 class="mb-0 text-success">
+                                        <i class="fa fa-check-circle me-2 text-success"/>
+                                        Finished Orders
+                                    </h5>
+                                </div>
+
+                                <div class="card-body d-flex flex-column gap-2">
+
+                                    <button class="btn btn-outline-success text-start">
+                                        Order #3001
+                                    </button>
+
+                                    <button class="btn btn-outline-success text-start">
+                                        Order #3002
+                                    </button>
+
+                                    <button class="btn btn-outline-success text-start">
+                                        Order #3003
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </t>
+
+</templates>
