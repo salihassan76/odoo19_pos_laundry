@@ -10,48 +10,14 @@ class PackageRule(models.Model):
     duration = fields.Integer(string="Duration Days", default=30)
     discount_per = fields.Float(string="Discount %")
     valid = fields.Boolean(string="Valid", default=True)
-    product_id = fields.Many2one(
-    "product.product",
-    string="Package Product",
-    readonly=True
-    )
-
-
-    product_created = fields.Boolean(
-        default=False
-    )
-
-    detail_ids = fields.One2many(
-        "package.rule.detail",
-        "package_rule_id",
-        string="Package Details"
-    )
-
-    total_value = fields.Float(
-        string="Total Actual Value",
-        compute="_compute_total_value",
-        store=True
-    )
-
-    package_amount = fields.Float(
-        string="Package Amount",
-        compute="_compute_package_amount",
-        store=True
-    )
-
-    usage_count = fields.Integer(
-        string="Usage Count",
-        compute="_compute_usage_count"
-    )
-
-    is_locked = fields.Boolean(
-        string="Locked",
-        compute="_compute_usage_count"
-    )
-
-    active = fields.Boolean(
-    default=True
-    )
+    product_id = fields.Many2one("product.product",string="Package Product",readonly=True)
+    product_created = fields.Boolean(default=False)
+    detail_ids = fields.One2many("package.rule.detail","package_rule_id",string="Package Details")
+    total_value = fields.Float(string="Total Actual Value",compute="_compute_total_value",store=True)
+    package_amount = fields.Float(string="Package Amount",compute="_compute_package_amount",store=True)
+    usage_count = fields.Integer(string="Usage Count",compute="_compute_usage_count")
+    is_locked = fields.Boolean(string="Locked",compute="_compute_usage_count")
+    active = fields.Boolean(default=True)
 
 
     @api.depends("detail_ids.value")

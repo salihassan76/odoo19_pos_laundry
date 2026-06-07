@@ -27,7 +27,7 @@ class LaundryOrderType(models.Model):
     ("text-warning", "Delivery Yellow"),
     ("text-dark", "Pickup/Delivery Black"),
     ("text-success", "Package Green"),
-    ], default="primary")
+    ], default="text-primary")
 
     pos_category_ids = fields.Many2many(
         "pos.category",

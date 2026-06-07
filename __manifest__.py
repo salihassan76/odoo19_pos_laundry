@@ -13,6 +13,10 @@
         "views/laundry_configuration_views.xml",
         "views/laundry_res_config_settings_view.xml",
         "views/laundry_res_config_settings_action.xml",
+        "views/laundry_order_status_views.xml",
+        "views/laundry_order_status_action.xml",
+        "views/laundry_order_payment_status_views.xml",
+        "views/laundry_order_payment_status_action.xml",
         "views/laundry_menus.xml",
     ],
     "assets": {
