@@ -8,3 +8,13 @@ class ResConfigSettings(models.TransientModel):
         string="Package POS Category",
         config_parameter="pos_laundry.laundry_package_category_id"
     )
+
+    is_project = fields.Boolean(
+        string="Enable Project",
+        default=False)
+    
+    project_id = fields.Many2one(
+        "project.project",
+        string="Project")
+    
+

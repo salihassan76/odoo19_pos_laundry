@@ -14,9 +14,12 @@
                         <field name="laundry_package_category_id"/>
                     </setting>
                 </block>
-                <block title="Order Type Settings">
-                    <setting string="Order Type">
-                        
+                <block title="Project Settings">
+                    <setting string="Is Project" help="Enable this if you want to link laundry orders to projects.">
+                        <field name="is_project"/>
+                    </setting>
+                    <setting string="Project" help="Select the project to link laundry orders to." invisible="not is_project">
+                        <field name="project_id" options="{'no_create': True}"/>
                     </setting>
                 </block>
             </app>

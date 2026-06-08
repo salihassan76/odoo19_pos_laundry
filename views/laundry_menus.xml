@@ -102,10 +102,10 @@
     </record>
     <!-- Settings -->
     <menuitem id="menu_laundry_settings"
-            name="Settings"
-            parent="menu_laundry_configuration"
-            action="action_pos_laundry_settings"
-            sequence="90"/>
+              name="Settings"
+              parent="menu_laundry_configuration"
+              action="action_open_laundry_configuration"
+              sequence="90"/>
     
 
 
