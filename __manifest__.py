@@ -4,6 +4,20 @@
     "depends": ["point_of_sale", "project", "sale_management"],
     "category": "Operations",
     "summary": "Production-ready Laundry POS System",
+    "description": """
+        POS Laundry
+
+        Features:
+        - Delivery Teams
+        - Pickup Vouchers
+        - Delivery Vouchers
+        - Driver Assignment
+        - Route Management
+        - Laundry Order Logistics Tracking
+    """,
+    "author": "Sayed Ali Hassan",
+    "website": "",
+    "license": "LGPL-3",
     "data": [
         'security/ir.model.access.csv',
         'views/laundry_order_type_views.xml',
