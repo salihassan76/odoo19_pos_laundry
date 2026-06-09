@@ -42,6 +42,19 @@ class LaundryOrderType(models.Model):
         readonly=True
     )
 
+    is_delivery = fields.Boolean(
+        string="Is Delivery",   
+        help="Check if this order type is for delivery orders.",
+        default=False)
+    
+    is_pickup = fields.Boolean(
+        string="Is Pickup",
+        help="Check if this order type is for pickup orders.",
+        default=False
+    )
+
+
+
     @api.depends("icon_class")
     def _compute_icon_preview(self):
         for rec in self:

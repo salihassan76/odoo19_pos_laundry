@@ -10,3 +10,10 @@ class LaundryOrder(models.Model):
     total_amount = fields.Float(string="Total Amount", compute="_compute_total_amount", store=True)
     order_type=fields.many2one("laundry.order.type",string="Order Type",required=True)
     status_id = fields.Many2one("laundry.order.status", string="Status", required=True, default=lambda self: self.env['laundry.order.status'].search([], limit=1).id)
+    is_delivery = fields.Boolean(string="Is Delivery", related="order_type.is_delivery", store=True)
+    delivery_team_id = fields.Many2one(
+        "laundry.delivery.team", 
+        string="Delivery Team", 
+        domain="[('id', 'in', order_type.delivery_team_ids)]", 
+        help="Select delivery team for this order. Only applicable if the order type is for delivery.")
+    

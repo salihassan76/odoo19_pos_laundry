@@ -10,8 +10,11 @@
                   duplicate="false"
                   delete="false">
                 <sheet>
-                    <group>
+                    <group string="General Settings">
                         <field name="package_pos_category_id"/>
+                        
+                    </group>
+                    <group string="Project Settings">
                         <field name="is_project"/>
                         <field name="project_id" invisible="not is_project"/>
                     </group>

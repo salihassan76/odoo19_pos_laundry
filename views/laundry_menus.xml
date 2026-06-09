@@ -106,6 +106,8 @@
               parent="menu_laundry_configuration"
               action="action_open_laundry_configuration"
               sequence="90"/>
+
+  
     
 
 

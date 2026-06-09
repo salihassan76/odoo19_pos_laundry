@@ -10,6 +10,7 @@
                 <field name="sequence" widget="handle"/>
                 <field name="name"/>
                 <field name="prefix"/>
+                
                 <field name="active"/>
                 <field name="icon_preview" widget="html"/>
             </list>
@@ -38,6 +39,7 @@
                             <field name="active"/>
                         
                         </group>
+                       
 
                         <group string="POS Categories">
                             <field name="pos_category_ids"

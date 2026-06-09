@@ -6,3 +6,4 @@ from . import ResConfigSettings
 from . import laundry_order_status
 from . import laundry_order_payment_status
 
+

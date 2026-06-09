@@ -5,3 +5,4 @@ access_package_rule_detail,package.rule.detail,model_package_rule_detail,,1,1,1,
 access_laundry_configuration,laundry.configuration,model_laundry_configuration,,1,1,1,1
 access_laundry_order_status,laundry.order.status,model_laundry_order_status,,1,1,1,1
 access_laundry_order_payment_status,laundry.order.payment.status,model_laundry_order_payment_status,,1,1,1,1
+
