@@ -20,14 +20,17 @@ class LaundryOrderType(models.Model):
         compute="_compute_icon_preview",
         sanitize=False
     )
+
+    
     icon_color = fields.Selection([
-    ("text-primary", "Walk-In Blue"),
-    ("text-danger", "Express Red"),
-    ("text-info", "Pickup Cyan"),
-    ("text-warning", "Delivery Yellow"),
-    ("text-dark", "Pickup/Delivery Black"),
-    ("text-success", "Package Green"),
+    ("text-primary", "Blue"),
+    ("text-danger", "Red"),
+    ("text-info", "Cyan"),
+    ("text-warning", "Yellow"),
+    ("text-dark", "Black"),
+    ("text-success", "Green"),
     ], default="text-primary")
+   
 
     pos_category_ids = fields.Many2many(
         "pos.category",
