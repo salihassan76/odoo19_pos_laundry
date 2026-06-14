@@ -74,6 +74,8 @@
 
             <field name="discount_per"
                    readonly="is_locked"/>
+            <field name="extra_discount_per"
+                readonly="is_locked" help="Extra discount percentage for the package if applicable."/>
 
             <field name="valid"
                    readonly="is_locked"/>

@@ -9,6 +9,7 @@ class PackageRule(models.Model):
     name = fields.Char(string="Package Rule Name", required=True)
     duration = fields.Integer(string="Duration Days", default=30)
     discount_per = fields.Float(string="Discount %")
+    extra_discount_per = fields.Float(string="Extra Discount %")
     valid = fields.Boolean(string="Valid", default=True)
     product_id = fields.Many2one("product.product",string="Package Product",readonly=True)
     product_created = fields.Boolean(default=False)

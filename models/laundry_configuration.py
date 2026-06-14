@@ -6,21 +6,9 @@ class LaundryConfiguration(models.Model):
     _description = "Laundry Configuration"
     _rec_name = "name"
     name = fields.Char(string="Configuration Name", default="Laundry Configuration", readonly=True)
-
-    package_pos_category_id = fields.Many2one(
-        "pos.category",
-        string="Package POS Category"
-    )
-
-    is_project = fields.Boolean(
-        string="Enable Project",
-        default=False
-    )
-
-    project_id = fields.Many2one(
-        "project.project",
-        string="Project"
-    )
+    package_pos_category_id = fields.Many2one("pos.category",string="Package POS Category")
+    is_project = fields.Boolean(string="Enable Project",default=False)
+    project_id = fields.Many2one("project.project",string="Project")
 
     @api.model_create_multi
     def create(self, vals_list):
