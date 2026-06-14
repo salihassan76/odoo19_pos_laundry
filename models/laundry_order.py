@@ -8,7 +8,7 @@ class LaundryOrder(models.Model):
     customer_id = fields.Many2one("res.partner", string="Customer", required=True)
     order_line_ids = fields.One2many("laundry.order.line", "order_id", string="Order Lines")
     total_amount = fields.Float(string="Total Amount", compute="_compute_total_amount", store=True)
-    order_type=fields.many2one("laundry.order.type",string="Order Type",required=True)
+    order_type_id=fields.many2one("laundry.order.type",string="Order Type",required=True)
     payment_status_id = fields.Many2one("laundry.order.payment.status", string="Payment Status",readonly=True, required=True, default=lambda self: self.env['laundry.order.payment.status'].search([], limit=1).id)   
     status_id = fields.Many2one("laundry.order.status", string="Status",readonly=True, required=True, default=lambda self: self.env['laundry.order.status'].search([], limit=1).id)
     project_id = fields.Many2one("project.project", string="Project",readonly=True)
@@ -27,7 +27,10 @@ class LaundryOrder(models.Model):
     is_package = fields.Boolean(string="Package Order")
     package_rule_id = fields.Many2one('package.rule',string="Package")
     currency_id = fields.Many2one("res.currency",string="Currency",default=lambda self: self.env.company.currency_id,)
-
+    pos_order_id = fields.Many2one("pos.order", string="POS Order", readonly=True, copy=False)
+    
+    
+    
     @api.depends('order_datetime')
     def _compute_order_datetime_parts(self):
         for rec in self:
@@ -40,6 +43,19 @@ class LaundryOrder(models.Model):
                 rec.order_date = False
                 rec.order_hour = 0
                 rec.order_weekday = False
-    
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get("name", "New") == "New":
+                order_type = self.env["laundry.order.type"].browse(
+                    vals.get("order_type_id")
+                )
+
+                vals["name"] = self.env["ir.sequence"].next_by_code(
+                    f"laundry.order.{order_type.id}"
+                ) or "New"
+
+        return super().create(vals_list)
     
     

@@ -74,15 +74,16 @@ class LaundryOrderType(models.Model):
         records = super().create(vals_list)
 
         for record in records:
-            seq = self.env["ir.sequence"].create({
+            self.env["ir.sequence"].create({
                 "name": f"{record.name} Orders",
                 "code": f"laundry.order.{record.id}",
-                "prefix": f"{record.prefix}/%(year)s/",
+                "prefix": f"{record.prefix.upper()}-%(year)s-",
                 "padding": 4,
                 "number_next": 1,
                 "number_increment": 1,
+                "use_date_range": True,
             })
 
-            record.sequence_id = seq.id
+            
 
         return records
