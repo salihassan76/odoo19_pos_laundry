@@ -53,35 +53,35 @@ export class PosHomeScreen extends Component {
     }
 
     selectOrderType(orderType) {
-    let order = this.pos.get_order
-        ? this.pos.get_order()
-        : this.pos.getOrder?.();
+        let order = this.pos.get_order
+            ? this.pos.get_order()
+            : this.pos.getOrder?.();
 
-    if (!order) {
-        order = this.pos.add_new_order
-            ? this.pos.add_new_order()
-            : this.pos.addNewOrder?.();
+        if (!order) {
+            order = this.pos.add_new_order
+                ? this.pos.add_new_order()
+                : this.pos.addNewOrder?.();
+        }
+
+        if (order && this.state.customer) {
+            order.set_partner?.(this.state.customer);
+            order.setPartner?.(this.state.customer);
+        }
+
+        order.laundry_order_type_id = orderType.id;
+        order.laundry_order_type_name = orderType.name;
+        order.laundry_order_type_prefix = orderType.prefix;
+        order.laundry_allowed_pos_category_ids = orderType.pos_category_ids || [];
+
+        this.pos.selected_laundry_order_type = orderType;
+
+        this.pos.navigate("ProductScreen", {
+            laundry_order_type_id: orderType.id,
+            laundry_order_type_name: orderType.name,
+            laundry_order_type_prefix: orderType.prefix,
+            allowed_pos_category_ids: orderType.pos_category_ids || [],
+        });
     }
-
-    if (order && this.state.customer) {
-        order.set_partner?.(this.state.customer);
-        order.setPartner?.(this.state.customer);
-    }
-
-    order.laundry_order_type_id = orderType.id;
-    order.laundry_order_type_name = orderType.name;
-    order.laundry_order_type_prefix = orderType.prefix;
-    order.laundry_allowed_pos_category_ids = orderType.pos_category_ids || [];
-
-    this.pos.selected_laundry_order_type = orderType;
-
-    this.pos.navigate("ProductScreen", {
-        laundry_order_type_id: orderType.id,
-        laundry_order_type_name: orderType.name,
-        laundry_order_type_prefix: orderType.prefix,
-        allowed_pos_category_ids: orderType.pos_category_ids || [],
-    });
-}
 
     openNewOrder() {
         let order = this.pos.get_order

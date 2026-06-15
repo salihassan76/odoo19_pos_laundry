@@ -8,7 +8,7 @@ class LaundryOrder(models.Model):
     customer_id = fields.Many2one("res.partner", string="Customer", required=True)
     order_line_ids = fields.One2many("laundry.order.line", "order_id", string="Order Lines")
     total_amount = fields.Float(string="Total Amount", compute="_compute_total_amount", store=True)
-    order_type_id=fields.many2one("laundry.order.type",string="Order Type",required=True)
+    order_type_id=fields.Many2one("laundry.order.type",string="Order Type",required=True)
     payment_status_id = fields.Many2one("laundry.order.payment.status", string="Payment Status",readonly=True, required=True, default=lambda self: self.env['laundry.order.payment.status'].search([], limit=1).id)   
     status_id = fields.Many2one("laundry.order.status", string="Status",readonly=True, required=True, default=lambda self: self.env['laundry.order.status'].search([], limit=1).id)
     project_id = fields.Many2one("project.project", string="Project",readonly=True)
@@ -28,6 +28,8 @@ class LaundryOrder(models.Model):
     package_rule_id = fields.Many2one('package.rule',string="Package")
     currency_id = fields.Many2one("res.currency",string="Currency",default=lambda self: self.env.company.currency_id,)
     pos_order_id = fields.Many2one("pos.order", string="POS Order", readonly=True, copy=False)
+    order_note = fields.Text(string="Order Note")
+    order_internal_note = fields.Text(string="Internal Note")
     
     
     
@@ -58,4 +60,8 @@ class LaundryOrder(models.Model):
 
         return super().create(vals_list)
     
-    
+    @api.depends("order_line_ids.price_subtotal")
+    def _compute_total_amount(self):
+        for order in self:
+            order.total_amount = sum(order.order_line_ids.mapped("price_subtotal"))
+        
