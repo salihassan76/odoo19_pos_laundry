@@ -5,7 +5,7 @@
             <div class="laundry-order-info p-2">
                 
                     <div class="d-flex justify-content-between">
-                        <span><strong>Laundry Type:</strong> <t t-esc="pos.getOrder()?.order_type || 'N/A'"/></span>
+                        <span><strong>Laundry Type:</strong> <t t-esc="pos.getOrder()?.laundry_order_type_name || 'N/A'"/></span>
                     </div>
                 
             </div>

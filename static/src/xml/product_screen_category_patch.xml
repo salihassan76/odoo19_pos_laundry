@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <t t-name="pos_laundry.ProductScreenCategoryPatch"
+       t-inherit="point_of_sale.ProductScreen"
+       t-inherit-mode="extension">
+
+        <xpath expr="//CategorySelector" position="before">
+            <div class="laundry-category-bar d-flex gap-2 p-2 flex-wrap bg-view">
+                <t t-foreach="laundryAllowedCategories" t-as="cat" t-key="cat.id">
+                    <button class="btn btn-secondary"
+                            t-on-click="() => this.selectLaundryCategory(cat)">
+                        <t t-esc="cat.name"/>
+                    </button>
+                </t>
+            </div>
+        </xpath>
+
+    </t>
+
+</templates>

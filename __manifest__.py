@@ -48,6 +48,8 @@
             "pos_laundry/static/src/js/pos_homescreen.js",
             "pos_laundry/static/src/xml/pos_homescreen.xml",
             "pos_laundry/static/src/xml/pos_customerscreen.xml",
+            "pos_laundry/static/src/js/product_screen_category_patch.js",
+            "pos_laundry/static/src/xml/product_screen_category_patch.xml",
             "pos_laundry/static/src/js/pos_customerscreen.js",
             "pos_laundry/static/src/js/pos_startup.js",
             "pos_laundry/static/src/js/actionpad_extension.js",
