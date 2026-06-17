@@ -63,23 +63,28 @@ export class PosHomeScreen extends Component {
                 : this.pos.addNewOrder?.();
         }
 
+        if (!order) {
+            return;
+        }
 
-
-        if (order && this.state.customer) {
+        if (this.state.customer) {
             order.set_partner?.(this.state.customer);
             order.setPartner?.(this.state.customer);
         }
 
         const allowedCategoryIds = (orderType.pos_category_ids || []).map((cat) =>
-        typeof cat === "object" ? cat.id : cat
+            typeof cat === "object" ? cat.id : cat
         );
 
-        order.laundry_order_type_id = orderType.id;
-        order.laundry_order_type_name = orderType.name;
-        order.laundry_order_type_prefix = orderType.prefix;
-        order.laundry_allowed_pos_category_ids = allowedCategoryIds;
+        order.uiState.laundry_order_type_id = orderType.id;
+        order.uiState.laundry_order_type_name = orderType.name;
+        order.uiState.laundry_order_type_prefix = orderType.prefix;
+        order.uiState.laundry_allowed_pos_category_ids = allowedCategoryIds;
 
         this.pos.selected_laundry_order_type = orderType;
+
+        console.log("Selected order type:", orderType.name);
+        console.log("Allowed categories:", allowedCategoryIds);
 
         this.pos.navigate("ProductScreen");
     }

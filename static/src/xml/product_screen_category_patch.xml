@@ -16,6 +16,10 @@
             </div>
         </xpath>
 
+        <xpath expr="//CategorySelector" position="attributes">
+            <attribute name="t-if">false</attribute>
+        </xpath>
+
     </t>
 
 </templates>

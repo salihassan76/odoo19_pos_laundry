@@ -11,7 +11,7 @@ patch(ProductScreen.prototype, {
             ? this.pos.get_order()
             : this.pos.getOrder?.();
 
-        const allowedIds = order?.laundry_allowed_pos_category_ids || [];
+        const allowedIds = order?.uiState?.laundry_allowed_pos_category_ids || [];
 
         let categories = [];
 
@@ -21,9 +21,6 @@ patch(ProductScreen.prototype, {
             categories = [];
         }
 
-        console.log("All POS categories:", categories);
-        console.log("Allowed category ids:", allowedIds);
-
         if (!allowedIds.length) {
             return categories;
         }
@@ -32,8 +29,6 @@ patch(ProductScreen.prototype, {
     },
 
     selectLaundryCategory(category) {
-        console.log("Selected laundry category:", category);
-
         if (this.pos.setSelectedCategoryId) {
             this.pos.setSelectedCategoryId(category.id);
         } else {
