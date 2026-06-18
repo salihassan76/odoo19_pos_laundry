@@ -13,9 +13,13 @@
             
            
                 <div class="gap-2 d-flex">
+                    <!--
                     <t t-if="!(this.pos.get_order ? this.pos.get_order()?.uiState?.is_package_sale : this.pos.getOrder()?.uiState?.is_package_sale)">
+                    -->
                     <!-- Save Button 75% -->
-                    <button class="pay pay-order-button button btn btn-success btn-lg py-3 d-flex align-items-center justify-content-center" style="flex: 3;">
+                    <button class="pay pay-order-button button btn btn-success btn-lg py-3 d-flex align-items-center justify-content-center" 
+                        style="flex: 3;"
+                        t-on-click="clickSaveOrder">
 
                         <!-- Mobile -->
                         <i class="fa fa-check d-md-none fs-3"/>
@@ -26,7 +30,8 @@
                         </span>
 
                     </button>
-                    </t>
+
+                    <!-- </t> -->
 
                     <!-- Print Button 25% -->
                     <button class="btn btn-danger btn-lg py-3 d-flex align-items-center justify-content-center"
