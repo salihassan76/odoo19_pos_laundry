@@ -65,4 +65,99 @@ class LaundryOrder(models.Model):
     def _compute_total_amount(self):
         for order in self:
             order.total_amount = sum(order.order_line_ids.mapped("price_subtotal"))
-        
+
+    @api.model
+    def process_pos_laundry_order(self, data):
+        if not data.get("partner_id"):
+            raise ValidationError("Customer is required.")
+
+        if not data.get("laundry_order_type_id"):
+            raise ValidationError("Laundry order type is required.")
+
+        laundry_order = self._create_laundry_order(data)
+
+        partner_package = self._create_partner_package(
+            data,
+            laundry_order,
+        )
+
+        pos_order = self._create_pos_order(data)
+
+        self._link_laundry_order(
+            laundry_order,
+            pos_order,
+        )
+
+        self._link_partner_package(
+            partner_package,
+            pos_order,
+        )
+
+        return {
+            "laundry_order_id": laundry_order.id,
+            "partner_package_id": partner_package.id if partner_package else False,
+            "pos_order_id": pos_order.id if pos_order else False,
+        }
+    
+    def _create_laundry_order(self, data):
+        return self.create({
+            "customer_id": data.get("partner_id"),
+            "order_type_id": data.get("laundry_order_type_id"),
+            "package_rule_id": data.get("package_rule_id") or False,
+            "is_package": data.get("is_package_sell", False),
+            "notes": data.get("notes") or "",
+        })
+    
+    def _create_partner_package(self, data, laundry_order):
+        """
+        Create a partner package when selling a package from POS.
+        Returns the created partner.package record or False.
+        """
+
+        if not data.get("is_package_sale"):
+            return False
+
+        package_rule_id = data.get("package_rule_id")
+        if not package_rule_id:
+            raise ValidationError("Package is required for package sale.")
+
+        return self.env["partner.package"].create({
+            "partner_id": data.get("partner_id"),
+            "package_rule_id": package_rule_id,
+            "laundry_order_id": laundry_order.id,
+        })
+    def _create_pos_order(self, data):
+        pos_result = self.env["pos.order"].create_from_ui([data])
+
+        if not pos_result:
+            return False
+
+        pos_order_id = pos_result[0].get("id")
+        if not pos_order_id:
+            return False
+
+        return self.env["pos.order"].browse(pos_order_id)
+    
+    def _link_laundry_order(self, laundry_order, pos_order):
+        """
+        Link the Laundry Order with the created POS Order.
+        """
+
+        if not laundry_order or not pos_order:
+            return
+
+        laundry_order.write({
+            "pos_order_id": pos_order.id,
+        })
+
+    def _link_partner_package(self, partner_package, pos_order):
+        """
+        Link the Partner Package with the created POS Order.
+        """
+
+        if not partner_package or not pos_order:
+            return
+
+        partner_package.write({
+            "pos_order_id": pos_order.id,
+        })

@@ -12,10 +12,22 @@ patch(ActionpadWidget.prototype, {
     },
 
     async clickSaveOrder() {
-        this.dialog.add(AlertDialog, {
-            title: _t("Save Order"),
-            body: _t("This action was triggered by your custom button!"),
-        });
+        const order = this.pos.get_order();
+        if (!order) return;
+
+        const data = order.export_as_JSON();
+
+        const result = await this.orm.call(
+            "laundry.order",
+            "process_pos_laundry_order",
+            [data]
+        );
+
+        if (result) {
+            this.pos.removeOrder(order);
+            this.pos.add_new_order();
+            this.pos.navigate("pos_homescreen");
+        }
     },
     async cancelLaundryOrder() {
         this.dialog.add(AlertDialog, {

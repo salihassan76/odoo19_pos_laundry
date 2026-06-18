@@ -32,6 +32,13 @@ class PartnerPackage(models.Model):
         ondelete="restrict",
     )
 
+    pos_order_id = fields.Many2one(
+        "pos.order",
+        string="POS Order",
+        readonly=True,
+        copy=False,
+    )
+
     start_date = fields.Date(
         default=fields.Date.context_today,
         required=True,
@@ -62,6 +69,8 @@ class PartnerPackage(models.Model):
         "partner_package_id",
         string="Usage History",
     )
+
+    
 
     @api.depends("start_date", "package_rule_id.duration")
     def _compute_end_date(self):
