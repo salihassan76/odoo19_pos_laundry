@@ -66,13 +66,19 @@ class PartnerPackage(models.Model):
     @api.depends("start_date", "package_rule_id.duration")
     def _compute_end_date(self):
         for rec in self:
-            if rec.start_date:
+            if rec.start_date and rec.package_rule_id and rec.package_rule_id.duration:
                 rec.end_date = rec.start_date + relativedelta(
                     months=rec.package_rule_id.duration
                 )
+            else:
+                rec.end_date = False
+
 
     @api.depends("end_date")
     def _compute_state(self):
         today = fields.Date.today()
         for rec in self:
-            rec.state = "expired" if rec.end_date < today else "active"
+            if rec.end_date and rec.end_date < today:
+                rec.state = "expired"
+            else:
+                rec.state = "active"

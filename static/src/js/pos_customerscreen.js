@@ -6,6 +6,9 @@ import { useService } from "@web/core/utils/hooks";
 
 export class PosCustomerScreen extends Component {
     static template = "pos_laundry.pos_customerscreen";
+    static props = {
+        customer: { type: Object, optional: true },
+    };
 
     setup() {
         this.pos = useService("pos");

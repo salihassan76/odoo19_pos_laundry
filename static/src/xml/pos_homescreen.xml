@@ -179,39 +179,65 @@
 
                                             </div>
 
+                                            
                                             <!-- Active Packages -->
-                                            <div>
+                                            <div t-if="state.activePackages.length" class="mb-4">
 
                                                 <h5 class="border-bottom pb-2 mb-3">
                                                     Active Packages
                                                 </h5>
 
-                                                <div class="d-flex flex-wrap gap-2">
+                                                <div class="row g-3">
 
-                                                    <button class="btn btn-outline-primary">
+                                                    <t t-foreach="state.activePackages"
+                                                    t-as="pkg"
+                                                    t-key="pkg.id">
 
-                                                        <i class="fa fa-gift me-1"/>
+                                                        <div class="col-md-6">
 
-                                                        Family Package
+                                                            <button class="btn btn-outline-primary w-100 text-start p-3"
+                                                                    t-on-click="() => this.selectPackage(pkg)">
 
-                                                    </button>
+                                                                <div class="d-flex justify-content-between">
 
-                                                    <button class="btn btn-outline-primary">
+                                                                    <div>
+                                                                        <h6 class="mb-1">
+                                                                            <i class="fa fa-gift me-2"/>
+                                                                            <t t-esc="pkg.package_rule_id[1]"/>
+                                                                        </h6>
 
-                                                        <i class="fa fa-gift me-1"/>
+                                                                        <div class="small text-muted">
+                                                                            Valid Until:
+                                                                            <t t-esc="pkg.end_date"/>
+                                                                        </div>
+                                                                    </div>
 
-                                                        Shoe Cleaning Package
+                                                                    <div class="text-end">
+                                                                        <span class="badge bg-success">
+                                                                            Active
+                                                                        </span>
+                                                                    </div>
 
-                                                    </button>
+                                                                </div>
 
-                                                    <button class="btn btn-outline-primary">
+                                                            </button>
 
-                                                        <i class="fa fa-gift me-1"/>
+                                                        </div>
 
-                                                        VIP Laundry Package
+                                                    </t>
 
-                                                    </button>
+                                                </div>
 
+                                            </div>
+
+                                            <div t-else="" class="mb-4">
+
+                                                <h5 class="border-bottom pb-2 mb-3">
+                                                    Active Packages
+                                                </h5>
+
+                                                <div class="text-muted">
+                                                    No active packages.
                                                 </div>
 
                                             </div>

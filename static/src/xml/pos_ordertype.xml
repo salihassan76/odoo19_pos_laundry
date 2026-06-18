@@ -6,6 +6,8 @@
                 
                     <div class="d-flex justify-content-between">
                         <span><strong>Laundry Type:</strong> <t t-esc="pos.getOrder()?.uiState?.laundry_order_type_name || 'N/A'"/></span>
+                        <span><strong>Is Package:</strong> <t t-esc="pos.getOrder()?.uiState?.is_package_sale? 'Yes' : 'No'"/></span>
+
                     </div>
                 
             </div>

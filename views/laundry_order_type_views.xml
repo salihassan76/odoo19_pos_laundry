@@ -37,6 +37,7 @@
                         <group>
                             <field name="sequence"/>
                             <field name="active"/>
+                            <field name="is_package_sale"/>
                         
                         </group>
                        

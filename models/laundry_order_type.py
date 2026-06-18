@@ -55,6 +55,11 @@ class LaundryOrderType(models.Model):
         help="Check if this order type is for pickup orders.",
         default=False
     )
+    is_package_sale = fields.Boolean(
+        string="Is Package Sale",
+        help="Check if this order type is for Selling Packages.",
+        default=False
+    )
 
 
 

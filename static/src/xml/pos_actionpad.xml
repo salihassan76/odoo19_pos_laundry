@@ -9,39 +9,41 @@
        
 
         <!-- Add button before Pay -->
-        <xpath expr="//div[contains(@class, 'validation')]"
-               position="before">
-            <div class="gap-2 d-flex">
-             <!-- Save Button 75% -->
-    <button class="pay pay-order-button button btn btn-success btn-lg py-3 d-flex align-items-center justify-content-center"
-            style="flex: 3;">
+        <xpath expr="//div[contains(@class, 'validation')]" position="before">
+            
+           
+                <div class="gap-2 d-flex">
+                    <t t-if="!(this.pos.get_order ? this.pos.get_order()?.uiState?.is_package_sale : this.pos.getOrder()?.uiState?.is_package_sale)">
+                    <!-- Save Button 75% -->
+                    <button class="pay pay-order-button button btn btn-success btn-lg py-3 d-flex align-items-center justify-content-center" style="flex: 3;">
 
-        <!-- Mobile -->
-        <i class="fa fa-check d-md-none fs-3"/>
+                        <!-- Mobile -->
+                        <i class="fa fa-check d-md-none fs-3"/>
 
-        <!-- Desktop -->
-        <span class="d-none d-md-inline">
-            Save
-        </span>
+                        <!-- Desktop -->
+                        <span class="d-none d-md-inline">
+                            Save
+                        </span>
 
-    </button>
+                    </button>
+                    </t>
 
-    <!-- Print Button 25% -->
-    <button class="btn btn-danger btn-lg py-3 d-flex align-items-center justify-content-center"
-            style="flex: 1;"
-            t-on-click="cancelLaundryOrder">
+                    <!-- Print Button 25% -->
+                    <button class="btn btn-danger btn-lg py-3 d-flex align-items-center justify-content-center"
+                            style="flex: 1;"
+                            t-on-click="cancelLaundryOrder">
 
-        <!-- Mobile -->
-        <i class="fa fa-print d-md-none fs-3"/>
+                        <!-- Mobile -->
+                        <i class="fa fa-print d-md-none fs-3"/>
 
-        <!-- Desktop -->
-        <i class="fa fa-trash me-1"/>
-        <span class="d-none d-md-inline">
-            Cancel
-        </span>
+                        <!-- Desktop -->
+                        <i class="fa fa-trash me-1"/>
+                        <span class="d-none d-md-inline">
+                            Cancel
+                        </span>
 
-    </button>
-            </div>
+                    </button>
+                </div>
 
         </xpath>
 

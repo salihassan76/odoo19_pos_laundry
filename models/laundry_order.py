@@ -24,12 +24,13 @@ class LaundryOrder(models.Model):
     ('5', 'Saturday'),
     ('6', 'Sunday'),
     ], string="Order Weekday", compute="_compute_order_datetime_parts", store=True)
-    is_package = fields.Boolean(string="Package Order")
+    is_package= fields.Boolean(string="Package Usage")
     package_rule_id = fields.Many2one('package.rule',string="Package")
     currency_id = fields.Many2one("res.currency",string="Currency",default=lambda self: self.env.company.currency_id,)
     pos_order_id = fields.Many2one("pos.order", string="POS Order", readonly=True, copy=False)
     order_note = fields.Text(string="Order Note")
     order_internal_note = fields.Text(string="Internal Note")
+    
     
     
     
