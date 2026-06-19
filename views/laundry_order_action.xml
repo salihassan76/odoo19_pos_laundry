@@ -1,0 +1,7 @@
+<!-- Action -->
+    <record id="action_laundry_order" model="ir.actions.act_window">
+        <field name="name">Laundry Orders</field>
+        <field name="res_model">laundry.order</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_laundry_order_search"/>
+    </record>

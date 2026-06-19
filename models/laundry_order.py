@@ -104,8 +104,8 @@ class LaundryOrder(models.Model):
             "customer_id": data.get("partner_id"),
             "order_type_id": data.get("laundry_order_type_id"),
             "package_rule_id": data.get("package_rule_id") or False,
-            "is_package": data.get("is_package_sell", False),
-            "notes": data.get("notes") or "",
+            "is_package": data.get("is_package_sale", False),
+            "order_note": data.get("notes") or "",
         })
     
     def _create_partner_package(self, data, laundry_order):

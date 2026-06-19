@@ -14,11 +14,17 @@
               sequence="10"/>
 
               <!-- Order Types -->
+    <menuitem id="menu_laundry_orders"
+              name="Orders"
+              parent="menu_laundry_orders"
+              action="action_laundry_order"
+              sequence="10"/>
+
     <menuitem id="menu_laundry_order_type1"
               name="Order"
               parent="menu_laundry_orders"
               action="action_laundry_order_type"
-              sequence="10"/>
+              sequence="20"/>
 
     <!-- Packages -->
     <menuitem id="menu_laundry_packages"
