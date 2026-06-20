@@ -2,77 +2,52 @@
 <odoo>
 
     <!-- List View -->
-    <record id="view_laundry_order_list" model="ir.ui.view">
-        <field name="name">laundry.order.list</field>
-        <field name="model">laundry.order</field>
+    <record id="view_laundry_order_type_list" model="ir.ui.view">
+        <field name="name">laundry.order.type.list</field>
+        <field name="model">laundry.order.type</field>
         <field name="arch" type="xml">
-            <list string="Laundry Orders">
+            <list string="Order Types">
+                <field name="sequence" widget="handle"/>
                 <field name="name"/>
-                <field name="customer_id"/>
-                <field name="order_type_id"/>
-                <field name="order_datetime"/>
-                <field name="total_amount"/>
-                <field name="payment_status_id"/>
-                <field name="status_id"/>
-                <field name="pos_order_id"/>
+                <field name="prefix"/>
+                
+                <field name="active"/>
+                <field name="icon_preview" widget="html"/>
             </list>
         </field>
     </record>
 
     <!-- Form View -->
-    <record id="view_laundry_order_form" model="ir.ui.view">
-        <field name="name">laundry.order.form</field>
-        <field name="model">laundry.order</field>
+    <record id="view_laundry_order_type_form" model="ir.ui.view">
+        <field name="name">laundry.order.type.form</field>
+        <field name="model">laundry.order.type</field>
         <field name="arch" type="xml">
-            <form string="Laundry Order">
+            <form string="Order Type">
                 <sheet>
 
                     <group>
-                        <group string="Order Details">
-                            <field name="name" readonly="1"/>
-                            <field name="customer_id"/>
-                            <field name="order_type_id"/>
-                            <field name="order_datetime" readonly="1"/>
-                            <field name="order_date" readonly="1"/>
-                            <field name="order_hour" readonly="1"/>
-                            <field name="order_weekday" readonly="1"/>
+                        <group>
+                            <field name="name"/>
+                            <field name="prefix"/>
+                            <field name="icon_class"/>
+                            <field name="icon_preview" widget="html"/>
+                            <field name="icon_color"/>
                         </group>
 
-                        <group string="Status">
-                            <field name="payment_status_id"/>
-                            <field name="status_id"/>
-                            <field name="total_amount" readonly="1"/>
-                            <field name="currency_id" invisible="1"/>
-                            <field name="pos_order_id" readonly="1"/>
+                        <group>
+                            <field name="sequence"/>
+                            <field name="active"/>
+                            <field name="is_package_sale"/>
+                        
+                        </group>
+                       
+
+                        <group string="POS Categories">
+                            <field name="pos_category_ids"
+                                widget="many2many_tags"
+                                placeholder="Leave empty to show all POS categories"/>
                         </group>
                     </group>
-
-                    <group string="Package">
-                        <field name="is_package"/>
-                        <field name="package_rule_id"/>
-                    </group>
-
-                    <notebook>
-                        <page string="Order Lines">
-                            <field name="order_line_ids">
-                                <list editable="bottom">
-                                    <field name="product_id"/>
-                                    <field name="product_uom_id"/>
-                                    <field name="category_id"/>
-                                    <field name="quantity"/>
-                                    <field name="price_unit"/>
-                                    <field name="price_subtotal" readonly="1"/>
-                                </list>
-                            </field>
-                        </page>
-
-                        <page string="Notes">
-                            <group>
-                                <field name="order_note"/>
-                                <field name="order_internal_note"/>
-                            </group>
-                        </page>
-                    </notebook>
 
                 </sheet>
             </form>
@@ -80,46 +55,26 @@
     </record>
 
     <!-- Search View -->
-    <record id="view_laundry_order_search" model="ir.ui.view">
-    <field name="name">laundry.order.search</field>
-    <field name="model">laundry.order</field>
-    <field name="arch" type="xml">
-        <search>
-            <field name="name"/>
-            <field name="customer_id"/>
-            <field name="order_type_id"/>
-            <field name="order_date"/>
-            <field name="payment_status_id"/>
-            <field name="status_id"/>
+    <record id="view_laundry_order_type_search" model="ir.ui.view">
+        <field name="name">laundry.order.type.search</field>
+        <field name="model">laundry.order.type</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="prefix"/>
 
-            <filter name="today"
-                    string="Today"
-                    domain="[('order_date', '=', context_today())]"/>
+                <filter name="active"
+                        string="Active"
+                        domain="[('active','=',True)]"/>
 
-            <filter name="has_pos_order"
-                    string="Has POS Order"
-                    domain="[('pos_order_id', '!=', False)]"/>
+                <filter name="inactive"
+                        string="Inactive"
+                        domain="[('active','=',False)]"/>
+            </search>
+        </field>
+    </record>
 
-            <group expand="0" string="Group By">
-                <filter name="group_by_customer"
-                        string="Customer"
-                        context="{'group_by': 'customer_id'}"/>
-
-                <filter name="group_by_order_type"
-                        string="Order Type"
-                        context="{'group_by': 'order_type_id'}"/>
-
-                <filter name="group_by_status"
-                        string="Status"
-                        context="{'group_by': 'status_id'}"/>
-
-                <filter name="group_by_date"
-                        string="Order Date"
-                        context="{'group_by': 'order_date'}"/>
-            </group>
-        </search>
-    </field>
-</record>
+    
     
 
 </odoo>

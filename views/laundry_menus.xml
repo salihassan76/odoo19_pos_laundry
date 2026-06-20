@@ -8,7 +8,7 @@
               sequence="10"/>
 
     <!-- Orders -->
-    <menuitem id="menu_laundry_orders"
+    <menuitem id="menu_laundry_orders_root"
               name="Orders"
               parent="menu_laundry_root"
               sequence="10"/>
@@ -16,13 +16,13 @@
               <!-- Order Types -->
     <menuitem id="menu_laundry_orders"
               name="Orders"
-              parent="menu_laundry_orders"
+              parent="menu_laundry_orders_root"
               action="action_laundry_order"
               sequence="10"/>
 
     <menuitem id="menu_laundry_order_type1"
-              name="Order"
-              parent="menu_laundry_orders"
+              name="Order Types"
+              parent="menu_laundry_orders_root"
               action="action_laundry_order_type"
               sequence="20"/>
 
