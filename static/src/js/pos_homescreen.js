@@ -24,7 +24,7 @@ export class PosHomeScreen extends Component {
         onWillStart(async () => {
             this.state.orderTypes = await this.orm.searchRead(
                 "laundry.order.type",
-                [["active", "=", true]],
+                [["active", "=", true],["is_hidden","=",false],],
                 ["id", "name", "icon_class", "icon_color", "sequence", "pos_category_ids","is_package_sale",]
             );
 
@@ -119,7 +119,9 @@ export class PosHomeScreen extends Component {
         order.uiState.laundry_order_type_name = orderType.name;
         order.uiState.laundry_order_type_prefix = orderType.prefix;
         order.uiState.laundry_allowed_pos_category_ids = allowedCategoryIds;
-        order.uiState.is_package_sale = orderType.is_package_sale;
+        order.uiState.is_package_sale = Boolean(orderType.is_package_sale);
+        order.uiState.is_package_usage = false;
+        order.uiState.partner_package_id = false;
 
         this.pos.selected_laundry_order_type = orderType;
 
@@ -153,15 +155,11 @@ export class PosHomeScreen extends Component {
     }
 
 
-    selectPackage(pkg) {
-        let order = this.pos.get_order
-            ? this.pos.get_order()
-            : this.pos.getOrder?.();
+    async selectPackage(pkg) {
+        let order = this.pos.getOrder?.() || this.pos.get_order?.();
 
         if (!order) {
-            order = this.pos.add_new_order
-                ? this.pos.add_new_order()
-                : this.pos.addNewOrder?.();
+            order = this.pos.addNewOrder?.() || this.pos.add_new_order?.();
         }
 
         if (!order) {
@@ -169,21 +167,61 @@ export class PosHomeScreen extends Component {
         }
 
         if (this.state.customer) {
-            order.set_partner?.(this.state.customer);
             order.setPartner?.(this.state.customer);
+            order.set_partner?.(this.state.customer);
         }
 
+        const packageUsageTypes = await this.orm.searchRead(
+            "laundry.order.type",
+            [
+                ["active", "=", true],
+                ["is_package_use", "=", true],
+                ["is_hidden","=", true],
+            ],
+            [
+                "id",
+                "name",
+                "pos_category_ids",
+                "is_package_sale",
+                "is_package_use",
+            ],
+            {
+                limit: 1,
+            }
+        );
+
+        if (!packageUsageTypes.length) {
+            this.dialog.add(AlertDialog, {
+                title: _t("Package Usage Order Type Missing"),
+                body: _t("Please configure one active order type with Package Usage enabled."),
+            });
+            return;
+        }
+
+        const orderType = packageUsageTypes[0];
+
+        order.uiState.laundry_order_type_id = orderType.id;
+        order.uiState.laundry_order_type_name = orderType.name;
+        order.uiState.laundry_allowed_pos_category_ids = orderType.pos_category_ids || [];
+
         order.uiState.is_package_sale = false;
+        order.uiState.is_package_usage = true;
+
         order.uiState.partner_package_id = pkg.id;
         order.uiState.package_rule_id = pkg.package_rule_id?.[0] || false;
         order.uiState.package_rule_name = pkg.package_rule_id?.[1] || "";
 
         order.is_package_sale = false;
+        order.is_package_usage = true;
         order.partner_package_id = pkg.id;
         order.package_rule_id = pkg.package_rule_id?.[0] || false;
         order.package_rule_name = pkg.package_rule_id?.[1] || "";
 
+        this.pos.selected_laundry_order_type = orderType;
+        this.pos.selected_partner_package = pkg;
+
         console.log("Selected active package:", pkg);
+        console.log("Package usage order type:", orderType);
 
         this.pos.navigate("ProductScreen");
     }

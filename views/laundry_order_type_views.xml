@@ -38,6 +38,8 @@
                             <field name="sequence"/>
                             <field name="active"/>
                             <field name="is_package_sale"/>
+                            <field name="is_hidden"/>
+                            <field name="is_package_use"/>
                         
                         </group>
                        

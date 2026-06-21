@@ -5,17 +5,75 @@ import { AlertDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 import { _t } from "@web/core/l10n/translation";
 import { useService } from "@web/core/utils/hooks";
 
+function getCurrentOrder(pos) {
+    return pos.getOrder?.() || pos.get_order?.() || null;
+}
+
+function addNewOrder(pos) {
+    return pos.addNewOrder?.() || pos.add_new_order?.() || null;
+}
+
+function removeOrder(pos, order) {
+    if (!order) return;
+    if (pos.removeOrder) {
+        pos.removeOrder(order);
+    } else if (pos.remove_order) {
+        pos.remove_order(order);
+    }
+}
+
+function getOrderLines(order) {
+    const lines = order?.lines || order?.orderlines || order?.get_orderlines?.() || [];
+    return Array.from(lines);
+}
+
+function getLineProduct(line) {
+    return line.product_id || line.product || line.get_product?.() || null;
+}
+
+function getLineQty(line) {
+    return line.qty ?? line.quantity ?? line.get_quantity?.() ?? 1;
+}
+
+function getLinePrice(line) {
+    return line.price_unit ?? line.price ?? line.get_unit_price?.() ?? 0;
+}
+
+function getOrderPartner(order) {
+    return order.partner_id || order.get_partner?.() || order.getPartner?.() || null;
+}
+
 patch(ActionpadWidget.prototype, {
     setup() {
         super.setup(...arguments);
         this.dialog = useService("dialog");
+        this.orm = useService("orm");
     },
 
     async clickSaveOrder() {
-        const order = this.pos.get_order();
+        const order = getCurrentOrder(this.pos);
         if (!order) return;
 
-        const data = order.export_as_JSON();
+        const partner = getOrderPartner(order);
+        const lines = getOrderLines(order);
+
+        const data = {
+            partner_id: partner?.id || false,
+            laundry_order_type_id: order.uiState?.laundry_order_type_id || false,
+            package_rule_id: order.uiState?.package_rule_id || false,
+            partner_package_id: order.uiState?.partner_package_id || false,
+            is_package_sale: Boolean(order.uiState?.is_package_sale),
+            is_package_usage: Boolean(order.uiState?.is_package_usage),
+            notes: order.uiState?.notes || "",
+            lines: lines.map((line) => {
+                const product = getLineProduct(line);
+                return {
+                    product_id: product?.id || false,
+                    qty: getLineQty(line),
+                    price_unit: getLinePrice(line),
+                };
+            }).filter((line) => line.product_id),
+        };
 
         const result = await this.orm.call(
             "laundry.order",
@@ -24,35 +82,21 @@ patch(ActionpadWidget.prototype, {
         );
 
         if (result) {
-            this.pos.removeOrder(order);
-            this.pos.add_new_order();
+            removeOrder(this.pos, order);
+            addNewOrder(this.pos);
             this.pos.navigate("pos_homescreen");
         }
     },
+
     async cancelLaundryOrder() {
         this.dialog.add(AlertDialog, {
             title: _t("Cancel Order"),
             body: _t("Are you sure you want to cancel this order?"),
             confirmLabel: _t("Yes, Cancel"),
             confirm: () => {
-                const order = this.pos.get_order
-                    ? this.pos.get_order()
-                    : this.pos.getOrder();
-
-                if (order) {
-                    if (this.pos.removeOrder) {
-                        this.pos.removeOrder(order);
-                    } else if (this.pos.remove_order) {
-                        this.pos.remove_order(order);
-                    }
-                }
-
-                if (this.pos.addNewOrder) {
-                    this.pos.addNewOrder();
-                } else if (this.pos.add_new_order) {
-                    this.pos.add_new_order();
-                }
-
+                const order = getCurrentOrder(this.pos);
+                removeOrder(this.pos, order);
+                addNewOrder(this.pos);
                 this.pos.navigate("pos_customerscreen");
             },
         });

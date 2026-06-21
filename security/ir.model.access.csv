@@ -10,4 +10,5 @@ access_partner_package_usage_user,partner.package.usage.user,model_partner_packa
 access_partner_package_usage_line_user,partner.package.usage.line.user,model_partner_package_usage_line,base.group_user,1,1,1,0
 access_partner_package_pos_user,partner.package.pos.user,model_partner_package,point_of_sale.group_pos_user,1,0,0,0
 access_laundry_order,laundry.order,model_laundry_order,base.group_user,1,1,1,1
+access_laundry_order_line,laundry.order.line,model_laundry_order_line,base.group_user,1,1,1,1
 

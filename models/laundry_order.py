@@ -1,40 +1,72 @@
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError
 
+
 class LaundryOrder(models.Model):
     _name = "laundry.order"
     _description = "Laundry Order"
-    name = fields.Char(string="Order Reference", required=True, copy=False, readonly=True, default=lambda self: self.env['ir.sequence'].next_by_code('laundry.order'))
+
+    name = fields.Char(
+        string="Order Reference",
+        required=True,
+        copy=False,
+        readonly=True,
+        default="New",
+    )
     customer_id = fields.Many2one("res.partner", string="Customer", required=True)
     order_line_ids = fields.One2many("laundry.order.line", "order_id", string="Order Lines")
     total_amount = fields.Float(string="Total Amount", compute="_compute_total_amount", store=True)
-    order_type_id=fields.Many2one("laundry.order.type",string="Order Type",required=True)
-    payment_status_id = fields.Many2one("laundry.order.payment.status", string="Payment Status",readonly=True, required=True, default=lambda self: self.env['laundry.order.payment.status'].search([], limit=1).id)   
-    status_id = fields.Many2one("laundry.order.status", string="Status",readonly=True, required=True, default=lambda self: self.env['laundry.order.status'].search([], limit=1).id)
-    project_id = fields.Many2one("project.project", string="Project",readonly=True)
-    order_datetime = fields.Datetime(string="Order Received",default=fields.Datetime.now,required=True,readonly=True,copy=False)
-    order_date = fields.Date(string="Order Day",compute="_compute_order_datetime_parts",store=True,index=True)
-    order_hour = fields.Integer(string="Order Hour",compute="_compute_order_datetime_parts",store=True,index=True)
-    order_weekday = fields.Selection([
-    ('0', 'Monday'),
-    ('1', 'Tuesday'),
-    ('2', 'Wednesday'),
-    ('3', 'Thursday'),
-    ('4', 'Friday'),
-    ('5', 'Saturday'),
-    ('6', 'Sunday'),
-    ], string="Order Weekday", compute="_compute_order_datetime_parts", store=True)
-    is_package= fields.Boolean(string="Package Usage")
-    package_rule_id = fields.Many2one('package.rule',string="Package")
-    currency_id = fields.Many2one("res.currency",string="Currency",default=lambda self: self.env.company.currency_id,)
+    order_type_id = fields.Many2one("laundry.order.type", string="Order Type", required=True)
+    payment_status_id = fields.Many2one(
+        "laundry.order.payment.status",
+        string="Payment Status",
+        readonly=True,
+        required=True,
+        default=lambda self: self.env["laundry.order.payment.status"].search([], limit=1).id,
+    )
+    status_id = fields.Many2one(
+        "laundry.order.status",
+        string="Status",
+        readonly=True,
+        required=True,
+        default=lambda self: self.env["laundry.order.status"].search([], limit=1).id,
+    )
+    project_id = fields.Many2one("project.project", string="Project", readonly=True)
+    order_datetime = fields.Datetime(
+        string="Order Received",
+        default=fields.Datetime.now,
+        required=True,
+        readonly=True,
+        copy=False,
+    )
+    order_date = fields.Date(string="Order Day", compute="_compute_order_datetime_parts", store=True, index=True)
+    order_hour = fields.Integer(string="Order Hour", compute="_compute_order_datetime_parts", store=True, index=True)
+    order_weekday = fields.Selection(
+        [
+            ("0", "Monday"),
+            ("1", "Tuesday"),
+            ("2", "Wednesday"),
+            ("3", "Thursday"),
+            ("4", "Friday"),
+            ("5", "Saturday"),
+            ("6", "Sunday"),
+        ],
+        string="Order Weekday",
+        compute="_compute_order_datetime_parts",
+        store=True,
+    )
+    is_package = fields.Boolean(string="Package Usage")
+    package_rule_id = fields.Many2one("package.rule", string="Package")
+    currency_id = fields.Many2one(
+        "res.currency",
+        string="Currency",
+        default=lambda self: self.env.company.currency_id,
+    )
     pos_order_id = fields.Many2one("pos.order", string="POS Order", readonly=True, copy=False)
     order_note = fields.Text(string="Order Note")
     order_internal_note = fields.Text(string="Internal Note")
-    
-    
-    
-    
-    @api.depends('order_datetime')
+
+    @api.depends("order_datetime")
     def _compute_order_datetime_parts(self):
         for rec in self:
             if rec.order_datetime:
@@ -51,16 +83,11 @@ class LaundryOrder(models.Model):
     def create(self, vals_list):
         for vals in vals_list:
             if vals.get("name", "New") == "New":
-                order_type = self.env["laundry.order.type"].browse(
-                    vals.get("order_type_id")
-                )
-
-                vals["name"] = self.env["ir.sequence"].next_by_code(
-                    f"laundry.order.{order_type.id}"
-                ) or "New"
-
+                order_type = self.env["laundry.order.type"].browse(vals.get("order_type_id"))
+                sequence_code = f"laundry.order.{order_type.id}" if order_type else "laundry.order"
+                vals["name"] = self.env["ir.sequence"].next_by_code(sequence_code) or "New"
         return super().create(vals_list)
-    
+
     @api.depends("order_line_ids.price_subtotal")
     def _compute_total_amount(self):
         for order in self:
@@ -68,96 +95,148 @@ class LaundryOrder(models.Model):
 
     @api.model
     def process_pos_laundry_order(self, data):
+        """Save the laundry order from the POS without creating a pos.order.
+
+        Latest flow:
+        - Save Order creates laundry.order and laundry.order.line only.
+        - If the order type is package sale, create partner.package and its balance rows.
+        - If an active package is selected, record package usage history.
+        - The real pos.order is created later by the normal POS payment/sync flow.
+        """
         if not data.get("partner_id"):
             raise ValidationError("Customer is required.")
 
         if not data.get("laundry_order_type_id"):
             raise ValidationError("Laundry order type is required.")
 
-        laundry_order = self._create_laundry_order(data)
+        lines = data.get("lines") or []
+        if not lines:
+            raise ValidationError("Please add at least one product before saving the laundry order.")
 
-        partner_package = self._create_partner_package(
-            data,
-            laundry_order,
-        )
+        package_rule = self._get_package_rule_from_data(data)
+        laundry_order = self._create_laundry_order(data, package_rule)
+        self._create_laundry_order_lines(laundry_order, lines)
 
-        pos_order = self._create_pos_order(data)
-
-        self._link_laundry_order(
-            laundry_order,
-            pos_order,
-        )
-
-        self._link_partner_package(
-            partner_package,
-            pos_order,
-        )
+        partner_package = self._create_partner_package(data, laundry_order, package_rule)
+        self._create_package_usage_lines(data, laundry_order)
 
         return {
             "laundry_order_id": laundry_order.id,
             "partner_package_id": partner_package.id if partner_package else False,
-            "pos_order_id": pos_order.id if pos_order else False,
+            "pos_order_id": False,
         }
-    
-    def _create_laundry_order(self, data):
+
+    def _get_package_rule_from_data(self, data):
+        package_rule_id = data.get("package_rule_id")
+        if package_rule_id:
+            package_rule = self.env["package.rule"].browse(package_rule_id)
+            if package_rule.exists():
+                return package_rule
+
+        # For package sales, allow the POS line/package product to identify the rule.
+        line_product_ids = [line.get("product_id") for line in data.get("lines", []) if line.get("product_id")]
+        if line_product_ids:
+            package_rule = self.env["package.rule"].search([("product_id", "in", line_product_ids)], limit=1)
+            if package_rule:
+                return package_rule
+
+        return self.env["package.rule"]
+
+    def _create_laundry_order(self, data, package_rule=False):
         return self.create({
             "customer_id": data.get("partner_id"),
             "order_type_id": data.get("laundry_order_type_id"),
-            "package_rule_id": data.get("package_rule_id") or False,
-            "is_package": data.get("is_package_sale", False),
+            "package_rule_id": package_rule.id if package_rule else False,
+            "is_package": bool(data.get("is_package_usage")),
             "order_note": data.get("notes") or "",
         })
-    
-    def _create_partner_package(self, data, laundry_order):
-        """
-        Create a partner package when selling a package from POS.
-        Returns the created partner.package record or False.
-        """
 
+    def _create_laundry_order_lines(self, laundry_order, lines):
+        LaundryOrderLine = self.env["laundry.order.line"]
+
+        for line in lines:
+            product_id = line.get("product_id")
+            if not product_id:
+                continue
+
+            product = self.env["product.product"].browse(product_id)
+            if not product.exists():
+                continue
+
+            qty = line.get("qty") or 1.0
+            price_unit = line.get("price_unit")
+            if price_unit is None:
+                price_unit = product.lst_price
+
+            LaundryOrderLine.create({
+                "order_id": laundry_order.id,
+                "product_id": product.id,
+                "product_uom_id": product.uom_id.id,
+                "quantity": qty,
+                "price_unit": price_unit,
+            })
+
+    def _create_partner_package(self, data, laundry_order, package_rule=False):
         if not data.get("is_package_sale"):
             return False
 
-        package_rule_id = data.get("package_rule_id")
-        if not package_rule_id:
+        if not package_rule:
             raise ValidationError("Package is required for package sale.")
 
-        return self.env["partner.package"].create({
+        partner_package = self.env["partner.package"].create({
             "partner_id": data.get("partner_id"),
-            "package_rule_id": package_rule_id,
+            "package_rule_id": package_rule.id,
             "laundry_order_id": laundry_order.id,
         })
-    def _create_pos_order(self, data):
-        pos_result = self.env["pos.order"].create_from_ui([data])
 
-        if not pos_result:
-            return False
+        self._create_partner_package_balances(partner_package)
+        return partner_package
 
-        pos_order_id = pos_result[0].get("id")
-        if not pos_order_id:
-            return False
+    def _create_partner_package_balances(self, partner_package):
+        UsageBalance = self.env["partner.package.usage"]
 
-        return self.env["pos.order"].browse(pos_order_id)
-    
-    def _link_laundry_order(self, laundry_order, pos_order):
-        """
-        Link the Laundry Order with the created POS Order.
-        """
+        for detail in partner_package.package_rule_id.detail_ids:
+            products = detail.product_ids
+            if not products:
+                continue
 
-        if not laundry_order or not pos_order:
+            # Keep the balance by product. Each allowed product receives the detail quantity.
+            for product in products:
+                UsageBalance.create({
+                    "partner_package_id": partner_package.id,
+                    "package_rule_detail_id": detail.id,
+                    "product_id": product.id,
+                    "allowed_qty": detail.qty,
+                })
+
+    def _create_package_usage_lines(self, data, laundry_order):
+        if not data.get("is_package_usage"):
             return
 
-        laundry_order.write({
-            "pos_order_id": pos_order.id,
-        })
+        partner_package_id = data.get("partner_package_id")
+        if not partner_package_id:
+            raise ValidationError("Please select an active customer package.")
 
-    def _link_partner_package(self, partner_package, pos_order):
-        """
-        Link the Partner Package with the created POS Order.
-        """
+        partner_package = self.env["partner.package"].browse(partner_package_id)
+        if not partner_package.exists():
+            raise ValidationError("Selected customer package was not found.")
 
-        if not partner_package or not pos_order:
-            return
+        if partner_package.partner_id.id != data.get("partner_id"):
+            raise ValidationError("Selected package does not belong to this customer.")
 
-        partner_package.write({
-            "pos_order_id": pos_order.id,
-        })
+        if partner_package.state != "active":
+            raise ValidationError("Selected package is not active.")
+
+        UsageLine = self.env["partner.package.usage.line"]
+        for line in data.get("lines", []):
+            product_id = line.get("product_id")
+            if not product_id:
+                continue
+
+            qty = line.get("qty") or 1.0
+            UsageLine.create({
+                "partner_package_id": partner_package.id,
+                "laundry_order_id": laundry_order.id,
+                "product_id": product_id,
+                "qty": qty,
+            })

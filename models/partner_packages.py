@@ -1,5 +1,6 @@
 from odoo import models, fields, api
 from dateutil.relativedelta import relativedelta
+from datetime import timedelta
 
 
 class PartnerPackage(models.Model):
@@ -70,18 +71,17 @@ class PartnerPackage(models.Model):
         string="Usage History",
     )
 
-    
-
     @api.depends("start_date", "package_rule_id.duration")
     def _compute_end_date(self):
         for rec in self:
             if rec.start_date and rec.package_rule_id and rec.package_rule_id.duration:
-                rec.end_date = rec.start_date + relativedelta(
-                    months=rec.package_rule_id.duration
+                rec.end_date = rec.start_date + timedelta(
+                    days=rec.package_rule_id.duration
                 )
             else:
                 rec.end_date = False
 
+    
 
     @api.depends("end_date")
     def _compute_state(self):
