@@ -64,20 +64,10 @@ export class PosHomeScreen extends Component {
         }
 
         try {
-            const packages = await this.orm.searchRead(
+            const packages = await this.orm.call(
                 "partner.package",
-                [
-                    ["partner_id", "=", customer.id],
-                    ["state", "=", "active"],
-                ],
-                [
-                    "id",
-                    "name",
-                    "package_rule_id",
-                    "start_date",
-                    "end_date",
-                    "state",
-                ]
+                "get_active_packages_for_pos",
+                [customer.id]
             );
 
             this.state.activePackages = packages || [];
@@ -176,7 +166,7 @@ export class PosHomeScreen extends Component {
             [
                 ["active", "=", true],
                 ["is_package_use", "=", true],
-                ["is_hidden","=", true],
+                ["is_hidden", "=", true],
             ],
             [
                 "id",
@@ -185,9 +175,7 @@ export class PosHomeScreen extends Component {
                 "is_package_sale",
                 "is_package_use",
             ],
-            {
-                limit: 1,
-            }
+            { limit: 1 }
         );
 
         if (!packageUsageTypes.length) {
@@ -200,28 +188,39 @@ export class PosHomeScreen extends Component {
 
         const orderType = packageUsageTypes[0];
 
+        const allowedProducts = pkg.allowed_product_ids || [];
+        const allowedCategories = pkg.allowed_category_ids || [];
+
         order.uiState.laundry_order_type_id = orderType.id;
         order.uiState.laundry_order_type_name = orderType.name;
         order.uiState.laundry_allowed_pos_category_ids = orderType.pos_category_ids || [];
 
         order.uiState.is_package_sale = false;
         order.uiState.is_package_usage = true;
-
         order.uiState.partner_package_id = pkg.id;
         order.uiState.package_rule_id = pkg.package_rule_id?.[0] || false;
-        order.uiState.package_rule_name = pkg.package_rule_id?.[1] || "";
+        order.uiState.package_rule_name = pkg.package_rule_name || pkg.package_rule_id?.[1] || "";
+        order.uiState.allowed_package_products = allowedProducts;
+        order.uiState.allowed_package_categories = allowedCategories;
+        order.uiState.package_details = pkg.details || [];
 
         order.is_package_sale = false;
         order.is_package_usage = true;
         order.partner_package_id = pkg.id;
-        order.package_rule_id = pkg.package_rule_id?.[0] || false;
-        order.package_rule_name = pkg.package_rule_id?.[1] || "";
+        order.package_rule_id = order.uiState.package_rule_id;
+        order.package_rule_name = order.uiState.package_rule_name;
+        order.allowed_package_products = allowedProducts;
+        order.allowed_package_categories = allowedCategories;
+        order.package_details = pkg.details || [];
 
         this.pos.selected_laundry_order_type = orderType;
         this.pos.selected_partner_package = pkg;
 
         console.log("Selected active package:", pkg);
         console.log("Package usage order type:", orderType);
+        console.log("Allowed Products:", allowedProducts);
+        console.log("Allowed Categories:", allowedCategories);
+        console.log("Package Details:", pkg.details || []);
 
         this.pos.navigate("ProductScreen");
     }

@@ -57,9 +57,7 @@
             "pos_laundry/static/src/js/category_selector_native_patch.js",
             "pos_laundry/static/src/xml/category_selector_native_patch.xml",
             "pos_laundry/static/src/js/product_screen_filter_patch.js",
-            "pos_laundry/static/src/overrides/models/order_patch.js",
-
-
+            "pos_laundry/static/src/overrides/models/add_product_validation_patch.js",
         ],
     },
     "installable": True,

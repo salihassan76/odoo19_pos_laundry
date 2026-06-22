@@ -6,15 +6,15 @@ import { patch } from "@web/core/utils/patch";
 import { Order } from "@point_of_sale/app/store/models";
 
 patch(Order.prototype, {
-    serialize() {
-        const json = super.serialize(...arguments);
+    setup() {
+        super.setup(...arguments);
 
-        json.laundry_order_type_id = this.uiState?.laundry_order_type_id || false;
-        json.package_rule_id = this.uiState?.package_rule_id || false;
-        json.is_package_sale = this.uiState?.is_package_sale || false;
-        json.is_package_usage = this.uiState?.is_package_usage || false;
-        json.notes = this.uiState?.notes || "";
+        this.uiState.is_package_usage = this.uiState.is_package_usage || false;
+        this.uiState.partner_package_id = this.uiState.partner_package_id || false;
+        this.uiState.package_rule_id = this.uiState.package_rule_id || false;
+        this.uiState.package_rule_name = this.uiState.package_rule_name || "";
 
-        return json;
+        this.uiState.allowed_package_products = this.uiState.allowed_package_products || [];
+        this.uiState.allowed_package_categories = this.uiState.allowed_package_categories || [];
     },
 });

@@ -1,4 +1,4 @@
-from odoo import models, fields, api
+from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
 
 
@@ -112,6 +112,19 @@ class LaundryOrder(models.Model):
         lines = data.get("lines") or []
         if not lines:
             raise ValidationError("Please add at least one product before saving the laundry order.")
+        # Validate package products
+        if data.get("is_package_usage"):
+            partner_package = self.env["partner.package"].browse(
+                data.get("partner_package_id")
+            )
+
+            if not partner_package.exists():
+                raise ValidationError("Please select a valid package.")
+
+            self._validate_package_products(
+                partner_package,
+                lines,
+            )
 
         package_rule = self._get_package_rule_from_data(data)
         laundry_order = self._create_laundry_order(data, package_rule)
@@ -240,3 +253,16 @@ class LaundryOrder(models.Model):
                 "product_id": product_id,
                 "qty": qty,
             })
+
+    def _validate_package_products(self, partner_package, lines):
+        allowed_products = partner_package.package_rule_id.detail_ids.mapped("product_ids").ids
+
+        for line in lines:
+            product_id = line.get("product_id")
+
+            if product_id not in allowed_products:
+                product = self.env["product.product"].browse(product_id)
+                raise ValidationError(
+                    _("Product %s is not included in this package.")
+                    % product.display_name
+                )

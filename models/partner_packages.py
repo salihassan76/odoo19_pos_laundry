@@ -91,3 +91,52 @@ class PartnerPackage(models.Model):
                 rec.state = "expired"
             else:
                 rec.state = "active"
+    
+    @api.model
+    def get_active_packages_for_pos(self, partner_id):
+        packages = self.search([
+            ("partner_id", "=", partner_id),
+            ("state", "=", "active"),
+        ])
+
+        result = []
+
+        for package in packages:
+            allowed_product_ids = []
+            allowed_category_ids = []
+            details = []
+
+            for detail in package.package_rule_id.detail_ids:
+                product_ids = detail.product_ids.ids
+                category = detail.pos_category_id
+
+                allowed_product_ids.extend(product_ids)
+
+                if category:
+                    allowed_category_ids.append(category.id)
+
+                details.append({
+                    "detail_id": detail.id,
+                    "category_id": category.id if category else False,
+                    "category_name": category.name if category else "",
+                    "product_ids": product_ids,
+                    "allowed_qty": detail.qty,
+                })
+
+            result.append({
+                "id": package.id,
+                "name": package.name,
+                "package_rule_id": [
+                    package.package_rule_id.id,
+                    package.package_rule_id.name,
+                ],
+                "package_rule_name": package.package_rule_id.name,
+                "start_date": package.start_date,
+                "end_date": package.end_date,
+                "state": package.state,
+                "allowed_product_ids": list(set(allowed_product_ids)),
+                "allowed_category_ids": list(set(allowed_category_ids)),
+                "details": details,
+            })
+
+        return result
