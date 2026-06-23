@@ -1,9 +1,18 @@
-from odoo import models, fields, api
+from odoo import models, fields, api, _
+from odoo.exceptions import ValidationError
 
 
 class PackageRuleDetail(models.Model):
     _name = "package.rule.detail"
     _description = "Package Template Detail"
+
+    _sql_constraints = [
+    (
+        "unique_category_per_package",
+        "unique(package_rule_id, pos_category_id)",
+        "You can only add one line per category in the same package.",
+    ),
+    ]
 
     package_rule_id = fields.Many2one(
         "package.rule",
@@ -39,3 +48,21 @@ class PackageRuleDetail(models.Model):
         for rec in self:
             total_product_price = sum(rec.product_ids.mapped("lst_price"))
             rec.value = total_product_price * rec.qty
+
+    @api.constrains("pos_category_id", "package_rule_id")
+    def _check_unique_category_per_package(self):
+        for rec in self:
+            if not rec.package_rule_id or not rec.pos_category_id:
+                continue
+
+            duplicate = self.search([
+                ("id", "!=", rec.id),
+                ("package_rule_id", "=", rec.package_rule_id.id),
+                ("pos_category_id", "=", rec.pos_category_id.id),
+            ], limit=1)
+
+            if duplicate:
+                raise ValidationError(
+                    _("You can only add one line per category in the same package. "
+                      "Please add all allowed products under the same category line.")
+                )

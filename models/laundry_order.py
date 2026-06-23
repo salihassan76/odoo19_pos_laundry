@@ -241,19 +241,49 @@ class LaundryOrder(models.Model):
             raise ValidationError("Selected package is not active.")
 
         UsageLine = self.env["partner.package.usage.line"]
+
         for line in data.get("lines", []):
             product_id = line.get("product_id")
             if not product_id:
                 continue
 
             qty = line.get("qty") or 1.0
+
+            detail = self._get_package_detail_for_product(
+                partner_package,
+                product_id,
+            )
+
+            if not detail:
+                product = self.env["product.product"].browse(product_id)
+                raise ValidationError(
+                    "Product %s is not included in this package."
+                    % product.display_name
+                )
+
+            used_qty = sum(
+                UsageLine.search([
+                    ("partner_package_id", "=", partner_package.id),
+                    ("package_rule_detail_id", "=", detail.id),
+                ]).mapped("qty")
+            )
+
+            remaining_qty = detail.qty - used_qty
+
+            if qty > remaining_qty:
+                raise ValidationError(
+                    "Not enough package balance for %s. Remaining: %s, Requested: %s."
+                    % (detail.pos_category_id.name, remaining_qty, qty)
+                )
+
             UsageLine.create({
                 "partner_package_id": partner_package.id,
+                "package_rule_detail_id": detail.id,
                 "laundry_order_id": laundry_order.id,
                 "product_id": product_id,
                 "qty": qty,
             })
-
+            
     def _validate_package_products(self, partner_package, lines):
         allowed_products = partner_package.package_rule_id.detail_ids.mapped("product_ids").ids
 
@@ -266,3 +296,8 @@ class LaundryOrder(models.Model):
                     _("Product %s is not included in this package.")
                     % product.display_name
                 )
+    def _get_package_detail_for_product(self, partner_package, product_id):
+        for detail in partner_package.package_rule_id.detail_ids:
+            if product_id in detail.product_ids.ids:
+                return detail
+        return False

@@ -31,3 +31,8 @@ class PartnerPackageUsageLine(models.Model):
         default=fields.Datetime.now,
         readonly=True,
     )
+    package_rule_detail_id = fields.Many2one(
+        "package.rule.detail",
+        string="Package Detail",
+        required=True,
+    )

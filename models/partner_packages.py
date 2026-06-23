@@ -115,12 +115,22 @@ class PartnerPackage(models.Model):
                 if category:
                     allowed_category_ids.append(category.id)
 
+                usage_lines = package.usage_history_ids.filtered(
+                    lambda line: line.package_rule_detail_id.id == detail.id
+                )
+
+                used_qty = sum(usage_lines.mapped("qty"))
+                remaining_qty = detail.qty - used_qty
+
+
                 details.append({
                     "detail_id": detail.id,
                     "category_id": category.id if category else False,
                     "category_name": category.name if category else "",
                     "product_ids": product_ids,
                     "allowed_qty": detail.qty,
+                    "used_qty": used_qty,
+                    "remaining_qty": remaining_qty if remaining_qty > 0 else 0,
                 })
 
             result.append({

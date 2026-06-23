@@ -37,7 +37,7 @@
     ],
     "assets": {
         "point_of_sale._assets_pos": [
-            "pos_laundry/static/src/xml/pos_navbar.xml",  
+            "pos_laundry/static/src/xml/pos_navbar.xml",
             "pos_laundry/static/src/xml/pos_actionpad.xml",
             "pos_laundry/static/src/xml/pos_pendingscreen.xml",
             "pos_laundry/static/src/css/pos_laundry.css",
@@ -45,7 +45,8 @@
             "pos_laundry/static/src/xml/pos_productprice.xml",
             "pos_laundry/static/src/xml/pos_orderlistscreen.xml",
             "pos_laundry/static/src/xml/CustomerEditPopup.xml",
-            "pos_laundry/static/src/js/pos_pendingscreen.js", 
+
+            "pos_laundry/static/src/js/pos_pendingscreen.js",
             "pos_laundry/static/src/js/pos_customereditpopup.js",
             "pos_laundry/static/src/js/pos_homescreen.js",
             "pos_laundry/static/src/xml/pos_homescreen.xml",
@@ -54,10 +55,15 @@
             "pos_laundry/static/src/js/pos_startup.js",
             "pos_laundry/static/src/js/actionpad_extension.js",
             "pos_laundry/static/src/js/pos_orderlistscreen.js",
-            "pos_laundry/static/src/js/category_selector_native_patch.js",
-            "pos_laundry/static/src/xml/category_selector_native_patch.xml",
-            "pos_laundry/static/src/js/product_screen_filter_patch.js",
-            "pos_laundry/static/src/overrides/models/add_product_validation_patch.js",
+
+            "pos_laundry/static/src/js/package/package_utils.js",
+            "pos_laundry/static/src/js/package/package_engine.js",
+            "pos_laundry/static/src/js/package/package_store_patch.js",
+            "pos_laundry/static/src/js/package/package_category_patch.js",
+            "pos_laundry/static/src/js/package/package_product_patch.js",
+            "pos_laundry/static/src/js/package/package_order_patch.js",
+            "pos_laundry/static/src/js/package/package_validation.js",
+            "pos_laundry/static/src/xml/package_category_badge.xml",
         ],
     },
     "installable": True,
