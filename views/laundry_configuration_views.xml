@@ -12,7 +12,18 @@
                 <sheet>
                     <group string="General Settings">
                         <field name="package_pos_category_id"/>
+                        <field name="direct_print"/>
+                        <field name="show_receipt_preview"/>
                         
+                        
+                    </group>
+                    <group string="Order Payments">
+                        <field name="unpaid_payment_id"/>
+                        <field name="partial_payment_id"/>
+                        <field name="paid_payment_id"/>
+                        <field name="package_payment_id"/>
+                        <field name="cancelled_payment_id"/>
+                        <field name="refund_payment_id"/>
                     </group>
                     <group string="Project Settings">
                         <field name="is_project"/>

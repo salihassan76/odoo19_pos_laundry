@@ -53,6 +53,7 @@
             "pos_laundry/static/src/xml/pos_customerscreen.xml",
             "pos_laundry/static/src/js/pos_customerscreen.js",
             "pos_laundry/static/src/js/pos_startup.js",
+            "pos_laundry/static/src/js/services/receipt_service.js",
             "pos_laundry/static/src/js/actionpad_extension.js",
             "pos_laundry/static/src/js/pos_orderlistscreen.js",
 
@@ -64,6 +65,10 @@
             "pos_laundry/static/src/js/package/package_order_patch.js",
             "pos_laundry/static/src/js/package/package_validation.js",
             "pos_laundry/static/src/xml/package_category_badge.xml",
+            "pos_laundry/static/src/overrides/models/pos_patch.js",
+            "pos_laundry/static/src/overrides/models/paymentscreen_patch.js",
+            
+            "pos_laundry/static/src/xml/laundry_receipt.xml",
         ],
     },
     "installable": True,

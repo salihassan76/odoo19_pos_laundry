@@ -7,3 +7,4 @@ class LaundryOrderPayStatus(models.Model):
 
     name = fields.Char(required=True)
     active = fields.Boolean(default=True)
+    sequence = fields.Integer(default=10)

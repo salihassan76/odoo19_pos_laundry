@@ -71,6 +71,12 @@ class LaundryOrderType(models.Model):
         default=False
     )
 
+    direct_sale = fields.Boolean(
+        string="Direct Sale",
+        help="After saving the laundry order, go directly to the payment screen.",
+        default=False
+        )
+
 
 
 

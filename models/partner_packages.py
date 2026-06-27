@@ -124,7 +124,6 @@ class PartnerPackage(models.Model):
 
 
                 details.append({
-                    "detail_id": detail.id,
                     "category_id": category.id if category else False,
                     "category_name": category.name if category else "",
                     "product_ids": product_ids,

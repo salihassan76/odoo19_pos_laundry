@@ -4,6 +4,7 @@ import { patch } from "@web/core/utils/patch";
 import { AlertDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 import { _t } from "@web/core/l10n/translation";
 import { useService } from "@web/core/utils/hooks";
+import { printLaundryReceipt } from "./services/receipt_service";
 
 function getCurrentOrder(pos) {
     return pos.getOrder?.() || pos.get_order?.() || null;
@@ -43,11 +44,20 @@ function getOrderPartner(order) {
     return order.partner_id || order.get_partner?.() || order.getPartner?.() || null;
 }
 
+function goToScreen(pos, screenName) {
+    if (pos.showScreen) {
+        pos.showScreen(screenName);
+    } else if (pos.navigate) {
+        pos.navigate(screenName);
+    }
+}
+
 patch(ActionpadWidget.prototype, {
     setup() {
         super.setup(...arguments);
         this.dialog = useService("dialog");
         this.orm = useService("orm");
+        this.printer = useService("printer");
     },
 
     async clickSaveOrder() {
@@ -81,11 +91,48 @@ patch(ActionpadWidget.prototype, {
             [data]
         );
 
-        if (result) {
-            removeOrder(this.pos, order);
-            addNewOrder(this.pos);
-            this.pos.navigate("pos_homescreen");
+        if (!result) {
+            return;
         }
+
+        if (result.show_receipt_preview && result.receipt) {
+            this.dialog.add(AlertDialog, {
+                title: _t("Receipt Preview"),
+                body: JSON.stringify(result.receipt, null, 2),
+            });
+        }
+
+        if (result.direct_print && result.receipt) {
+            await printLaundryReceipt(
+                this.printer,
+                result.receipt,
+                this.dialog
+            );
+        }
+
+        
+
+        // Store the laundry order id for later linking
+        order.uiState.laundry_order_id = result.laundry_order_id;
+
+        // Direct sale -> go to payment screen
+        if (result.direct_sale) {
+            console.log("---Diret Sale---");
+            console.log(this.pos);
+            console.log("pay =", this.pos.pay);
+            order.uiState.laundry_order_id = result.laundry_order_id;
+
+            this.pos.pay();
+            //goToScreen(this.pos, "PaymentScreen");
+            return;
+
+        }
+
+        // Normal flow
+        removeOrder(this.pos, order);
+        addNewOrder(this.pos);
+        //goToScreen(this.pos, "pos_homescreenn");
+        this.pos.navigate("pos_homescreen");
     },
 
     async cancelLaundryOrder() {

@@ -7,6 +7,7 @@
         <field name="model">laundry.order.payment.status</field>
         <field name="arch" type="xml">
             <list string="Order Payment Status">
+                <field name="sequence"/>
                 <field name="name"/>
                 <field name="active"/>
             </list>
@@ -24,6 +25,8 @@
                         <group>
                             <field name="name"/>
                             <field name="active"/>
+                            <field name="sequence"/>
+                            
                         </group>
 
                     </group>

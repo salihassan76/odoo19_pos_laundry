@@ -1,5 +1,6 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
+from collections import OrderedDict
 
 
 class LaundryOrder(models.Model):
@@ -22,7 +23,7 @@ class LaundryOrder(models.Model):
         string="Payment Status",
         readonly=True,
         required=True,
-        default=lambda self: self.env["laundry.order.payment.status"].search([], limit=1).id,
+        default=lambda self: self.env["laundry.order.payment.status"].search([],order="sequence", limit=1).id,
     )
     status_id = fields.Many2one(
         "laundry.order.status",
@@ -132,11 +133,16 @@ class LaundryOrder(models.Model):
 
         partner_package = self._create_partner_package(data, laundry_order, package_rule)
         self._create_package_usage_lines(data, laundry_order)
+        config = self.env["laundry.configuration"].search([], limit=1)
 
         return {
             "laundry_order_id": laundry_order.id,
             "partner_package_id": partner_package.id if partner_package else False,
             "pos_order_id": False,
+            "direct_sale": laundry_order.order_type_id.direct_sale,
+            "direct_print": bool(config.direct_print) if config else False,
+            "receipt": laundry_order._get_receipt_data(),
+            "show_receipt_preview":bool(config.show_receipt_preview) if config else False,
         }
 
     def _get_package_rule_from_data(self, data):
@@ -156,13 +162,22 @@ class LaundryOrder(models.Model):
         return self.env["package.rule"]
 
     def _create_laundry_order(self, data, package_rule=False):
-        return self.create({
+        vals = {
             "customer_id": data.get("partner_id"),
             "order_type_id": data.get("laundry_order_type_id"),
             "package_rule_id": package_rule.id if package_rule else False,
             "is_package": bool(data.get("is_package_usage")),
             "order_note": data.get("notes") or "",
-        })
+        }
+
+        if data.get("is_package_usage"):
+            config = self.env["laundry.configuration"].search([], limit=1)
+            if not config or not config.package_payment_id:
+                raise ValidationError(_("Please configure Package Payment Status in Laundry Settings."))
+
+            vals["payment_status_id"] = config.package_payment_id.id
+
+        return self.create(vals)
 
     def _create_laundry_order_lines(self, laundry_order, lines):
         LaundryOrderLine = self.env["laundry.order.line"]
@@ -301,3 +316,57 @@ class LaundryOrder(models.Model):
             if product_id in detail.product_ids.ids:
                 return detail
         return False
+    
+
+    def _get_receipt_data(self):
+        self.ensure_one()
+
+        company = self.env.company
+
+        services = OrderedDict()
+
+        for line in self.order_line_ids:
+            # Change this if you want another grouping field
+            service = (
+                line.product_id.pos_categ_ids[:1].name
+                if line.product_id.pos_categ_ids
+                else "Other"
+            )
+
+            if service not in services:
+                services[service] = {
+                    "name": service,
+                    "lines": [],
+                }
+
+            services[service]["lines"].append({
+                "product_name": line.product_id.display_name,
+                "qty": line.quantity,
+                "price_unit": line.price_unit,
+                "subtotal": line.price_subtotal,
+            })
+
+        return {
+            "company_name": company.name,
+            "company_phone": company.phone or "",
+            "company_email": company.email or "",
+
+            "order_name": self.name,
+            "date": fields.Datetime.to_string(self.order_datetime),
+
+            "customer_name": self.customer_id.name,
+            "customer_mobile": self.customer_id.phone or "",
+
+            "order_type": self.order_type_id.name,
+
+            "payment_status": self.payment_status_id.name,
+            "status": self.status_id.name,
+
+            "total": self.total_amount,
+            "note": self.order_note or "",
+
+            "is_package_sale": self.order_type_id.is_package_sale,
+            "is_package_use": self.order_type_id.is_package_use,
+
+            "services": list(services.values()),
+        }
