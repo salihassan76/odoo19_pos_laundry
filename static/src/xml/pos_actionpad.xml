@@ -18,7 +18,7 @@
                     -->
                     <!-- Save Button 75% -->
                     <button class="pay pay-order-button button btn btn-success btn-lg py-3 d-flex align-items-center justify-content-center" 
-                        style="flex: 3;"
+                        style="flex: 2;"
                         t-on-click="clickSaveOrder">
 
                         <!-- Mobile -->
@@ -33,18 +33,34 @@
 
                     <!-- </t> -->
 
-                    <!-- Print Button 25% -->
+                    <!-- Cancel Button 25% -->
                     <button class="btn btn-danger btn-lg py-3 d-flex align-items-center justify-content-center"
                             style="flex: 1;"
                             t-on-click="cancelLaundryOrder">
 
                         <!-- Mobile -->
-                        <i class="fa fa-print d-md-none fs-3"/>
+                        <i class="fa fa-trash d-md-none fs-3"/>
 
                         <!-- Desktop -->
                         <i class="fa fa-trash me-1"/>
                         <span class="d-none d-md-inline">
                             Cancel
+                        </span>
+
+                    </button>
+
+                    <!-- Print Button 25% -->
+                    <button class="btn btn-warning btn-lg py-3 d-flex align-items-center justify-content-center"
+                            style="flex: 1;"
+                            >
+
+                        <!-- Mobile -->
+                        <i class="fa fa-print d-md-none fs-3"/>
+
+                        <!-- Desktop -->
+                        <i class="fa fa-print me-1"/>
+                        <span class="d-none d-md-inline">
+                            Print
                         </span>
 
                     </button>

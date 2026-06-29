@@ -45,7 +45,6 @@
             "pos_laundry/static/src/xml/pos_productprice.xml",
             "pos_laundry/static/src/xml/pos_orderlistscreen.xml",
             "pos_laundry/static/src/xml/CustomerEditPopup.xml",
-
             "pos_laundry/static/src/js/pos_pendingscreen.js",
             "pos_laundry/static/src/js/pos_customereditpopup.js",
             "pos_laundry/static/src/js/pos_homescreen.js",
