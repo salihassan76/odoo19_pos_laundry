@@ -42,6 +42,11 @@ class LaundryConfiguration(models.Model):
         string="Refund Status",
     )
 
+    order_status_id = fields.Many2one(
+        "laundry.order.status",
+        string="Default Order Status",
+    )
+
     direct_print=fields.Boolean(string="Print After Save/Validate",default=False)
     show_receipt_preview=fields.Boolean(string="Show Receipt Preview",default=True)
 

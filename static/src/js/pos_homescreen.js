@@ -119,7 +119,9 @@ export class PosHomeScreen extends Component {
         console.log("Allowed categories:", allowedCategoryIds);
         
 
-        this.pos.navigate("ProductScreen");
+        this.pos.navigate("ProductScreen", {
+            orderUuid: order.uuid,
+        });
     }
 
     openNewOrder() {
@@ -138,7 +140,9 @@ export class PosHomeScreen extends Component {
             order.setPartner?.(this.state.customer);
         }
 
-        this.pos.navigate("ProductScreen");
+        this.pos.navigate("ProductScreen", {
+            orderUuid: order.uuid,
+        });
     }
     openPendingOrders() {
         this.pos.navigate("pos_pendingscreen");
@@ -222,7 +226,9 @@ export class PosHomeScreen extends Component {
         console.log("Allowed Categories:", allowedCategories);
         console.log("Package Details:", pkg.details || []);
 
-        this.pos.navigate("ProductScreen");
+        this.pos.navigate("ProductScreen", {
+            orderUuid: order.uuid,
+        });
     }
 }
 

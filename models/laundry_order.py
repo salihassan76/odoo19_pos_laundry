@@ -30,7 +30,6 @@ class LaundryOrder(models.Model):
         string="Status",
         readonly=True,
         required=True,
-        default=lambda self: self.env["laundry.order.status"].search([], limit=1).id,
     )
     project_id = fields.Many2one("project.project", string="Project", readonly=True)
     order_datetime = fields.Datetime(
@@ -143,6 +142,7 @@ class LaundryOrder(models.Model):
             "direct_print": bool(config.direct_print) if config else False,
             "receipt": laundry_order._get_receipt_data(),
             "show_receipt_preview":bool(config.show_receipt_preview) if config else False,
+          
         }
 
     def _get_package_rule_from_data(self, data):
@@ -162,12 +162,20 @@ class LaundryOrder(models.Model):
         return self.env["package.rule"]
 
     def _create_laundry_order(self, data, package_rule=False):
+        config = self.env["laundry.configuration"].search([], limit=1)
+        
+        if not config or not config.default_order_status_id:
+            raise ValidationError(
+                _("Please configure the Default Order Status in Laundry Settings.")
+            )
+        
         vals = {
             "customer_id": data.get("partner_id"),
             "order_type_id": data.get("laundry_order_type_id"),
             "package_rule_id": package_rule.id if package_rule else False,
             "is_package": bool(data.get("is_package_usage")),
             "order_note": data.get("notes") or "",
+            "status_id": config.default_order_status_id.id,
         }
 
         if data.get("is_package_usage"):
@@ -369,4 +377,15 @@ class LaundryOrder(models.Model):
             "is_package_use": self.order_type_id.is_package_use,
 
             "services": list(services.values()),
+        }
+    
+    def action_get_receipt_data(self):
+        self.ensure_one()
+
+        config = self.env["laundry.configuration"].search([], limit=1)
+
+        return {
+            "receipt": self._get_receipt_data(),
+            "direct_print": bool(config.direct_print),
+            "show_receipt_preview": bool(config.show_receipt_preview),
         }

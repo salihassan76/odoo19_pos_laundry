@@ -59,7 +59,6 @@ patch(ActionpadWidget.prototype, {
         this.orm = useService("orm");
         this.printer = useService("printer");
     },
-
     async clickSaveOrder() {
         const order = getCurrentOrder(this.pos);
         if (!order) return;

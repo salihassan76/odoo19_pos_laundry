@@ -25,6 +25,9 @@
                         <field name="cancelled_payment_id"/>
                         <field name="refund_payment_id"/>
                     </group>
+                    <group string="Orders">
+                        <field name="order_status_id"/>
+                    </group>
                     <group string="Project Settings">
                         <field name="is_project"/>
                         <field name="project_id" invisible="not is_project"/>

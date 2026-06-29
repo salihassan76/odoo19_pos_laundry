@@ -17,7 +17,8 @@
                     <t t-if="!(this.pos.get_order ? this.pos.get_order()?.uiState?.is_package_sale : this.pos.getOrder()?.uiState?.is_package_sale)">
                     -->
                     <!-- Save Button 75% -->
-                    <button class="pay pay-order-button button btn btn-success btn-lg py-3 d-flex align-items-center justify-content-center" 
+                    <button t-if="pos.getOrder()?.uiState?.status_id === pos.laundryConfig?.default_order_status_id" 
+                        class="pay pay-order-button button btn btn-success btn-lg py-3 d-flex align-items-center justify-content-center" 
                         style="flex: 2;"
                         t-on-click="clickSaveOrder">
 
@@ -34,7 +35,8 @@
                     <!-- </t> -->
 
                     <!-- Cancel Button 25% -->
-                    <button class="btn btn-danger btn-lg py-3 d-flex align-items-center justify-content-center"
+                    <button t-if="pos.getOrder()?.uiState?.status_id === pos.laundryConfig?.default_order_status_id"
+                            class="btn btn-danger btn-lg py-3 d-flex align-items-center justify-content-center"
                             style="flex: 1;"
                             t-on-click="cancelLaundryOrder">
 
@@ -50,7 +52,8 @@
                     </button>
 
                     <!-- Print Button 25% -->
-                    <button class="btn btn-warning btn-lg py-3 d-flex align-items-center justify-content-center"
+                    <button t-if="pos.getOrder()?.uiState?.status_id !== pos.laundryConfig?.default_order_status_id" 
+                            class="btn btn-warning btn-lg py-3 d-flex align-items-center justify-content-center"
                             style="flex: 1;"
                             >
 
