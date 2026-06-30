@@ -17,4 +17,10 @@ class ResConfigSettings(models.TransientModel):
         "project.project",
         string="Project")
     
+    pos_enable_laundry_workflow = fields.Boolean(
+        related="pos_config_id.enable_laundry_workflow",
+        readonly=False,
+        string="Laundry Workflow",
+    )
+    
 

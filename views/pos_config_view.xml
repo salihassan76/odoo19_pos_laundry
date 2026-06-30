@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_pos_config_form_laundry" model="ir.ui.view">
+        <field name="name">pos.config.form.laundry</field>
+        <field name="model">pos.config</field>
+        <field name="inherit_id" ref="point_of_sale.pos_config_view_form"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//div[@id='restaurant_on_create']/setting" position="after">
+                <setting string="Laundry Workflow"
+                         help="Enable the Laundry POS workflow for this POS.">
+                    <field name="enable_laundry_workflow"/>
+                </setting>
+            </xpath>
+
+            <xpath expr="//page[@name='configuration']//div[contains(@class, 'o_settings_container')]/setting[1]" position="before">
+                <setting string="Laundry Workflow"
+                         help="Enable the Laundry POS workflow for this POS.">
+                    <field name="enable_laundry_workflow"/>
+                </setting>
+            </xpath>
+
+        </field>
+    </record>
+
+</odoo>

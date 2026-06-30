@@ -1,6 +1,6 @@
 /** @odoo-module **/
 
-import { Component,useState,onWillStart } from "@odoo/owl";
+import { Component, useState, onWillStart } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { CustomerEditPopup } from "./pos_customereditpopup";
@@ -12,26 +12,16 @@ export class PosHomeScreen extends Component {
         this.pos = useService("pos");
         this.orm = useService("orm");
         this.dialog = useService("dialog");
+        this.laundry = useService("laundry");
+
         this.state = useState({
-        customer:
-            this.props.customer ||
-            this.pos.selected_customer ||
-            null,
-        orderTypes: [],
-        activePackages: [],
+            customer: this.props.customer || this.pos.selected_customer || null,
+            orderTypes: [],
+            activePackages: [],
         });
 
         onWillStart(async () => {
-            this.state.orderTypes = await this.orm.searchRead(
-                "laundry.order.type",
-                [["active", "=", true],["is_hidden","=",false],],
-                ["id", "name", "icon_class", "icon_color", "sequence", "pos_category_ids","is_package_sale",]
-            );
-
-            this.state.orderTypes.sort((a, b) => {
-                return (a.sequence || 0) - (b.sequence || 0);
-            });
-
+            this.state.orderTypes = await this.laundry.getVisibleOrderTypes();
             await this.getActivePackages();
         });
     }
@@ -48,7 +38,6 @@ export class PosHomeScreen extends Component {
             customer,
             save: async (values) => {
                 await this.orm.write("res.partner", [customer.id], values);
-
                 Object.assign(customer, values);
                 this.state.customer = customer;
             },
@@ -56,179 +45,29 @@ export class PosHomeScreen extends Component {
     }
 
     async getActivePackages() {
-        const customer = this.state.customer;
-
-        if (!customer) {
-            this.state.activePackages = [];
-            return;
-        }
-
-        try {
-            const packages = await this.orm.call(
-                "partner.package",
-                "get_active_packages_for_pos",
-                [customer.id]
-            );
-
-            this.state.activePackages = packages || [];
-            console.log("Active packages:", packages);
-
-        } catch (error) {
-            console.error("Package RPC failed full error:", error);
-            console.error("Error data:", error.data);
-            console.error("Error message:", error.message);
-            this.state.activePackages = [];
-        }
+        this.state.activePackages = await this.laundry.getActivePackages(
+            this.state.customer?.id
+        );
     }
 
     selectOrderType(orderType) {
-        let order = this.pos.get_order
-            ? this.pos.get_order()
-            : this.pos.getOrder?.();
-
-        if (!order) {
-            order = this.pos.add_new_order
-                ? this.pos.add_new_order()
-                : this.pos.addNewOrder?.();
-        }
-
-        if (!order) {
-            return;
-        }
-
-        if (this.state.customer) {
-            order.set_partner?.(this.state.customer);
-            order.setPartner?.(this.state.customer);
-        }
-
-        const allowedCategoryIds = (orderType.pos_category_ids || []).map((cat) =>
-            typeof cat === "object" ? cat.id : cat
-        );
-
-        order.uiState.laundry_order_type_id = orderType.id;
-        order.uiState.laundry_order_type_name = orderType.name;
-        order.uiState.laundry_order_type_prefix = orderType.prefix;
-        order.uiState.laundry_allowed_pos_category_ids = allowedCategoryIds;
-        order.uiState.is_package_sale = Boolean(orderType.is_package_sale);
-        order.uiState.is_package_usage = false;
-        order.uiState.partner_package_id = false;
-
-        this.pos.selected_laundry_order_type = orderType;
-
-        console.log("Selected order type:", orderType.name);
-        console.log("Allowed categories:", allowedCategoryIds);
-        
-
-        this.pos.navigate("ProductScreen", {
-            orderUuid: order.uuid,
-        });
+        this.laundry.selectOrderType(orderType, this.state.customer);
     }
 
     openNewOrder() {
-        let order = this.pos.get_order
-            ? this.pos.get_order()
-            : this.pos.getOrder?.();
-
-        if (!order) {
-            order = this.pos.add_new_order
-                ? this.pos.add_new_order()
-                : this.pos.addNewOrder?.();
-        }
-
-        if (order && this.state.customer) {
-            order.set_partner?.(this.state.customer);
-            order.setPartner?.(this.state.customer);
-        }
+        const order = this.laundry.prepareOrder(this.state.customer);
 
         this.pos.navigate("ProductScreen", {
             orderUuid: order.uuid,
         });
     }
+
     openPendingOrders() {
         this.pos.navigate("pos_pendingscreen");
     }
 
-
     async selectPackage(pkg) {
-        let order = this.pos.getOrder?.() || this.pos.get_order?.();
-
-        if (!order) {
-            order = this.pos.addNewOrder?.() || this.pos.add_new_order?.();
-        }
-
-        if (!order) {
-            return;
-        }
-
-        if (this.state.customer) {
-            order.setPartner?.(this.state.customer);
-            order.set_partner?.(this.state.customer);
-        }
-
-        const packageUsageTypes = await this.orm.searchRead(
-            "laundry.order.type",
-            [
-                ["active", "=", true],
-                ["is_package_use", "=", true],
-                ["is_hidden", "=", true],
-            ],
-            [
-                "id",
-                "name",
-                "pos_category_ids",
-                "is_package_sale",
-                "is_package_use",
-            ],
-            { limit: 1 }
-        );
-
-        if (!packageUsageTypes.length) {
-            this.dialog.add(AlertDialog, {
-                title: _t("Package Usage Order Type Missing"),
-                body: _t("Please configure one active order type with Package Usage enabled."),
-            });
-            return;
-        }
-
-        const orderType = packageUsageTypes[0];
-
-        const allowedProducts = pkg.allowed_product_ids || [];
-        const allowedCategories = pkg.allowed_category_ids || [];
-
-        order.uiState.laundry_order_type_id = orderType.id;
-        order.uiState.laundry_order_type_name = orderType.name;
-        order.uiState.laundry_allowed_pos_category_ids = orderType.pos_category_ids || [];
-
-        order.uiState.is_package_sale = false;
-        order.uiState.is_package_usage = true;
-        order.uiState.partner_package_id = pkg.id;
-        order.uiState.package_rule_id = pkg.package_rule_id?.[0] || false;
-        order.uiState.package_rule_name = pkg.package_rule_name || pkg.package_rule_id?.[1] || "";
-        order.uiState.allowed_package_products = allowedProducts;
-        order.uiState.allowed_package_categories = allowedCategories;
-        order.uiState.package_details = pkg.details || [];
-
-        order.is_package_sale = false;
-        order.is_package_usage = true;
-        order.partner_package_id = pkg.id;
-        order.package_rule_id = order.uiState.package_rule_id;
-        order.package_rule_name = order.uiState.package_rule_name;
-        order.allowed_package_products = allowedProducts;
-        order.allowed_package_categories = allowedCategories;
-        order.package_details = pkg.details || [];
-
-        this.pos.selected_laundry_order_type = orderType;
-        this.pos.selected_partner_package = pkg;
-
-        console.log("Selected active package:", pkg);
-        console.log("Package usage order type:", orderType);
-        console.log("Allowed Products:", allowedProducts);
-        console.log("Allowed Categories:", allowedCategories);
-        console.log("Package Details:", pkg.details || []);
-
-        this.pos.navigate("ProductScreen", {
-            orderUuid: order.uuid,
-        });
+        await this.laundry.selectPackage(pkg, this.state.customer);
     }
 }
 

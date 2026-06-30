@@ -34,9 +34,16 @@
         "views/laundry_order_view.xml",
         "views/laundry_order_action.xml",
         "views/laundry_menus.xml",
+        "views/pos_config_view.xml",
     ],
     "assets": {
         "point_of_sale._assets_pos": [
+            "pos_laundry/static/src/app/utils/receipt_service.js",
+            "pos_laundry/static/src/app/services/laundry_service.js",
+            "pos_laundry/static/src/overrides/pos_startup.js",
+            "pos_laundry/static/src/overrides/pos_patch.js",
+            "pos_laundry/static/src/overrides/paymentscreen_patch.js",
+            "pos_laundry/static/src/overrides/actionpad_extension.js",
             "pos_laundry/static/src/xml/pos_navbar.xml",
             "pos_laundry/static/src/xml/pos_actionpad.xml",
             "pos_laundry/static/src/xml/pos_pendingscreen.xml",
@@ -51,11 +58,9 @@
             "pos_laundry/static/src/xml/pos_homescreen.xml",
             "pos_laundry/static/src/xml/pos_customerscreen.xml",
             "pos_laundry/static/src/js/pos_customerscreen.js",
-            "pos_laundry/static/src/js/pos_startup.js",
-            "pos_laundry/static/src/js/services/receipt_service.js",
-            "pos_laundry/static/src/js/actionpad_extension.js",
+            
+            
             "pos_laundry/static/src/js/pos_orderlistscreen.js",
-
             "pos_laundry/static/src/js/package/package_utils.js",
             "pos_laundry/static/src/js/package/package_engine.js",
             "pos_laundry/static/src/js/package/package_store_patch.js",
@@ -64,8 +69,6 @@
             "pos_laundry/static/src/js/package/package_order_patch.js",
             "pos_laundry/static/src/js/package/package_validation.js",
             "pos_laundry/static/src/xml/package_category_badge.xml",
-            "pos_laundry/static/src/overrides/models/pos_patch.js",
-            "pos_laundry/static/src/overrides/models/paymentscreen_patch.js",
             
             "pos_laundry/static/src/xml/laundry_receipt.xml",
         ],

@@ -4,7 +4,8 @@ import { patch } from "@web/core/utils/patch";
 import { AlertDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 import { _t } from "@web/core/l10n/translation";
 import { useService } from "@web/core/utils/hooks";
-import { printLaundryReceipt } from "./services/receipt_service";
+import { printLaundryReceipt } from "../services/receipt_service";
+import { useService } from "@web/core/utils/hooks";
 
 function getCurrentOrder(pos) {
     return pos.getOrder?.() || pos.get_order?.() || null;
@@ -58,8 +59,13 @@ patch(ActionpadWidget.prototype, {
         this.dialog = useService("dialog");
         this.orm = useService("orm");
         this.printer = useService("printer");
+        this.laundry = useService("laundry");
     },
     async clickSaveOrder() {
+        if (!this.laundry.isEnabled()) {
+                return;
+            }
+
         const order = getCurrentOrder(this.pos);
         if (!order) return;
 

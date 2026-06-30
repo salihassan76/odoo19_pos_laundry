@@ -11,7 +11,7 @@
         <!-- Add button before Pay -->
         <xpath expr="//div[contains(@class, 'validation')]" position="before">
             
-           
+            <t t-if="pos.config.enable_laundry_workflow">
                 <div class="gap-2 d-flex">
                     <!--
                     <t t-if="!(this.pos.get_order ? this.pos.get_order()?.uiState?.is_package_sale : this.pos.getOrder()?.uiState?.is_package_sale)">
@@ -68,7 +68,7 @@
 
                     </button>
                 </div>
-
+            </t>
         </xpath>
 
     </t>
