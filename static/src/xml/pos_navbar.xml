@@ -5,51 +5,40 @@
        t-inherit="point_of_sale.Navbar"
        t-inherit-mode="extension">
 
-        <!-- Make Register button return to Product Screen 
-        <xpath expr="//button[hasclass('register-label')]"
-               position="attributes">
-            <attribute name="t-on-click">
-                () => this.pos.navigate('ProductScreen')
-            </attribute>
-        </xpath> -->
-
-        <!-- Remove Register -->
-        <xpath expr="//button[hasclass('register-label')]"
-            position="replace">
+        <!-- Hide Register only when laundry workflow is enabled -->
+        <xpath expr="//button[hasclass('register-label')]" position="attributes">
+            <attribute name="t-if">!pos.config.enable_laundry_workflow</attribute>
         </xpath>
 
-             <!-- Remove Restaurant Order Tabs if injected -->
-        <xpath expr="//div[hasclass('pos-leftheader')]//OrderTabs"
-               position="replace">
+        <!-- Hide Order Tabs only when laundry workflow is enabled -->
+        <xpath expr="//div[hasclass('pos-leftheader')]//OrderTabs" position="attributes">
+            <attribute name="t-if">!pos.config.enable_laundry_workflow</attribute>
         </xpath>
 
+        <xpath expr="//button[hasclass('orders-button')]" position="attributes">
+            <attribute name="t-if">!pos.config.enable_laundry_workflow</attribute>
+        </xpath>
 
-        <!-- Replace default Orders button with custom buttons -->
-        <xpath expr="//button[hasclass('orders-button')]"
-               position="replace">
+        <!-- Replace Orders button content only when laundry workflow is enabled -->
+        <xpath expr="//button[hasclass('orders-button')]" position="after">
 
-            <!-- Home Button -->
-            <button class="btn btn-light lh-lg d-flex align-items-center justify-content-center gap-2"
-                    t-on-click="() => this.pos.navigate('pos_customerscreen')">
+            <t t-if="pos.config.enable_laundry_workflow">
 
-                <i class="fa fa-home text-warning fs-3"/>
-                <span class="d-none d-md-inline">
-                    Home
-                </span>
+                <button class="btn btn-light lh-lg d-flex align-items-center justify-content-center gap-2"
+                        t-on-click="() => this.pos.navigate('pos_customerscreen')">
+                    <i class="fa fa-home text-warning fs-3"/>
+                    <span class="d-none d-md-inline">Home</span>
+                </button>
 
-            </button>
+                <button class="btn btn-light lh-lg d-flex align-items-center justify-content-center gap-2"
+                        t-on-click="() => this.pos.navigate('pos_orderlistscreen')">
+                    <i class="fa fa-list-alt text-primary fs-3"/>
+                    <span class="d-none d-md-inline">Orders List</span>
+                </button>
 
-            <!-- Orders List Button -->
-            <button class="btn btn-light lh-lg d-flex align-items-center justify-content-center gap-2"
-                    t-on-click="() => this.pos.navigate('pos_orderlistscreen')">
+            </t>
 
-                <i class="fa fa-list-alt text-primary fs-3"/>
-                <span class="d-none d-md-inline">
-                    Orders List
-                </span>
-
-            </button>
-
+            
 
         </xpath>
 

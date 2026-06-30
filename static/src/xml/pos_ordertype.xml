@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <template id="template" xml:space="preserve">
     <t t-name="pos_laundry.OrderSummaryExtension" t-inherit="point_of_sale.OrderSummary" t-inherit-mode="extension">
+        
         <xpath expr="//OrderDisplay" position="before">
+        <t t-if="pos.config.enable_laundry_workflow">
             <div class="laundry-order-info p-2">
                 
                     <div class="d-flex justify-content-between">
@@ -16,7 +18,9 @@
                     </div>
                 
             </div>
+            </t>
         </xpath>
+        
         
     </t>
 </template>

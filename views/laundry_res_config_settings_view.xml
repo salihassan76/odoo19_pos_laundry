@@ -1,47 +1,47 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
 
-<record id="res_config_settings_view_form_pos_laundry" model="ir.ui.view">
-    <field name="name">res.config.settings.view.form.pos.laundry</field>
-    <field name="model">res.config.settings</field>
-    <field name="inherit_id" ref="base.res_config_settings_view_form"/>
-    <field name="arch" type="xml">
+    <record id="res_config_settings_view_form_laundry_pos" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.laundry.pos</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="point_of_sale.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
 
-        <xpath expr="//form" position="inside">
-            <app string="Laundry POS" name="pos_laundry">
-                <block title="Package Settings">
-                    <setting string="Package POS Category">
-                        <field name="laundry_package_category_id"/>
-                    </setting>
-                </block>
-                <block title="Project Settings">
-                    <setting string="Is Project" help="Enable this if you want to link laundry orders to projects.">
-                        <field name="is_project"/>
-                    </setting>
-                    <setting string="Project" help="Select the project to link laundry orders to." invisible="not is_project">
-                        <field name="project_id" options="{'no_create': True}"/>
-                    </setting>
-                </block>
-            </app>
-        </xpath>
+            <xpath expr="//setting[@id='is_restaurant']" position="after">
 
-    </field>
-</record>
+                <setting id="is_laundry_workflow"
+                         string="Laundry Workflow"
+                         help="Enable the Laundry workflow for the selected Point of Sale.">
 
-<record id="res_config_settings_view_form_laundry_pos_section" model="ir.ui.view">
-    <field name="name">res.config.settings.view.form.laundry.pos.section</field>
-    <field name="model">res.config.settings</field>
-    <field name="inherit_id" ref="point_of_sale.res_config_settings_view_form"/>
-    <field name="arch" type="xml">
+                    <field name="pos_enable_laundry_workflow"/>
 
-        <xpath expr="//setting[@id='is_restaurant']" position="after">
-            <setting id="is_laundry"
-                     string="Laundry Workflow"
-                     help="Enable the Laundry workflow for the selected POS.">
-                <field name="pos_enable_laundry_workflow"/>
-            </setting>
-        </xpath>
+                    <div class="content-group mt16"
+                         invisible="not pos_enable_laundry_workflow">
 
-    </field>
-</record>
+                        <div class="row mb-3">
+                            <div class="col-lg-4 o_light_label">
+                                Configuration Status
+                            </div>
+
+                            <div class="col-lg-8">
+                                <field name="laundry_config_status"
+                                       readonly="1"
+                                       nolabel="1"/>
+                            </div>
+                        </div>
+
+                        <button name="action_open_laundry_configuration"
+                                type="object"
+                                string="Open Laundry Settings"
+                                class="btn btn-primary"/>
+
+                    </div>
+
+                </setting>
+
+            </xpath>
+
+        </field>
+    </record>
+
 </odoo>

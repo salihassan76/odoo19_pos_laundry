@@ -1,4 +1,5 @@
-from odoo import models, fields, api
+from odoo import models, fields, api, _
+from odoo.exceptions import UserError
 
 
 class LaundryConfiguration(models.Model):
@@ -47,6 +48,7 @@ class LaundryConfiguration(models.Model):
         string="Default Order Status",
     )
 
+
     direct_print=fields.Boolean(string="Print After Save/Validate",default=False)
     show_receipt_preview=fields.Boolean(string="Show Receipt Preview",default=True)
 
@@ -72,3 +74,54 @@ class LaundryConfiguration(models.Model):
             "res_id": config.id,
             "target": "current",
         }
+    def get_configuration_status(self):
+        config = self.search([], limit=1)
+
+        items = []
+
+        def add(name, ok):
+            items.append({
+                "name": name,
+                "ok": bool(ok),
+            })
+
+        add(_("Laundry Configuration"), bool(config))
+        add(_("Package POS Category"), bool(config and config.package_pos_category_id))
+        add(_("Default Order Status"), bool(config and config.order_status_id))
+        add(_("Unpaid Payment Status"), bool(config and config.unpaid_payment_id))
+        add(_("Paid Payment Status"), bool(config and config.paid_payment_id))
+        add(_("Package Payment Status"), bool(config and config.package_payment_id))
+        add(_("Laundry Order Types"), bool(self.env["laundry.order.type"].search_count([
+            ("active", "=", True),
+            ("is_hidden", "=", False),
+        ])))
+        add(_("Laundry Order Statuses"), bool(self.env["laundry.order.status"].search_count([])))
+        add(_("Laundry Payment Statuses"), bool(self.env["laundry.order.payment.status"].search_count([])))
+
+        if config and config.is_project:
+            add(_("Project"), bool(config.project_id))
+
+        valid = all(item["ok"] for item in items)
+
+        return {
+            "valid": valid,
+            "items": items,
+        }
+
+
+    def check_configuration(self):
+        status = self.get_configuration_status()
+
+        if status["valid"]:
+            return True
+
+        missing = [
+            item["name"]
+            for item in status["items"]
+            if not item["ok"]
+        ]
+
+        raise UserError(_(
+            "Laundry POS configuration is incomplete.\n\n"
+            "Please configure:\n- %s"
+        ) % "\n- ".join(missing))
