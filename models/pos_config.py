@@ -19,15 +19,21 @@ class PosConfig(models.Model):
                 record["enable_laundry_workflow"] = pos_config.enable_laundry_workflow
 
         return data
-    
+
     def _check_before_creating_new_session(self):
         super()._check_before_creating_new_session()
 
         for config in self:
-            if config.enable_laundry_workflow:
-                laundry_config = self.env["laundry.configuration"].search([], limit=1)
+            if not config.enable_laundry_workflow:
+                continue
 
-                if not laundry_config:
-                    laundry_config = self.env["laundry.configuration"].create({})
+            laundry_config = self.env["laundry.configuration"].search([
+                ("pos_config_id", "=", config.id),
+            ], limit=1)
 
-                laundry_config.check_configuration()
+            if not laundry_config:
+                laundry_config = self.env["laundry.configuration"].create({
+                    "pos_config_id": config.id,
+                })
+
+            laundry_config.check_configuration()

@@ -65,6 +65,13 @@ class LaundryOrder(models.Model):
     pos_order_id = fields.Many2one("pos.order", string="POS Order", readonly=True, copy=False)
     order_note = fields.Text(string="Order Note")
     order_internal_note = fields.Text(string="Internal Note")
+    pos_config_id = fields.Many2one(
+        "pos.config",
+        string="POS",
+        required=True,
+        readonly=True,
+        index=True,
+    )
 
     @api.depends("order_datetime")
     def _compute_order_datetime_parts(self):
@@ -164,7 +171,7 @@ class LaundryOrder(models.Model):
     def _create_laundry_order(self, data, package_rule=False):
         config = self.env["laundry.configuration"].search([], limit=1)
         
-        if not config or not config.default_order_status_id:
+        if not config or not config.order_status_id:
             raise ValidationError(
                 _("Please configure the Default Order Status in Laundry Settings.")
             )
@@ -175,7 +182,7 @@ class LaundryOrder(models.Model):
             "package_rule_id": package_rule.id if package_rule else False,
             "is_package": bool(data.get("is_package_usage")),
             "order_note": data.get("notes") or "",
-            "status_id": config.default_order_status_id.id,
+            "status_id": config.order_status_id.id,
         }
 
         if data.get("is_package_usage"):

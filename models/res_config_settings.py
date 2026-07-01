@@ -1,8 +1,9 @@
 from odoo import models, fields
 
+
 class ResConfigSettings(models.TransientModel):
     _inherit = "res.config.settings"
-    
+
     pos_enable_laundry_workflow = fields.Boolean(
         related="pos_config_id.enable_laundry_workflow",
         readonly=False,
@@ -20,28 +21,19 @@ class ResConfigSettings(models.TransientModel):
 
     def _compute_laundry_config_status(self):
         for rec in self:
-            config = self.env["laundry.configuration"].search([], limit=1)
+            pos_config = rec.pos_config_id
 
-            if not config:
+            if not pos_config:
                 rec.laundry_config_status = "incomplete"
                 continue
 
-            status = config.get_configuration_status()
+            status = self.env["laundry.configuration"].get_configuration_status(pos_config)
             rec.laundry_config_status = "complete" if status.get("valid") else "incomplete"
-            
+
     def action_open_laundry_configuration(self):
-        config = self.env["laundry.configuration"].search([], limit=1)
+        self.ensure_one()
 
-        if not config:
-            config = self.env["laundry.configuration"].create({})
-
-        return {
-            "type": "ir.actions.act_window",
-            "name": "Laundry Settings",
-            "res_model": "laundry.configuration",
-            "view_mode": "form",
-            "res_id": config.id,
-            "target": "current",
-        }
-    
-
+        return self.env["laundry.configuration"].with_context(
+            pos_config_id=self.pos_config_id.id,
+            default_pos_config_id=self.pos_config_id.id,
+        ).action_open_laundry_configuration()

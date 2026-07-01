@@ -7,6 +7,7 @@
         <field name="model">laundry.order</field>
         <field name="arch" type="xml">
             <list string="Laundry Orders">
+                <field name="pos_config_id"/>
                 <field name="name"/>
                 <field name="customer_id"/>
                 <field name="order_type_id"/>
@@ -29,6 +30,7 @@
 
                     <group>
                         <group string="Order Details">
+                            <field name="pos_config_id" readonly="1"/>
                             <field name="name" readonly="1"/>
                             <field name="customer_id"/>
                             <field name="order_type_id"/>
@@ -85,12 +87,17 @@
     <field name="model">laundry.order</field>
     <field name="arch" type="xml">
         <search>
+            <field name="pos_config_id"/>
             <field name="name"/>
             <field name="customer_id"/>
             <field name="order_type_id"/>
             <field name="order_date"/>
             <field name="payment_status_id"/>
             <field name="status_id"/>
+
+            <filter name="group_by_pos_config"
+                    string="POS"
+                    context="{'group_by': 'pos_config_id'}"/>
 
             <filter name="today"
                     string="Today"
