@@ -183,6 +183,7 @@ class LaundryOrder(models.Model):
             "is_package": bool(data.get("is_package_usage")),
             "order_note": data.get("notes") or "",
             "status_id": config.order_status_id.id,
+            "pos_config_id": config.pos_config_id.id if config.pos_config_id else False,
         }
 
         if data.get("is_package_usage"):

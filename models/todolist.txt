@@ -1,0 +1,4 @@
+02/07/2026
+1. move configuration to pos_config with all fubction to validate that the laundry configuration are set before able to use it.
+2. move the package to a new module as addon, add hooks
+3. order saving to include pos config id

@@ -46,7 +46,6 @@ class LaundryConfiguration(models.Model):
     unpaid_payment_id = fields.Many2one(
         "laundry.order.payment.status",
         string="Unpaid Status",
-        required=True,
     )
 
     partial_payment_id = fields.Many2one(
@@ -57,13 +56,11 @@ class LaundryConfiguration(models.Model):
     paid_payment_id = fields.Many2one(
         "laundry.order.payment.status",
         string="Paid Status",
-        required=True,
     )
 
     package_payment_id = fields.Many2one(
         "laundry.order.payment.status",
         string="Package Payment Status",
-        required=True,
     )
 
     cancelled_payment_id = fields.Many2one(
