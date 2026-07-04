@@ -467,3 +467,37 @@ class LaundryOrder(models.Model):
             "direct_print": bool(config.direct_print),
             "show_receipt_preview": bool(config.show_receipt_preview),
         }
+    @api.model
+    def get_customer_orders_by_status_for_pos(self, partner_id):
+        if not partner_id:
+            return []
+
+        statuses = self.env["laundry.order.status"].search([
+            ("active", "=", True),
+            ("show_on_home", "=", True),
+        ], order="sequence, id")
+
+        orders = self.search([
+            ("customer_id", "=", partner_id),
+            ("status_id", "in", statuses.ids),
+        ], order="order_datetime desc, id desc")
+
+        result = []
+
+        for status in statuses:
+            status_orders = orders.filtered(lambda o: o.status_id.id == status.id)
+
+            result.append({
+                "status_id": status.id,
+                "status_name": status.name,
+                "orders": [{
+                    "id": order.id,
+                    "name": order.name,
+                    "total_amount": order.total_amount,
+                    "order_datetime": order.order_datetime,
+                    "payment_status": order.payment_status_id.name if order.payment_status_id else "",
+                    "order_type": order.order_type_id.name if order.order_type_id else "",
+                } for order in status_orders],
+            })
+
+        return result
