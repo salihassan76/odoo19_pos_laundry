@@ -30,10 +30,11 @@
                             </div>
                         </div>
 
-                        <button name="action_open_laundry_configuration"
-                                type="object"
-                                string="Open Laundry Settings"
-                                class="btn btn-primary"/>
+                        <button name="action_open_laundry_pos_config"
+                            type="object"
+                            string="Open Laundry Configuration"
+                            class="btn btn-primary"
+                            invisible="not pos_enable_laundry_workflow"/>
 
                     </div>
 

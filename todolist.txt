@@ -1,0 +1,23 @@
+02/07/2026
+1. move configuration to pos_config with all function to validate that the laundry configuration are set before able to use it.
+        - did the required udpdates. (03/07/2026)
+        - need to test:
+            - new pos
+            - orders
+            - packages
+
+2. move the package to a new module as addon, add hooks
+3. order saving to include pos config id - Done 03/07/2026
+4. order list
+    - add  fileds to order status sequance and show on home
+    - add function in laundry orders to show orders
+5. order payments
+6. customer order detials in customer screen
+7. loading orders
+8. changing rorder status
+9. cancelling and refunding orders
+10. printing from pos and backend
+11. direct printing (file reader)
+12. order dashboard
+13. package dashboard
+14. customer dashboard

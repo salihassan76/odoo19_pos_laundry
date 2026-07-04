@@ -9,6 +9,8 @@
             <list string="Order Status">
                 <field name="name"/>
                 <field name="active"/>
+                <field name="show_on_home"/>
+                <field name="sequence"/>
             </list>
         </field>
     </record>
@@ -24,6 +26,8 @@
                         <group>
                             <field name="name"/>
                             <field name="active"/>
+                            <field name="show_on_home"/>
+                            <field name="sequence"/>
                         </group>
 
                     </group>
@@ -46,6 +50,9 @@
                 <filter name="inactive"
                         string="Inactive"
                         domain="[('active','=',False)]"/>
+                <filter name="show_on_home"
+                        string="Show on Home"
+                        domain="[('show_on_home','=',True)]"/>
             </search>
         </field>
     </record>

@@ -23,17 +23,42 @@ class ResConfigSettings(models.TransientModel):
         for rec in self:
             pos_config = rec.pos_config_id
 
-            if not pos_config:
+
+            if not pos_config or not pos_config.enable_laundry_workflow:
                 rec.laundry_config_status = "incomplete"
                 continue
-
-            status = self.env["laundry.configuration"].get_configuration_status(pos_config)
+                            
+            status = pos_config.get_laundry_configuration_status()
             rec.laundry_config_status = "complete" if status.get("valid") else "incomplete"
 
-    def action_open_laundry_configuration(self):
+    def action_check_laundry_configuration(self):
+        self.ensure_one()
+        self.pos_config_id.check_laundry_configuration()
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": "Laundry Configuration",
+                "message": "Laundry configuration is complete.",
+                "type": "success",
+                "sticky": False,
+            },
+        }
+    
+    def action_open_laundry_pos_config(self):
         self.ensure_one()
 
-        return self.env["laundry.configuration"].with_context(
-            pos_config_id=self.pos_config_id.id,
-            default_pos_config_id=self.pos_config_id.id,
-        ).action_open_laundry_configuration()
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Laundry Configuration",
+            "res_model": "pos.config",
+            "view_mode": "form",
+            "view_id": self.env.ref(
+                "pos_laundry.view_pos_config_form_laundry_only"
+            ).id,
+            "res_id": self.pos_config_id.id,
+            "target": "current",
+            "context": {
+                "form_view_initial_mode": "edit",
+            },
+        }

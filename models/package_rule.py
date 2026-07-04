@@ -50,30 +50,32 @@ class PackageRule(models.Model):
         
     def action_create_package_product(self):
         for rec in self:
+            pos_config_id = self.env.context.get("pos_config_id")
 
-            category_id = int(
-            self.env["ir.config_parameter"].sudo().get_param(
-                "pos_laundry.laundry_package_category_id",
-                default=0
-            )
-        )
+            if not pos_config_id:
+                raise ValidationError("Please open package rules from a POS configuration.")
 
-        if not category_id:
-            raise ValidationError("Package POS Category is not configured.")
+            pos_config = self.env["pos.config"].browse(pos_config_id)
 
-        if rec.product_id:
-            raise ValidationError("Package product already exists.")
+            if not pos_config.exists():
+                raise ValidationError("POS configuration was not found.")
 
-        product = self.env["product.template"].create({
-            "name": rec.name,
-            "type": "service",
-            "available_in_pos": True,
-            "list_price": rec.package_amount,
-            "pos_categ_ids": [(6, 0, [category_id])],
-        })
+            if not pos_config.package_pos_category_id:
+                raise ValidationError("Package POS Category is not configured.")
 
-        rec.product_id = product.product_variant_id.id
-        rec.product_created = True
+            if rec.product_id:
+                raise ValidationError("Package product already exists.")
+
+            product = self.env["product.template"].create({
+                "name": rec.name,
+                "type": "service",
+                "available_in_pos": True,
+                "list_price": rec.package_amount,
+                "pos_categ_ids": [(6, 0, [pos_config.package_pos_category_id.id])],
+            })
+
+            rec.product_id = product.product_variant_id.id
+            rec.product_created = True
 
     def action_update_package_product(self):
         for rec in self:

@@ -191,13 +191,20 @@ export const laundryService = {
                 }
 
                 return {
+                    pos_config_id: this.pos.config?.id || false,
+                    
+
                     partner_id: partner.id,
-                    laundry_order_type_id: order.uiState?.laundry_order_type_id || false,
+                    laundry_order_type_id: order.uiState.laundry_order_type_id,
+
                     package_rule_id: order.uiState?.package_rule_id || false,
                     partner_package_id: order.uiState?.partner_package_id || false,
+
                     is_package_sale: Boolean(order.uiState?.is_package_sale),
                     is_package_usage: Boolean(order.uiState?.is_package_usage),
+
                     notes: order.uiState?.notes || "",
+
                     lines,
                 };
             },
