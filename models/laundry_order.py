@@ -134,6 +134,11 @@ class LaundryOrder(models.Model):
         index=True,
     )
 
+    laundry_pos_payment_ids = fields.One2many(
+        "laundry.pos.payment",
+        "laundry_order_id",
+    )
+
     @api.depends("order_datetime")
     def _compute_order_datetime_parts(self):
         for rec in self:
@@ -164,13 +169,12 @@ class LaundryOrder(models.Model):
 
     @api.model
     def process_pos_laundry_order(self, data):
-        """Save the laundry order from the POS without creating a pos.order.
+        """Create or update a laundry order from POS.
 
-        Flow:
-        - Save Order creates laundry.order and laundry.order.line only.
-        - If the order type is package sale, create partner.package and its balance rows.
-        - If an active package is selected, record package usage history.
-        - The real pos.order is created later by the normal POS payment/sync flow.
+        Existing orders are editable only while their current status is New.
+        Package usage is recalculated by removing this order's previous usage
+        lines first, then validating/creating the new usage lines. This keeps
+        remaining package quantities correct during edits.
         """
         if not data.get("partner_id"):
             raise ValidationError(_("Customer is required."))
@@ -191,29 +195,38 @@ class LaundryOrder(models.Model):
         if not lines:
             raise ValidationError(_("Please add at least one product before saving the laundry order."))
 
+        package_rule = self._get_package_rule_from_data(data)
+        laundry_order_id = data.get("laundry_order_id")
+        partner_package = False
+
         if data.get("is_package_usage"):
             partner_package = self.env["partner.package"].browse(data.get("partner_package_id"))
-
             if not partner_package.exists():
                 raise ValidationError(_("Please select a valid package."))
-
             self._validate_package_products(partner_package, lines)
 
-        package_rule = self._get_package_rule_from_data(data)
+        if laundry_order_id:
+            laundry_order = self.browse(laundry_order_id)
+            if not laundry_order.exists():
+                raise ValidationError(_("Laundry order was not found."))
 
-        laundry_order = self._create_laundry_order(
-            data=data,
-            package_rule=package_rule,
-            pos_config=pos_config,
-        )
-
-        self._create_laundry_order_lines(laundry_order, lines)
-
-        partner_package = self._create_partner_package(data, laundry_order, package_rule)
-        self._create_package_usage_lines(data, laundry_order)
+            self._check_laundry_order_editable(laundry_order)
+            self._update_laundry_order(laundry_order, data, package_rule)
+            self._replace_laundry_order_lines(laundry_order, lines)
+            self._recreate_package_usage_lines_for_edit(data, laundry_order)
+        else:
+            laundry_order = self._create_laundry_order(
+                data=data,
+                package_rule=package_rule,
+                pos_config=pos_config,
+            )
+            self._create_laundry_order_lines(laundry_order, lines)
+            partner_package = self._create_partner_package(data, laundry_order, package_rule)
+            self._create_package_usage_lines(data, laundry_order)
 
         return {
             "laundry_order_id": laundry_order.id,
+            "laundry_order_name": laundry_order.name,
             "partner_package_id": partner_package.id if partner_package else False,
             "pos_order_id": False,
             "direct_sale": laundry_order.order_type_id.direct_sale,
@@ -272,6 +285,42 @@ class LaundryOrder(models.Model):
             vals["payment_status_id"] = pos_config.unpaid_payment_id.id
 
         return self.create(vals)
+
+    def _is_new_status(self, status):
+        if not status:
+            return False
+        return (status.name or "").strip().lower() == "new"
+
+    def _check_laundry_order_editable(self, laundry_order):
+        laundry_order.ensure_one()
+        if not self._is_new_status(laundry_order.status_id):
+            raise ValidationError(_("Only laundry orders with status New can be edited from POS."))
+
+    def _update_laundry_order(self, laundry_order, data, package_rule=False):
+        laundry_order.ensure_one()
+        vals = {
+            "customer_id": data.get("partner_id"),
+            "order_type_id": data.get("laundry_order_type_id"),
+            "package_rule_id": package_rule.id if package_rule else False,
+            "is_package": bool(data.get("is_package_usage")),
+            "order_note": data.get("notes") or "",
+        }
+        laundry_order.write(vals)
+        return laundry_order
+
+    def _replace_laundry_order_lines(self, laundry_order, lines):
+        laundry_order.ensure_one()
+        laundry_order.order_line_ids.unlink()
+        self._create_laundry_order_lines(laundry_order, lines)
+
+    def _recreate_package_usage_lines_for_edit(self, data, laundry_order):
+        laundry_order.ensure_one()
+        UsageLine = self.env["partner.package.usage.line"]
+        UsageLine.search([
+            ("laundry_order_id", "=", laundry_order.id),
+        ]).unlink()
+        self._create_package_usage_lines(data, laundry_order)
+
 
     def _create_laundry_order_lines(self, laundry_order, lines):
         LaundryOrderLine = self.env["laundry.order.line"]
@@ -467,6 +516,7 @@ class LaundryOrder(models.Model):
             "direct_print": bool(config.direct_print),
             "show_receipt_preview": bool(config.show_receipt_preview),
         }
+    
     @api.model
     def get_customer_orders_by_status_for_pos(self, partner_id):
         if not partner_id:
@@ -490,14 +540,68 @@ class LaundryOrder(models.Model):
             result.append({
                 "status_id": status.id,
                 "status_name": status.name,
+                "status_color": status.color,
                 "orders": [{
                     "id": order.id,
                     "name": order.name,
                     "total_amount": order.total_amount,
-                    "order_datetime": order.order_datetime,
+                    "order_datetime": fields.Datetime.to_string(order.order_datetime),
                     "payment_status": order.payment_status_id.name if order.payment_status_id else "",
                     "order_type": order.order_type_id.name if order.order_type_id else "",
+                    "order_type_id": order.order_type_id.id,
+                    "order_type_icon": order.order_type_id.icon_class or "fa-file-text-o",
+                    "order_type_color": order.order_type_id.icon_color or "text-primary",
                 } for order in status_orders],
             })
 
         return result
+    
+    @api.model
+    def get_laundry_order_for_pos(self, order_id):
+        if not order_id:
+            raise ValidationError(_("Laundry order is required."))
+
+        order = self.browse(order_id)
+
+        if not order.exists():
+            raise ValidationError(_("Laundry order was not found."))
+
+        allowed_category_ids = order.order_type_id.pos_category_ids.ids
+
+        return {
+            "id": order.id,
+            "name": order.name,
+
+            "partner_id": order.customer_id.id,
+            "partner_name": order.customer_id.name,
+
+            "order_type_id": order.order_type_id.id,
+            "order_type_name": order.order_type_id.name,
+            "order_type_prefix": order.order_type_id.prefix or "",
+            "allowed_category_ids": allowed_category_ids,
+
+            "status_id": order.status_id.id,
+            "status_name": order.status_id.name,
+
+            "payment_status_id": order.payment_status_id.id,
+            "payment_status_name": order.payment_status_id.name,
+
+            "is_package": bool(order.is_package),
+            "package_rule_id": order.package_rule_id.id if order.package_rule_id else False,
+            "package_rule_name": order.package_rule_id.name if order.package_rule_id else "",
+            "partner_package_id": self.env["partner.package.usage.line"].search([
+                ("laundry_order_id", "=", order.id),
+            ], limit=1).partner_package_id.id or False,
+
+            "total_amount": order.total_amount,
+            "order_datetime": fields.Datetime.to_string(order.order_datetime),
+
+            "lines": [{
+                "id": line.id,
+                "product_id": line.product_id.id,
+                "product_name": line.product_id.display_name,
+                "qty": line.quantity,
+                "price_unit": line.price_unit,
+                "subtotal": line.price_subtotal,
+            } for line in order.order_line_ids],
+        }

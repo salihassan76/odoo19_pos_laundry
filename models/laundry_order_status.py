@@ -13,3 +13,11 @@ class LaundryOrderStatus(models.Model):
         default=True,
         help="Display this status as a section on the POS customer home screen."
     )
+    color = fields.Selection([
+    ("text-primary", "Blue"),
+    ("text-danger", "Red"),
+    ("text-info", "Cyan"),
+    ("text-warning", "Yellow"),
+    ("text-dark", "Black"),
+    ("text-success", "Green"),
+    ], default="text-primary",string="Color", help="Select a color for this status to visually distinguish it in the POS interface.")

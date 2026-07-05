@@ -28,6 +28,7 @@
                             <field name="active"/>
                             <field name="show_on_home"/>
                             <field name="sequence"/>
+                            <field name="color" widget="selection" options="{'no_create': True}"/>
                         </group>
 
                     </group>

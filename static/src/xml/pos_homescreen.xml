@@ -111,74 +111,36 @@
                                         <!-- RIGHT COLUMN -->
                                         <div class="col-lg-9">
 
-                                            <!-- Finished Orders -->
-                                            <div class="mb-4">
+                                            <!-- Orders -->
+                                            <t t-foreach="state.ordersByStatus" t-as="status" t-key="status.status_id">
+                                                <t t-if="status.orders.length">
+                                                    <div class="mb-4">
+                                                        <h5 t-att-class="'border-bottom pb-2 mb-3 text-' + (status.status_color || 'primary')">
+                                                            <t t-esc="status.status_name"/>
+                                                            (<t t-esc="status.orders.length"/>)
+                                                        </h5>
 
-                                                <h5 class="border-bottom pb-2 mb-3">
-                                                    Finished Orders
-                                                </h5>
-
-                                                <div class="d-flex flex-wrap gap-2">
-
-                                                    <button class="btn btn-outline-success">
-
-                                                        <i class="fa fa-check-circle me-1"/>
-
-                                                        Order #1011
-
-                                                    </button>
-
-                                                    <button class="btn btn-outline-success">
-
-                                                        <i class="fa fa-check-circle me-1"/>
-
-                                                        Order #1044
-
-                                                    </button>
-
-            
-
-                                                </div>
-
-                                            </div>
-
-                                            <!-- Pending Orders -->
-                                            <div class="mb-4">
-
-                                                <h5 class="border-bottom pb-2 mb-3">
-                                                    Pending Orders
-                                                </h5>
-
-                                                <div class="d-flex flex-wrap gap-2">
-
-                                                    <button class="btn btn-outline-warning">
-
-                                                        <i class="fa fa-clock-o me-1"/>
-
-                                                        Order #1025
-
-                                                    </button>
-
-                                                    <button class="btn btn-outline-warning">
-
-                                                        <i class="fa fa-clock-o me-1"/>
-
-                                                        Order #1026
-
-                                                    </button>
-
-                                                    <button class="btn btn-outline-warning">
-
-                                                        <i class="fa fa-clock-o me-1"/>
-
-                                                        Order #1031
-
-                                                    </button>
-
-                                                </div>
-
-                                            </div>
-
+                                                        <div class="d-flex flex-wrap gap-2">
+                                                            <t t-foreach="status.orders" t-as="order" t-key="order.id">
+                                                                <button class="btn btn-light border shadow-sm text-start px-3 py-2"
+                                                                        style="min-width:240px"
+                                                                        t-on-click="() => this.openLaundryOrder(order)">
+                                                                    <div class="fw-bold">
+                                                                        <i t-att-class="'fa ' + order.order_type_icon + ' me-2 ' + order.order_type_color"/>
+                                                                        <t t-esc="order.name"/>
+                                                                    </div>
+                                                                    <div class="small text-muted">
+                                                                        <t t-esc="order.order_datetime"/>
+                                                                    </div>
+                                                                    <div class="fw-bold text-success">
+                                                                        BD <t t-esc="order.total_amount"/>
+                                                                    </div>
+                                                                </button>
+                                                            </t>
+                                                        </div>
+                                                    </div>
+                                                </t>
+                                            </t>
                                             
                                             <!-- Active Packages -->
                                             <div t-if="state.activePackages.length" class="mb-4">

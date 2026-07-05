@@ -8,12 +8,12 @@
 
 2. move the package to a new module as addon, add hooks
 3. order saving to include pos config id - Done 03/07/2026
-4. order list
+4. order list - Done (05/07/2026)
     - add  fileds to order status sequance and show on home
     - add function in laundry orders to show orders
 5. order payments
-6. customer order detials in customer screen
-7. loading orders
+6. customer order detials in customer screen - Done (05/07/2026)
+7. loading orders - Done (05/06/2026)
 8. changing rorder status
 9. cancelling and refunding orders
 10. printing from pos and backend
@@ -21,3 +21,18 @@
 12. order dashboard
 13. package dashboard
 14. customer dashboard
+
+05/07/2026
+1. add payment flow
+    Save Laundry Order
+    → Create invoice / receivable
+    → Status: Unpaid
+
+    Receive Payment from POS
+    → Create laundry.pos.payment
+    → Create account.payment
+    → Reconcile invoice
+    → Mark laundry.pos.payment as Posted
+    → Update amount_paid / amount_due
+
+    

@@ -18,11 +18,17 @@ export class PosHomeScreen extends Component {
             customer: this.props.customer || this.pos.selected_customer || null,
             orderTypes: [],
             activePackages: [],
+            ordersByStatus: [],
         });
 
         onWillStart(async () => {
             this.state.orderTypes = await this.laundry.getVisibleOrderTypes();
             await this.getActivePackages();
+            if (this.state.customer) {
+                    await this.loadCustomerOrders(this.state.customer);
+                }
+
+            console.log(this.state.ordersByStatus);
         });
     }
 
@@ -68,6 +74,17 @@ export class PosHomeScreen extends Component {
 
     async selectPackage(pkg) {
         await this.laundry.selectPackage(pkg, this.state.customer);
+    }
+
+    async loadCustomerOrders(customer) {
+        this.state.customer = customer;
+
+        this.state.ordersByStatus =
+            await this.laundry.getCustomerOrdersByStatus(customer.id);
+    }
+
+    async openLaundryOrder(orderData) {
+        await this.laundry.openLaundryOrder(orderData.id);
     }
 }
 
