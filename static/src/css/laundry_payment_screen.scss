@@ -1,0 +1,205 @@
+.laundry-payment-screen {
+    background: #f5f6f8;
+    color: #1f2937;
+
+    .payment-topbar {
+        height: 70px;
+        background: #ffffff;
+        border-bottom: 1px solid #e5e7eb;
+
+        h2 {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .invoice-badge {
+            padding: 8px 14px;
+            border-radius: 999px;
+            background: #eef2ff;
+            color: #4338ca;
+            font-weight: 700;
+        }
+    }
+
+    .payment-content {
+        overflow: hidden;
+    }
+
+    .payment-left-panel {
+        width: 300px;
+        min-width: 300px;
+    }
+
+    .customer-card,
+    .order-info-card,
+    .payment-status-card,
+    .payment-section,
+    .summary-card,
+    .payment-numpad-panel {
+        background: #ffffff;
+        border-radius: 16px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+    }
+
+    .customer-avatar,
+    .info-icon,
+    .status-icon,
+    .summary-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #eef2ff;
+        color: #4338ca;
+        font-size: 22px;
+    }
+
+    .info-row {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid #f1f5f9;
+
+        &:last-child {
+            border-bottom: none;
+        }
+    }
+
+    .summary-card {
+        padding: 18px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+
+        h3 {
+            margin: 4px 0 0;
+            font-size: 26px;
+            font-weight: 800;
+        }
+    }
+
+    .payment-section {
+        padding: 16px;
+    }
+
+    .amount-input {
+        height: 64px;
+        padding: 0 18px;
+        border-radius: 12px;
+        border: 2px solid #dbeafe;
+        background: #f8fafc;
+        font-size: 30px;
+        font-weight: 800;
+    }
+
+    .quick-amount-btn {
+        min-width: 120px;
+        height: 48px;
+        border-radius: 12px;
+        background: #f8fafc;
+        border: 1px solid #d1d5db;
+        font-weight: 700;
+
+        &:hover {
+            background: #eef2ff;
+        }
+    }
+
+    .payment-method-grid {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .payment-method-btn {
+        width: 135px;
+        height: 115px;
+        border-radius: 16px;
+        border: 2px solid #e5e7eb;
+        background: #ffffff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        font-weight: 700;
+
+        &.selected {
+            border-color: #4338ca;
+            background: #eef2ff;
+            color: #4338ca;
+        }
+
+        i {
+            font-size: 34px;
+        }
+    }
+
+    .payment-method-image {
+        width: 44px;
+        height: 44px;
+        object-fit: contain;
+    }
+
+    .payment-method-name {
+        text-align: center;
+        font-size: 15px;
+    }
+
+    .payment-notes {
+        height: 90px;
+        resize: none;
+        border-radius: 12px;
+    }
+
+    .payment-numpad-panel {
+        width: 280px;
+        min-width: 280px;
+        padding: 16px;
+    }
+
+    .numpad-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+
+        button {
+            height: 76px;
+            border-radius: 16px;
+            border: 1px solid #d1d5db;
+            background: #f8fafc;
+            font-size: 28px;
+            font-weight: 800;
+
+            &:hover {
+                background: #eef2ff;
+            }
+
+            &:active {
+                transform: scale(0.97);
+            }
+        }
+    }
+
+    .payment-footer {
+        background: #ffffff;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .footer-btn {
+        height: 58px;
+        min-width: 180px;
+        border-radius: 14px;
+        font-size: 17px;
+        font-weight: 700;
+    }
+
+    .validate-btn {
+        margin-left: auto;
+        min-width: 260px;
+    }
+}

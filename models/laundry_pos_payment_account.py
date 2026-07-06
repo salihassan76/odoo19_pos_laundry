@@ -25,13 +25,13 @@ class LaundryPosPayment(models.Model):
                 raise ValidationError(_("Payment amount must be greater than zero."))
 
             # Future invoice validation when invoice_id is added to laundry.order:
-            # invoice = payment.laundry_order_id.invoice_id
-            # if not invoice:
-            #     raise ValidationError(_("No invoice was found for this laundry order."))
-            # if invoice.state != "posted":
-            #     raise ValidationError(_("The invoice must be posted before receiving payment."))
-            # if payment.amount > invoice.amount_residual:
-            #     raise ValidationError(_("Payment amount cannot exceed the remaining balance."))
+            invoice = payment.laundry_order_id.invoice_id
+            if not invoice:
+                raise ValidationError(_("No invoice was found for this laundry order."))
+            if invoice.state != "posted":
+                raise ValidationError(_("The invoice must be posted before receiving payment."))
+            if payment.amount > invoice.amount_residual:
+                raise ValidationError(_("Payment amount cannot exceed the remaining balance."))
 
         return True
 

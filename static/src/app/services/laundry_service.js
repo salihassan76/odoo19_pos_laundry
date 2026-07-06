@@ -336,21 +336,23 @@ export const laundryService = {
             async payLaundryOrder() {
                 const order = this.pos.getOrder();
 
-                const laundryOrderId = order.uiState.laundry_order_id;
+                const laundryOrderId = order?.uiState?.laundry_order_id;
                 if (!laundryOrderId) {
                     return;
                 }
 
-                const result = await this.orm.call(
+                await this.orm.call(
                     "laundry.order",
                     "action_create_invoice",
                     [[laundryOrderId]]
                 );
 
-                console.log(result);
-                this.pos.navigate?.("pos_customerscreen");
+                this.pos.selected_laundry_order_id = laundryOrderId;
 
-                
+                this.pos.navigate?.("LaundryPaymentScreen", {
+                    laundryOrderId,
+                    customer: order.getPartner?.() || null,
+                });
             },
 
             cancelOrder() {

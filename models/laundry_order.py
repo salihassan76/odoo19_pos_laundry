@@ -627,3 +627,63 @@ class LaundryOrder(models.Model):
                 "subtotal": line.price_subtotal,
             } for line in order.order_line_ids],
         }
+    def get_payment_data(self):
+        self.ensure_one()
+
+        # Create/post invoice automatically if missing
+        if not self.invoice_id:
+            self.action_create_invoice()
+
+        invoice = self.invoice_id
+
+        if not invoice:
+            raise ValidationError(_("No invoice found for this laundry order."))
+
+        if invoice.state != "posted":
+            invoice.action_post()
+
+        paid_amount = invoice.amount_total - invoice.amount_residual
+
+        payment_methods = []
+
+        for method in self.pos_config_id.payment_method_ids:
+            if not method.journal_id:
+                continue
+
+            payment_methods.append({
+                "id": method.id,
+                "name": method.name,
+                "journal_id": method.journal_id.id,
+                "journal_name": method.journal_id.name,
+                "icon": method.laundry_icon or False,
+            })
+
+        return {
+            "id": self.id,
+            "order_name": self.name,
+            "order_date": fields.Datetime.to_string(self.order_datetime),
+            "order_type": self.order_type_id.name if self.order_type_id else "",
+
+            "customer_name": self.customer_id.name or "",
+            "customer_mobile": self.customer_id.mobile or self.customer_id.phone or "",
+
+            "partner": {
+                "id": self.customer_id.id,
+                "name": self.customer_id.name,
+            },
+
+            "invoice_id": invoice.id,
+            "invoice_name": invoice.name,
+            "invoice_total": invoice.amount_total,
+            "paid_amount": paid_amount,
+            "balance_due": invoice.amount_residual,
+            "invoice_payment_state": invoice.payment_state,
+
+            "payment_status": self.payment_status_id.name if self.payment_status_id else "",
+
+            "currency_id": invoice.currency_id.id,
+            "currency_name": invoice.currency_id.name,
+
+            "payment_methods": payment_methods,
+        }
+
