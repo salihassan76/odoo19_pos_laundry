@@ -58,8 +58,28 @@
                     </button>
 
                 </div>
+            </t> 
+        </xpath>
+        <xpath expr="//div[contains(@class, 'validation')]" position="replace">
+            <t t-if="pos.config.enable_laundry_workflow">
+                <!-- Payment Button: Replace payment button -->
+                <button 
+                        class="btn btn-warning btn-lg py-3 d-flex align-items-center justify-content-center"
+                        style="flex: 1;"
+                        t-on-click="clickPayLaundryOrder">
+
+                    <!-- Mobile -->
+                    <i class="fa fa-print d-md-none fs-3"/>
+
+                    <!-- Desktop -->
+                    <i class="fa fa-print me-1"/>
+                    <span class="d-none d-md-inline">
+                        Pay
+                    </span>
+                </button>
             </t>
         </xpath>
+
 
     </t>
 

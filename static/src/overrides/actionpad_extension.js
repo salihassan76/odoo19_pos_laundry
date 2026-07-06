@@ -86,6 +86,16 @@ patch(ActionpadWidget.prototype, {
             },
         });
     },
+    async clickPayLaundryOrder() {
+        try {
+            await this.laundry.payLaundryOrder();
+        } catch (error) {
+            this.dialog.add(AlertDialog, {
+                title: _t("Laundry Order Payment"),
+                body: error.message || _t("Could not pay laundry order."),
+            });
+        }
+    },
     async clickPrintLaundryOrder() {
         const order = this.pos.getOrder();
 

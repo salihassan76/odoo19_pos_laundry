@@ -23,7 +23,7 @@
 14. customer dashboard
 
 05/07/2026
-1. add payment flow
+1. add payment flow - Done
     Save Laundry Order
     → Create invoice / receivable
     → Status: Unpaid
@@ -34,5 +34,8 @@
     → Reconcile invoice
     → Mark laundry.pos.payment as Posted
     → Update amount_paid / amount_due
+
+06/07/2026
+1. replace payment section in pos and create a total custom payment page.
 
     

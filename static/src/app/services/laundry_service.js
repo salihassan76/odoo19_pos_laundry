@@ -333,6 +333,25 @@ export const laundryService = {
                 this.navigateHome();
                 return result;
             },
+            async payLaundryOrder() {
+                const order = this.pos.getOrder();
+
+                const laundryOrderId = order.uiState.laundry_order_id;
+                if (!laundryOrderId) {
+                    return;
+                }
+
+                const result = await this.orm.call(
+                    "laundry.order",
+                    "action_create_invoice",
+                    [[laundryOrderId]]
+                );
+
+                console.log(result);
+                this.pos.navigate?.("pos_customerscreen");
+
+                
+            },
 
             cancelOrder() {
                 const order = this.getOrder();
@@ -341,6 +360,7 @@ export const laundryService = {
                 }
                 this.pos.navigate?.("pos_customerscreen");
             },
+
 
             async getCustomerOrdersByStatus(partnerId) {
                 if (!partnerId) {
