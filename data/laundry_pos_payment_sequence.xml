@@ -1,0 +1,6 @@
+<record id="seq_laundry_pos_payment" model="ir.sequence">
+    <field name="name">Laundry POS Payment</field>
+    <field name="code">laundry.pos.payment</field>
+    <field name="prefix">LPP/%(year)s/</field>
+    <field name="padding">5</field>
+</record>

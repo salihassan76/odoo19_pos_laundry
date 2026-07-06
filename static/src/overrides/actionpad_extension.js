@@ -86,4 +86,20 @@ patch(ActionpadWidget.prototype, {
             },
         });
     },
+    async clickPrintLaundryOrder() {
+        const order = this.pos.getOrder();
+
+        const laundryOrderId = order?.uiState?.laundry_order_id;
+        if (!laundryOrderId) {
+            return;
+        }
+
+        const result = await this.orm.call(
+            "laundry.order",
+            "action_create_invoice",
+            [[laundryOrderId]]
+        );
+
+        console.log(result);
+    },
 });

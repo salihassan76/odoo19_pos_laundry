@@ -62,7 +62,7 @@ class LaundryOrderType(models.Model):
     )
     is_hidden = fields.Boolean(
         string="Is Hidden from Screen",
-        help="Check if this order type sbhould not appier in the Home Screen",
+        help="Check if this order type should not appear in the Home Screen",
         default=False
     )
     is_package_use = fields.Boolean(
@@ -76,6 +76,10 @@ class LaundryOrderType(models.Model):
         help="After saving the laundry order, go directly to the payment screen.",
         default=False
         )
+    
+    billing_method = fields.Selection([
+            ("customer", "Customer Payment"),
+        ], default="customer", required=True)
 
 
 

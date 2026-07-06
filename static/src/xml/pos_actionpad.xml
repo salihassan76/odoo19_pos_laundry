@@ -52,9 +52,10 @@
                     </button>
 
                     <!-- Print Button 25% -->
-                    <button t-if="pos.getOrder()?.uiState?.status_id !== pos.laundryConfig?.default_order_status_id" 
+                    <button t-if="pos.getOrder()?.uiState?.status_id === pos.laundryConfig?.default_order_status_id" 
                             class="btn btn-warning btn-lg py-3 d-flex align-items-center justify-content-center"
                             style="flex: 1;"
+                            t-on-click="clickPrintLaundryOrder"
                             >
 
                         <!-- Mobile -->

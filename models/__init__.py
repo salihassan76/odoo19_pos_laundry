@@ -11,6 +11,10 @@ from . import partner_package_usage_line
 from . import laundry_order
 from . import laundry_order_lines
 from . import pos_config
+from . import laundry_pos_payment
+from . import laundry_pos_payment_account
+from . import laundry_pos_payment_pos
+from . import laundry_order_account
 
 
 

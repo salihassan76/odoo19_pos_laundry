@@ -1,7 +1,7 @@
 {
     "name": "POS Laundry",
     "version": "1.0.4",
-    "depends": ["point_of_sale", "project", "sale_management"],
+    "depends": ["point_of_sale", "project", "sale_management","account"],
     "category": "Operations",
     "summary": "Production-ready Laundry POS System",
     "description": """
@@ -35,6 +35,7 @@
         "views/laundry_order_action.xml",
         "views/laundry_menus.xml",
         "views/pos_config_view.xml",
+        "views/laundry_pos_payment_views.xml",
     ],
     "assets": {
         "point_of_sale._assets_pos": [
@@ -58,8 +59,6 @@
             "pos_laundry/static/src/xml/pos_homescreen.xml",
             "pos_laundry/static/src/xml/pos_customerscreen.xml",
             "pos_laundry/static/src/js/pos_customerscreen.js",
-            
-            
             "pos_laundry/static/src/js/pos_orderlistscreen.js",
             "pos_laundry/static/src/js/package/package_utils.js",
             "pos_laundry/static/src/js/package/package_engine.js",
@@ -69,7 +68,6 @@
             "pos_laundry/static/src/js/package/package_order_patch.js",
             "pos_laundry/static/src/js/package/package_validation.js",
             "pos_laundry/static/src/xml/package_category_badge.xml",
-            
             "pos_laundry/static/src/xml/laundry_receipt.xml",
         ],
     },

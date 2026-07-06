@@ -139,6 +139,28 @@ class LaundryOrder(models.Model):
         "laundry_order_id",
     )
 
+    invoice_id = fields.Many2one(
+        "account.move",
+        string="Customer Invoice",
+        readonly=True,
+        copy=False,
+        ondelete="restrict",
+    )
+
+    invoice_state = fields.Selection(
+        related="invoice_id.state",
+        string="Invoice Status",
+        store=True,
+        readonly=True,
+    )
+
+    invoice_payment_state = fields.Selection(
+        related="invoice_id.payment_state",
+        string="Invoice Payment",
+        store=True,
+        readonly=True,
+    )
+
     @api.depends("order_datetime")
     def _compute_order_datetime_parts(self):
         for rec in self:

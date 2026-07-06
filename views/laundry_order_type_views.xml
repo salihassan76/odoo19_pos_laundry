@@ -32,6 +32,7 @@
                             <field name="icon_class"/>
                             <field name="icon_preview" widget="html"/>
                             <field name="icon_color"/>
+                            <field name="billing_method"/>
                         </group>
 
                         <group>
