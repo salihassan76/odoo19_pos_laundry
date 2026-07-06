@@ -114,6 +114,12 @@ export const laundryService = {
                     order.setPartner?.(customer);
                     order.set_partner?.(customer);
                 }
+                if (order) {
+                    order.uiState = order.uiState || {};
+                    order.uiState.is_saved = Boolean(order.uiState.laundry_order_id);
+                    order.uiState.status_id = order.uiState.status_id || false;
+                    order.uiState.status_name = order.uiState.status_name || (order.uiState.is_saved ? "" : _t("Unsaved"));
+                }
                 return order;
             },
 
@@ -126,6 +132,12 @@ export const laundryService = {
                 if (customer) {
                     order.setPartner?.(customer);
                     order.set_partner?.(customer);
+                }
+                if (order) {
+                    order.uiState = order.uiState || {};
+                    order.uiState.is_saved = false;
+                    order.uiState.status_id = false;
+                    order.uiState.status_name = _t("Unsaved");
                 }
                 return order;
             },
@@ -142,9 +154,16 @@ export const laundryService = {
             },
 
             _setLaundryOrderState(order, values = {}) {
+                order.uiState = order.uiState || {};
+
+                const isSaved = Boolean(values.laundry_order_id);
+
                 order.uiState.laundry_order_id = values.laundry_order_id || false;
                 order.uiState.laundry_order_name = values.laundry_order_name || "";
-                order.uiState.is_existing_laundry_order = Boolean(values.laundry_order_id);
+                order.uiState.is_saved = isSaved;
+                order.uiState.is_existing_laundry_order = isSaved;
+                order.uiState.status_id = values.status_id || false;
+                order.uiState.status_name = values.status_name || (isSaved ? "" : _t("Unsaved"));
                 order.uiState.laundry_order_type_id = values.laundry_order_type_id || false;
                 order.uiState.laundry_order_type_name = values.laundry_order_type_name || "";
                 order.uiState.laundry_order_type_prefix = values.laundry_order_type_prefix || "";
@@ -288,8 +307,22 @@ export const laundryService = {
                 }
 
                 await this.handleReceipt(result);
-                order.uiState.laundry_order_id = result.laundry_order_id;
-                order.uiState.laundry_order_name = result.laundry_order_name || order.uiState.laundry_order_name;
+
+                this._setLaundryOrderState(order, {
+                    laundry_order_id: result.laundry_order_id,
+                    laundry_order_name: result.laundry_order_name || order.uiState.laundry_order_name,
+                    status_id: result.status_id || false,
+                    status_name: result.status_name || "",
+                    laundry_order_type_id: order.uiState.laundry_order_type_id,
+                    laundry_order_type_name: order.uiState.laundry_order_type_name,
+                    laundry_order_type_prefix: order.uiState.laundry_order_type_prefix,
+                    allowed_category_ids: order.uiState.laundry_allowed_pos_category_ids,
+                    is_package_sale: order.uiState.is_package_sale,
+                    is_package_usage: order.uiState.is_package_usage,
+                    partner_package_id: order.uiState.partner_package_id,
+                    package_rule_id: order.uiState.package_rule_id,
+                    package_rule_name: order.uiState.package_rule_name,
+                });
 
                 if (result.direct_sale) {
                     pos.pay?.();
@@ -338,6 +371,8 @@ export const laundryService = {
                     laundry_order_type_id: data.order_type_id,
                     laundry_order_type_name: data.order_type_name,
                     laundry_order_type_prefix: data.order_type_prefix,
+                    status_id: data.status_id || false,
+                    status_name: data.status_name || "",
                     allowed_category_ids: data.allowed_category_ids || [],
                     is_package_sale: false,
                     is_package_usage: Boolean(data.is_package),

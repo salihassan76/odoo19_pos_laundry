@@ -5,22 +5,16 @@
        t-inherit="point_of_sale.ActionpadWidget"
        t-inherit-mode="extension">
 
-
-       
-
-        <!-- Add button before Pay -->
+        <!-- Add buttons before Pay -->
         <xpath expr="//div[contains(@class, 'validation')]" position="before">
-            
             <t t-if="pos.config.enable_laundry_workflow">
                 <div class="gap-2 d-flex">
-                    <!--
-                    <t t-if="!(this.pos.get_order ? this.pos.get_order()?.uiState?.is_package_sale : this.pos.getOrder()?.uiState?.is_package_sale)">
-                    -->
-                    <!-- Save Button 75% -->
-                    <button t-if="pos.getOrder()?.uiState?.status_id === pos.laundryConfig?.default_order_status_id" 
-                        class="pay pay-order-button button btn btn-success btn-lg py-3 d-flex align-items-center justify-content-center" 
-                        style="flex: 2;"
-                        t-on-click="clickSaveOrder">
+
+                    <!-- Save Button: visible only before backend laundry.order is saved -->
+                    <button t-if="!pos.getOrder()?.uiState?.is_saved"
+                            class="pay pay-order-button button btn btn-success btn-lg py-3 d-flex align-items-center justify-content-center"
+                            style="flex: 2;"
+                            t-on-click="clickSaveOrder">
 
                         <!-- Mobile -->
                         <i class="fa fa-check d-md-none fs-3"/>
@@ -29,13 +23,10 @@
                         <span class="d-none d-md-inline">
                             Save
                         </span>
-
                     </button>
 
-                    <!-- </t> -->
-
-                    <!-- Cancel Button 25% -->
-                    <button t-if="pos.getOrder()?.uiState?.status_id === pos.laundryConfig?.default_order_status_id"
+                    <!-- Cancel Button: visible only before backend laundry.order is saved -->
+                    <button t-if="!pos.getOrder()?.uiState?.is_saved"
                             class="btn btn-danger btn-lg py-3 d-flex align-items-center justify-content-center"
                             style="flex: 1;"
                             t-on-click="cancelLaundryOrder">
@@ -48,15 +39,13 @@
                         <span class="d-none d-md-inline">
                             Cancel
                         </span>
-
                     </button>
 
-                    <!-- Print Button 25% -->
-                    <button t-if="pos.getOrder()?.uiState?.status_id === pos.laundryConfig?.default_order_status_id" 
+                    <!-- Print Button: visible after backend laundry.order is saved -->
+                    <button t-if="pos.getOrder()?.uiState?.is_saved"
                             class="btn btn-warning btn-lg py-3 d-flex align-items-center justify-content-center"
                             style="flex: 1;"
-                            t-on-click="clickPrintLaundryOrder"
-                            >
+                            t-on-click="clickPrintLaundryOrder">
 
                         <!-- Mobile -->
                         <i class="fa fa-print d-md-none fs-3"/>
@@ -66,11 +55,12 @@
                         <span class="d-none d-md-inline">
                             Print
                         </span>
-
                     </button>
+
                 </div>
             </t>
         </xpath>
 
     </t>
-    </templates>
+
+</templates>
