@@ -10,6 +10,7 @@
                 <field name="name"/>
                 <field name="active"/>
                 <field name="show_on_home"/>
+                <field name="show_on_home_period"/>
                 <field name="sequence"/>
             </list>
         </field>
@@ -27,6 +28,7 @@
                             <field name="name"/>
                             <field name="active"/>
                             <field name="show_on_home"/>
+                            <field name="show_on_home_period"/>
                             <field name="sequence"/>
                             <field name="color" widget="selection" options="{'no_create': True}"/>
                         </group>

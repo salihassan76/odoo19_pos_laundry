@@ -13,6 +13,16 @@ class LaundryOrderStatus(models.Model):
         default=True,
         help="Display this status as a section on the POS customer home screen."
     )
+    show_on_home_period = fields.Selection([
+            ("0", "Always"),
+            ("1", "1 Day"),
+            ("3", "3 Days"),
+            ("7", "1 Week"),
+            ("14", "2 Weeks"),
+            ("30", "1 Month"),
+            ("90", "3 Months"),
+        ], default="0")
+        
     color = fields.Selection([
     ("text-primary", "Blue"),
     ("text-danger", "Red"),

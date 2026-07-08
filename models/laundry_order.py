@@ -1,7 +1,7 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
 from collections import OrderedDict
-
+from datetime import timedelta
 
 class LaundryOrder(models.Model):
     _name = "laundry.order"
@@ -42,14 +42,12 @@ class LaundryOrder(models.Model):
     payment_status_id = fields.Many2one(
         "laundry.order.payment.status",
         string="Payment Status",
-        readonly=True,
         required=True,
     )
 
     status_id = fields.Many2one(
         "laundry.order.status",
         string="Status",
-        readonly=True,
         required=True,
     )
 
@@ -407,15 +405,25 @@ class LaundryOrder(models.Model):
             ("show_on_home", "=", True),
         ], order="sequence, id")
 
-        orders = self.search([
-            ("customer_id", "=", partner_id),
-            ("status_id", "in", statuses.ids),
-        ], order="order_datetime desc, id desc")
-
         result = []
+        now = fields.Datetime.now()
 
         for status in statuses:
-            status_orders = orders.filtered(lambda o: o.status_id.id == status.id)
+            domain = [
+                ("customer_id", "=", partner_id),
+                ("status_id", "=", status.id),
+            ]
+
+            period_days = int(status.show_on_home_period or 0)
+
+            if period_days > 0:
+                cutoff_date = now - timedelta(days=period_days)
+                domain.append(("order_datetime", ">=", cutoff_date))
+
+            status_orders = self.search(
+                domain,
+                order="order_datetime desc, id desc",
+            )
 
             result.append({
                 "status_id": status.id,

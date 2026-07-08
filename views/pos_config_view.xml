@@ -32,6 +32,7 @@
                         <page string="Orders">
                             <group>
                                 <field name="order_status_id"/>
+                                <field name="complete_order_status_id"/>
                             </group>
                         </page>
 

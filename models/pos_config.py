@@ -50,6 +50,10 @@ class PosConfig(models.Model):
         "laundry.order.status",
         string="Default Order Status",
     )
+    complete_order_status_id = fields.Many2one(
+        "laundry.order.status",
+        string="Complete Order Status",
+    )
 
     direct_print = fields.Boolean(
         string="Print After Save/Validate",
@@ -77,6 +81,7 @@ class PosConfig(models.Model):
             "order_status_id",
             "direct_print",
             "show_receipt_preview",
+            "complete_order_status_id",
         ]
 
         for record in data:
@@ -105,6 +110,7 @@ class PosConfig(models.Model):
 
         
         add(_("Default Order Status"), self.order_status_id)
+        add(_("Complete Order Status"), self.complete_order_status_id)
         add(_("Unpaid Payment Status"), self.unpaid_payment_id)
         add(_("Paid Payment Status"), self.paid_payment_id)
         
