@@ -55,6 +55,8 @@
             "pos_laundry/static/src/xml/laundry_receipt.xml",
             "pos_laundry/static/src/js/laundry_payment_screen.js",
             "pos_laundry/static/src/xml/laundry_payment_screen.xml",
+            "pos_laundry/static/src/overrides/category_selector_native_patch.js",
+            "pos_laundry/static/src/xml/category_selector_native_patch.xml",
         ],
     },
     "installable": True,

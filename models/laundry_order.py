@@ -429,6 +429,12 @@ class LaundryOrder(models.Model):
                 "status_id": status.id,
                 "status_name": status.name,
                 "status_color": status.color,
+                "show_on_home_period": period_days,
+                "period_label": (
+                    f"{period_days} Days"
+                    if period_days > 0
+                    else "All"
+                ),
                 "orders": [{
                     "id": order.id,
                     "name": order.name,

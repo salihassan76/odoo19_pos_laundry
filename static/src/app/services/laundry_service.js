@@ -364,6 +364,7 @@ export const laundryService = {
                 const order = await this.createFreshOrder(partner || null);
 
                 this._setLaundryOrderState(order, this._prepareOpenOrderStateValues(data));
+                console.log("OPEN EXISTING LAUNDRY ORDER", order.uiState);
 
                 this.pos.selected_laundry_order_type = {
                     id: data.order_type_id,

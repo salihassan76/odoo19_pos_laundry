@@ -117,6 +117,9 @@
                                                     <div class="mb-4">
                                                         <h5 t-att-class="'border-bottom pb-2 mb-3 text-' + (status.status_color || 'primary')">
                                                             <t t-esc="status.status_name"/>
+                                                            <small class="text-muted ms-1">
+                                                                (<t t-esc="status.period_label"/>)
+                                                            </small>
                                                         </h5>
 
                                                         <div class="d-flex flex-wrap gap-2">
