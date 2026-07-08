@@ -18,7 +18,6 @@ export class PosHomeScreen extends Component {
             customer: this.props.customer || this.pos.selected_customer || null,
             orderTypes: [],
             ordersByStatus: [],
-            activePackages: [],
         });
 
         onWillStart(async () => {

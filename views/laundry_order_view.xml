@@ -56,10 +56,7 @@
                         </group>
                     </group>
 
-                    <group string="Package">
-                        <field name="is_package"/>
-                        <field name="package_rule_id"/>
-                    </group>
+                    
 
                     <notebook>
                         <page string="Order Lines">

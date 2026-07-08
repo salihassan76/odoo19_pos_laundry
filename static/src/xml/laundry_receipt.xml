@@ -67,17 +67,7 @@
 
             <br/>
 
-            <t t-if="receipt.is_package_sale">
-                <div class="pos-receipt-center-align">
-                    <strong>PACKAGE PURCHASE</strong>
-                </div>
-            </t>
-
-            <t t-if="receipt.is_package_usage">
-                <div class="pos-receipt-center-align">
-                    <strong>PAID BY PACKAGE</strong>
-                </div>
-            </t>
+            
 
             <div>
                 Payment:

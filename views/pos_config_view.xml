@@ -23,7 +23,7 @@
 
                         <page string="General">
                             <group>
-                                <field name="package_pos_category_id"/>
+                                
                                 <field name="direct_print"/>
                                 <field name="show_receipt_preview"/>
                             </group>
@@ -40,7 +40,7 @@
                                 <field name="unpaid_payment_id"/>
                                 <field name="partial_payment_id"/>
                                 <field name="paid_payment_id"/>
-                                <field name="package_payment_id"/>
+                                
                                 <field name="cancelled_payment_id"/>
                                 <field name="refund_payment_id"/>
                             </group>
