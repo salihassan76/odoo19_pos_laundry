@@ -117,7 +117,6 @@
                                                     <div class="mb-4">
                                                         <h5 t-att-class="'border-bottom pb-2 mb-3 text-' + (status.status_color || 'primary')">
                                                             <t t-esc="status.status_name"/>
-                                                            (<t t-esc="status.orders.length"/>)
                                                         </h5>
 
                                                         <div class="d-flex flex-wrap gap-2">
@@ -142,68 +141,6 @@
                                                 </t>
                                             </t>
                                             
-                                            <!-- Active Packages -->
-                                            <div t-if="state.activePackages.length" class="mb-4">
-
-                                                <h5 class="border-bottom pb-2 mb-3">
-                                                    Active Packages
-                                                </h5>
-
-                                                <div class="row g-3">
-
-                                                    <t t-foreach="state.activePackages"
-                                                    t-as="pkg"
-                                                    t-key="pkg.id">
-
-                                                        <div class="col-md-6">
-
-                                                            <button class="btn btn-outline-primary w-100 text-start p-3"
-                                                                    t-on-click="() => this.selectPackage(pkg)">
-
-                                                                <div class="d-flex justify-content-between">
-
-                                                                    <div>
-                                                                        <h6 class="mb-1">
-                                                                            <i class="fa fa-gift me-2"/>
-                                                                            <t t-esc="pkg.package_rule_id[1]"/>
-                                                                        </h6>
-
-                                                                        <div class="small text-muted">
-                                                                            Valid Until:
-                                                                            <t t-esc="pkg.end_date"/>
-                                                                        </div>
-                                                                    </div>
-
-                                                                    <div class="text-end">
-                                                                        <span class="badge bg-success">
-                                                                            Active
-                                                                        </span>
-                                                                    </div>
-
-                                                                </div>
-
-                                                            </button>
-
-                                                        </div>
-
-                                                    </t>
-
-                                                </div>
-
-                                            </div>
-
-                                            <div t-else="" class="mb-4">
-
-                                                <h5 class="border-bottom pb-2 mb-3">
-                                                    Active Packages
-                                                </h5>
-
-                                                <div class="text-muted">
-                                                    No active packages.
-                                                </div>
-
-                                            </div>
-
                                         </div>
 
                                     </div>

@@ -17,20 +17,20 @@ export class PosHomeScreen extends Component {
         this.state = useState({
             customer: this.props.customer || this.pos.selected_customer || null,
             orderTypes: [],
-            activePackages: [],
             ordersByStatus: [],
+            activePackages: [],
         });
 
         onWillStart(async () => {
             this.state.orderTypes = await this.laundry.getVisibleOrderTypes();
-            await this.getActivePackages();
             if (this.state.customer) {
-                    await this.loadCustomerOrders(this.state.customer);
-                }
-
-            console.log(this.state.ordersByStatus);
+                await this.loadCustomerOrders(this.state.customer);
+            }
+            await this.loadHomeExtensions();
         });
     }
+
+    async loadHomeExtensions() {}
 
     async openCustomerDetails() {
         const customer = this.state.customer;
@@ -46,14 +46,10 @@ export class PosHomeScreen extends Component {
                 await this.orm.write("res.partner", [customer.id], values);
                 Object.assign(customer, values);
                 this.state.customer = customer;
+                await this.loadCustomerOrders(customer);
+                await this.loadHomeExtensions();
             },
         });
-    }
-
-    async getActivePackages() {
-        this.state.activePackages = await this.laundry.getActivePackages(
-            this.state.customer?.id
-        );
     }
 
     selectOrderType(orderType) {
@@ -72,15 +68,9 @@ export class PosHomeScreen extends Component {
         this.pos.navigate("pos_pendingscreen");
     }
 
-    async selectPackage(pkg) {
-        await this.laundry.selectPackage(pkg, this.state.customer);
-    }
-
     async loadCustomerOrders(customer) {
         this.state.customer = customer;
-
-        this.state.ordersByStatus =
-            await this.laundry.getCustomerOrdersByStatus(customer.id);
+        this.state.ordersByStatus = await this.laundry.getCustomerOrdersByStatus(customer.id);
     }
 
     async openLaundryOrder(orderData) {

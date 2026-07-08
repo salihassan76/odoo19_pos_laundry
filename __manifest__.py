@@ -7,23 +7,14 @@
     "description": """
         POS Laundry
 
-        Features:
-        - Delivery Teams
-        - Pickup Vouchers
-        - Delivery Vouchers
-        - Driver Assignment
-        - Route Management
-        - Laundry Order Logistics Tracking
     """,
     "author": "Sayed Ali Hassan",
     "website": "",
     "license": "LGPL-3",
     "data": [
-        'security/ir.model.access.csv',
-        'views/laundry_order_type_views.xml',
+        "security/ir.model.access.csv",
+        "views/laundry_order_type_views.xml",
         "views/laundry_order_type_actions.xml",
-        "views/laundry_package_rule_views.xml",
-        "views/laundry_package_rule_action.xml",
         "views/laundry_configuration_views.xml",
         "views/laundry_res_config_settings_view.xml",
         "views/laundry_res_config_settings_action.xml",
@@ -61,14 +52,6 @@
             "pos_laundry/static/src/xml/pos_customerscreen.xml",
             "pos_laundry/static/src/js/pos_customerscreen.js",
             "pos_laundry/static/src/js/pos_orderlistscreen.js",
-            "pos_laundry/static/src/js/package/package_utils.js",
-            "pos_laundry/static/src/js/package/package_engine.js",
-            "pos_laundry/static/src/js/package/package_store_patch.js",
-            "pos_laundry/static/src/js/package/package_category_patch.js",
-            "pos_laundry/static/src/js/package/package_product_patch.js",
-            "pos_laundry/static/src/js/package/package_order_patch.js",
-            "pos_laundry/static/src/js/package/package_validation.js",
-            "pos_laundry/static/src/xml/package_category_badge.xml",
             "pos_laundry/static/src/xml/laundry_receipt.xml",
             "pos_laundry/static/src/js/laundry_payment_screen.js",
             "pos_laundry/static/src/xml/laundry_payment_screen.xml",

@@ -55,21 +55,14 @@ class LaundryOrderType(models.Model):
         help="Check if this order type is for pickup orders.",
         default=False
     )
-    is_package_sale = fields.Boolean(
-        string="Is Package Sale",
-        help="Check if this order type is for Selling Packages.",
-        default=False
-    )
+    
+    
     is_hidden = fields.Boolean(
         string="Is Hidden from Screen",
         help="Check if this order type should not appear in the Home Screen",
         default=False
     )
-    is_package_use = fields.Boolean(
-        string="Is Package Usage",
-        help="Check if this order type should be used for Package Usage",
-        default=False
-    )
+    
 
     direct_sale = fields.Boolean(
         string="Direct Sale",

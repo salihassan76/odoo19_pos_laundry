@@ -10,11 +10,6 @@ class PosConfig(models.Model):
         default=False,
     )
 
-    package_pos_category_id = fields.Many2one(
-        "pos.category",
-        string="Package POS Category",
-    )
-
     is_project = fields.Boolean(
         string="Enable Project",
         default=False,
@@ -40,10 +35,6 @@ class PosConfig(models.Model):
         string="Paid Status",
     )
 
-    package_payment_id = fields.Many2one(
-        "laundry.order.payment.status",
-        string="Package Payment Status",
-    )
 
     cancelled_payment_id = fields.Many2one(
         "laundry.order.payment.status",
@@ -76,13 +67,11 @@ class PosConfig(models.Model):
 
         fields_to_load = [
             "enable_laundry_workflow",
-            "package_pos_category_id",
             "is_project",
             "project_id",
             "unpaid_payment_id",
             "partial_payment_id",
             "paid_payment_id",
-            "package_payment_id",
             "cancelled_payment_id",
             "refund_payment_id",
             "order_status_id",
@@ -114,11 +103,11 @@ class PosConfig(models.Model):
                 "ok": bool(ok),
             })
 
-        add(_("Package POS Category"), self.package_pos_category_id)
+        
         add(_("Default Order Status"), self.order_status_id)
         add(_("Unpaid Payment Status"), self.unpaid_payment_id)
         add(_("Paid Payment Status"), self.paid_payment_id)
-        add(_("Package Payment Status"), self.package_payment_id)
+        
 
         add(_("Laundry Order Types"), self.env["laundry.order.type"].search_count([
             ("active", "=", True),

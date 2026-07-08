@@ -1,13 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <template id="template" xml:space="preserve">
     <t t-name="pos_laundry.OrderSummaryExtension" t-inherit="point_of_sale.OrderSummary" t-inherit-mode="extension">
-        
         <xpath expr="//OrderDisplay" position="before">
-        <t t-if="pos.config.enable_laundry_workflow">
-            <div class="laundry-order-info p-2">
-                
+            <t t-if="pos.config.enable_laundry_workflow">
+                <div class="laundry-order-info p-2">
                     <div class="d-flex justify-content-between">
-                        <span><strong>Laundry Type:</strong> <t t-esc="pos.getOrder()?.uiState?.laundry_order_type_name || 'N/A'"/></span>
+                        <span>
+                            <strong>Laundry Type:</strong>
+                            <t t-esc="pos.getOrder()?.uiState?.laundry_order_type_name || 'N/A'"/>
+                        </span>
+
                         <t t-if="pos.getOrder()?.uiState?.laundry_order_name">
                             <span class="text-primary">
                                 <strong>Order:</strong>
@@ -19,23 +21,9 @@
                                 <strong>Order:</strong> New
                             </span>
                         </t>
-
-
-
-                        <t t-if="pos.getOrder()?.uiState?.package_rule_id">
-                            <div class="mt-1">
-                                <strong>Package:</strong>
-                                <t t-esc="pos.getOrder()?.uiState?.package_rule_name"/>
-
-                            </div>
-                        </t>
-
                     </div>
-                
-            </div>
+                </div>
             </t>
         </xpath>
-        
-        
     </t>
 </template>

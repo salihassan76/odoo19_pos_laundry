@@ -1,15 +1,8 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_laundry_order_type,laundry.order.type,model_laundry_order_type,base.group_user,1,1,1,1
-access_package_rule,package.rule,model_package_rule,,1,1,1,1
-access_package_rule_detail,package.rule.detail,model_package_rule_detail,,1,1,1,1
-access_laundry_configuration,laundry.configuration,model_laundry_configuration,,1,1,1,1
-access_laundry_order_status,laundry.order.status,model_laundry_order_status,,1,1,1,1
-access_laundry_order_payment_status,laundry.order.payment.status,model_laundry_order_payment_status,,1,1,1,1
-access_partner_package_user,partner.package.user,model_partner_package,base.group_user,1,1,1,0
-access_partner_package_usage_user,partner.package.usage.user,model_partner_package_usage,base.group_user,1,1,1,0
-access_partner_package_usage_line_user,partner.package.usage.line.user,model_partner_package_usage_line,base.group_user,1,1,1,0
-access_partner_package_pos_user,partner.package.pos.user,model_partner_package,point_of_sale.group_pos_user,1,0,0,0
+access_laundry_configuration,laundry.configuration,model_laundry_configuration,base.group_user,1,1,1,1
+access_laundry_order_status,laundry.order.status,model_laundry_order_status,base.group_user,1,1,1,1
+access_laundry_order_payment_status,laundry.order.payment.status,model_laundry_order_payment_status,base.group_user,1,1,1,1
 access_laundry_order,laundry.order,model_laundry_order,base.group_user,1,1,1,1
 access_laundry_order_line,laundry.order.line,model_laundry_order_line,base.group_user,1,1,1,1
 access_laundry_pos_payment_user,laundry.pos.payment user,model_laundry_pos_payment,base.group_user,1,1,1,0
-

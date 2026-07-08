@@ -21,23 +21,11 @@
               sequence="10"/>
 
 
-    <!-- Packages -->
-    <menuitem id="menu_laundry_packages"
-              name="Packages"
-              parent="menu_laundry_root"
-              sequence="20"/>
-
-              <menuitem id="menu_laundry_package_rule"
-              name="Packages"
-              parent="menu_laundry_packages"
-              action="action_laundry_package_rule"
-              sequence="10"/>
-
     <!-- Configuration -->
     <menuitem id="menu_laundry_configuration"
               name="Configuration"
               parent="menu_laundry_root"
-              sequence="30"/>
+              sequence="90"/>
 
     <menuitem id="menu_laundry_pos_order_title"
               name="Orders"

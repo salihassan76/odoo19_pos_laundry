@@ -28,10 +28,7 @@ class LaundryConfiguration(models.Model):
         ondelete="cascade",
     )
 
-    package_pos_category_id = fields.Many2one(
-        "pos.category",
-        string="Package POS Category",
-    )
+    
 
     is_project = fields.Boolean(
         string="Enable Project",
@@ -58,10 +55,7 @@ class LaundryConfiguration(models.Model):
         string="Paid Status",
     )
 
-    package_payment_id = fields.Many2one(
-        "laundry.order.payment.status",
-        string="Package Payment Status",
-    )
+
 
     cancelled_payment_id = fields.Many2one(
         "laundry.order.payment.status",
@@ -145,11 +139,11 @@ class LaundryConfiguration(models.Model):
             })
 
         add(_("Laundry Configuration"), bool(config))
-        add(_("Package POS Category"), bool(config and config.package_pos_category_id))
+        
         add(_("Default Order Status"), bool(config and config.order_status_id))
         add(_("Unpaid Payment Status"), bool(config and config.unpaid_payment_id))
         add(_("Paid Payment Status"), bool(config and config.paid_payment_id))
-        add(_("Package Payment Status"), bool(config and config.package_payment_id))
+        
 
         add(_("Laundry Order Types"), bool(self.env["laundry.order.type"].search_count([
             ("active", "=", True),
