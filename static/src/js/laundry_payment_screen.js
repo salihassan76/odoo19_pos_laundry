@@ -191,4 +191,4 @@ export class LaundryPaymentScreen extends Component {
     }
 }
 
-registry.category("pos_screens").add("LaundryPaymentScreen", LaundryPaymentScreen);
+registry.category("pos_page").add("LaundryPaymentScreen", LaundryPaymentScreen);
