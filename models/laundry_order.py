@@ -1,5 +1,5 @@
 from odoo import models, fields, api, _
-from odoo.exceptions import ValidationError
+from odoo.exceptions import ValidationError, UserError
 from collections import OrderedDict
 from datetime import timedelta
 
@@ -511,7 +511,7 @@ class LaundryOrder(models.Model):
                 "name": method.name,
                 "journal_id": method.journal_id.id,
                 "journal_name": method.journal_id.name,
-                "icon": method.image or False,
+                "image": method.image or False,
             })
 
         return {
@@ -535,4 +535,121 @@ class LaundryOrder(models.Model):
             "currency_id": invoice.currency_id.id,
             "currency_name": invoice.currency_id.name,
             "payment_methods": payment_methods,
+        }
+    
+    def get_paid_order_details_for_pos(self):
+        self.ensure_one()
+
+        payments = self.env["laundry.pos.payment"].search([
+            ("laundry_order_id", "=", self.id),
+            ("state", "=", "posted"),
+        ], order="id desc")
+
+        last_payment = payments[:1]
+
+        paid_amount = sum(payments.mapped("amount"))
+        balance = max((self.total_amount or 0.0) - paid_amount, 0.0)
+
+        return {
+            "order": {
+                "id": self.id,
+                "order_name": self.name,
+                "customer_name": self.customer_id.name or "",
+                "customer_mobile": self.customer_id.mobile or self.customer_id.phone or "",
+                "order_type": self.order_type_id.name or "",
+                "order_date": self.order_datetime.strftime("%Y-%m-%d %H:%M:%S") if self.order_datetime else "",
+                "invoice_name": self.invoice_id.name or "",
+                "invoice_total": f"{self.total_amount or 0.0:.3f}",
+                "paid_amount": f"{paid_amount:.3f}",
+                "balance": f"{balance:.3f}",
+                "payment_status": self.payment_status_id.name or "",
+                "payment_method": last_payment.payment_method_id.name if last_payment else "",
+                "payment_date": last_payment.payment_date.strftime("%Y-%m-%d %H:%M:%S") if last_payment and last_payment.payment_date else "",
+                "payment_reference": last_payment.name if last_payment else "",
+            },
+            "lines": [
+                {
+                    "id": line.id,
+                    "product_name": line.product_id.display_name,
+                    "category": line.category_id.name if line.category_id else "",
+                    "qty": f"{line.qty or 0.0:.3f}",
+                    "price": f"{line.price_unit or 0.0:.3f}",
+                    "subtotal": f"{line.subtotal or 0.0:.3f}",
+                }
+                for line in self.line_ids
+            ],
+        }
+
+    def action_refund_from_pos(self):
+        self.ensure_one()
+
+        if not self.invoice_id:
+            raise UserError(_("No invoice found for this order."))
+
+        if self.payment_status_id.name != "Paid":
+            raise UserError(_("Only paid orders can be refunded."))
+
+        config = self.pos_config_id
+        if not config:
+            raise UserError(_("POS configuration is missing."))
+
+        refund_status = getattr(config, "refund_payment_id", False)
+        cancelled_status = getattr(config, "cancelled_order_status_id", False) or False
+
+        if not refund_status:
+            raise UserError(_("Refund payment status is not configured."))
+
+        # 1. Create credit note
+        reversal = self.env["account.move.reversal"].with_context(
+            active_model="account.move",
+            active_ids=self.invoice_id.ids,
+        ).create({
+            "reason": _("POS laundry order refund"),
+            "journal_id": self.invoice_id.journal_id.id,
+            "date": fields.Date.context_today(self),
+        })
+
+        reversal_result = reversal.reverse_moves()
+        refund_move = self.env["account.move"].browse(
+            reversal_result.get("res_id")
+        )
+
+        if refund_move and refund_move.state == "draft":
+            refund_move.action_post()
+
+        # 2. Create refund payment
+        posted_payments = self.env["laundry.pos.payment"].search([
+            ("laundry_order_id", "=", self.id),
+            ("state", "=", "posted"),
+        ])
+
+        amount_to_refund = sum(posted_payments.mapped("amount"))
+
+        refund_payment = self.env["account.payment"].create({
+            "payment_type": "outbound",
+            "partner_type": "customer",
+            "partner_id": self.customer_id.id,
+            "amount": amount_to_refund,
+            "currency_id": self.invoice_id.currency_id.id,
+            "date": fields.Date.context_today(self),
+            "journal_id": posted_payments[:1].payment_method_id.journal_id.id,
+            "ref": _("Refund for %s") % self.name,
+        })
+
+        refund_payment.action_post()
+
+        # 3. Update laundry order
+        vals = {
+            "payment_status_id": refund_status.id,
+        }
+
+        if cancelled_status:
+            vals["status_id"] = cancelled_status.id
+
+        self.write(vals)
+
+        return {
+            "success": True,
+            "refund_payment_id": refund_payment.id,
+            "refund_invoice_id": refund_move.id if refund_move else False,
         }

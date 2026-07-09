@@ -353,10 +353,19 @@ export const laundryService = {
                     allowed_category_ids: data.allowed_category_ids || [],
                 };
             },
-
             async openLaundryOrder(orderId) {
                 const data = await this.getLaundryOrderForPos(orderId);
                 if (!data) {
+                    return;
+                }
+
+                if (this.isReadOnlyPaymentStatus(data.payment_status_id)) {
+                    this.pos.selected_laundry_order_id = orderId;
+
+                    this.pos.navigate("laundry_paid_order", {
+                        laundryOrderId: orderId,
+                    });
+
                     return;
                 }
 
@@ -364,7 +373,6 @@ export const laundryService = {
                 const order = await this.createFreshOrder(partner || null);
 
                 this._setLaundryOrderState(order, this._prepareOpenOrderStateValues(data));
-                console.log("OPEN EXISTING LAUNDRY ORDER", order.uiState);
 
                 this.pos.selected_laundry_order_type = {
                     id: data.order_type_id,
@@ -378,6 +386,7 @@ export const laundryService = {
                     if (!product) {
                         continue;
                     }
+
                     await this.pos.addLineToCurrentOrder(
                         {
                             product_id: product,
@@ -392,6 +401,16 @@ export const laundryService = {
 
                 this.pos.navigate("ProductScreen", { orderUuid: order.uuid });
             },
+            isReadOnlyPaymentStatus(paymentStatusId) {
+                const config = this.pos.config;
+
+                return [
+                    config.paid_payment_id,
+                    config.refund_payment_id,
+                    config.cancelled_payment_id,
+                ].includes(paymentStatusId);
+            },
+
         };
     },
 };

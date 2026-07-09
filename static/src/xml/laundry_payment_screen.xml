@@ -5,14 +5,14 @@
         <div class="laundry-payment-screen h-100 d-flex flex-column">
 
             <!-- Top Header -->
-            <div class="payment-topbar d-flex align-items-center justify-content-between px-3 py-2">
+            <div class="payment-topbar d-flex flex-wrap align-items-center justify-content-between gap-2 px-3 py-2">
                 <button class="btn btn-light d-flex align-items-center gap-2"
                         t-on-click="back">
                     <i class="fa fa-arrow-left"/>
                     <span>Back</span>
                 </button>
 
-                <h2 class="m-0">Laundry Payment</h2>
+                <h2 class="m-0 text-center flex-grow-1">Laundry Payment</h2>
 
                 <div class="invoice-badge">
                     <t t-esc="state.paymentData.invoice_name || 'No Invoice'"/>
@@ -20,233 +20,248 @@
             </div>
 
             <!-- Main Content -->
-            <div class="payment-content flex-grow-1 d-flex gap-3 p-3">
+            <div class="payment-content flex-grow-1 overflow-auto p-3">
+                <div class="row g-3 h-100">
 
-                <!-- Left Customer / Order Panel -->
-                <div class="payment-left-panel d-flex flex-column">
+                    <!-- Left Customer / Order Panel -->
+                    <div class="col-12 col-lg-4 col-xl-3">
+                        <div class="payment-left-panel d-flex flex-column h-100">
 
-                    <div class="customer-card p-3 mb-3">
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="customer-avatar">
-                                <i class="fa fa-user"/>
-                            </div>
-                            <div>
-                                <h3 class="mb-1">
-                                    <t t-esc="state.paymentData.customer_name || 'Customer'"/>
-                                </h3>
-                                <div class="text-muted">
-                                    <i class="fa fa-phone me-2"/>
-                                    <t t-esc="state.paymentData.customer_mobile || ''"/>
+                            <div class="customer-card p-3 mb-3">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="customer-avatar">
+                                        <i class="fa fa-user"/>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <h3 class="mb-1 text-truncate">
+                                            <t t-esc="state.paymentData.customer_name || 'Customer'"/>
+                                        </h3>
+                                        <div class="text-muted text-truncate">
+                                            <i class="fa fa-phone me-2"/>
+                                            <t t-esc="state.paymentData.customer_mobile || ''"/>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
 
-                    <div class="order-info-card p-3 mb-3">
-                        <div class="info-row">
-                            <div class="info-icon">
-                                <i class="fa fa-shopping-bag"/>
-                            </div>
-                            <div>
-                                <div class="text-muted">Laundry Order</div>
-                                <strong>
-                                    <t t-esc="state.paymentData.order_name || '-'"/>
-                                </strong>
-                            </div>
-                        </div>
-
-                        <div class="info-row">
-                            <div class="info-icon">
-                                <i class="fa fa-calendar"/>
-                            </div>
-                            <div>
-                                <div class="text-muted">Order Date</div>
-                                <strong>
-                                    <t t-esc="state.paymentData.order_date || '-'"/>
-                                </strong>
-                            </div>
-                        </div>
-
-                        <div class="info-row">
-                            <div class="info-icon">
-                                <i class="fa fa-tag"/>
-                            </div>
-                            <div>
-                                <div class="text-muted">Order Type</div>
-                                <strong>
-                                    <t t-esc="state.paymentData.order_type || '-'"/>
-                                </strong>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="payment-status-card p-3 mt-auto">
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="status-icon">
-                                <i class="fa fa-info"/>
-                            </div>
-                            <div>
-                                <div class="text-muted">Payment Status</div>
-                                <h4 class="m-0 text-primary">
-                                    <t t-esc="state.paymentData.payment_status || 'Unpaid'"/>
-                                </h4>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-
-                <!-- Center Payment Panel -->
-                <div class="payment-main-panel flex-grow-1 d-flex flex-column">
-
-                    <!-- Summary Cards -->
-                    <div class="summary-cards d-flex gap-3 mb-3">
-                        <div class="summary-card invoice-total flex-fill">
-                            <div class="summary-icon">
-                                <i class="fa fa-file-text"/>
-                            </div>
-                            <div>
-                                <div>Invoice Total</div>
-                                <h3>BD <t t-esc="state.paymentData.invoice_total || '0.000'"/></h3>
-                            </div>
-                        </div>
-
-                        <div class="summary-card already-paid flex-fill">
-                            <div class="summary-icon">
-                                <i class="fa fa-wallet"/>
-                            </div>
-                            <div>
-                                <div>Already Paid</div>
-                                <h3>BD <t t-esc="state.paymentData.paid_amount || '0.000'"/></h3>
-                            </div>
-                        </div>
-
-                        <div class="summary-card balance-due flex-fill">
-                            <div class="summary-icon">
-                                <i class="fa fa-money"/>
-                            </div>
-                            <div>
-                                <div>Balance Due</div>
-                                <h3>BD <t t-esc="state.paymentData.balance_due || '0.000'"/></h3>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Amount -->
-                    <div class="payment-section mb-3">
-                        <label class="form-label fw-bold">Payment Amount</label>
-                        <div class="amount-input d-flex align-items-center justify-content-between">
-                            <span>
-                                <t t-esc="state.amount || '0.000'"/>
-                            </span>
-                            <span>BD</span>
-                        </div>
-                    </div>
-
-                    <!-- Quick Amounts -->
-                    <div class="payment-section mb-3">
-                        <label class="form-label fw-bold">Quick Amounts</label>
-                        <div class="d-flex gap-2 flex-wrap">
-                            <button class="btn quick-amount-btn"
-                                    t-on-click="setFullBalance">
-                                Full Balance
-                            </button>
-
-                            <button class="btn quick-amount-btn"
-                                    t-on-click="() => setAmount('1.000')">
-                                BD 1.000
-                            </button>
-
-                            <button class="btn quick-amount-btn"
-                                    t-on-click="() => setAmount('2.000')">
-                                BD 2.000
-                            </button>
-
-                            <button class="btn quick-amount-btn"
-                                    t-on-click="() => setAmount('5.000')">
-                                BD 5.000
-                            </button>
-
-                            <button class="btn quick-amount-btn"
-                                    t-on-click="() => setAmount('10.000')">
-                                BD 10.000
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Payment Methods -->
-                    <div class="payment-section mb-3">
-                        <label class="form-label fw-bold">Payment Method</label>
-
-                        <div class="payment-method-grid">
-                            <t t-foreach="state.paymentMethods" t-as="method" t-key="method.id">
-                                <button
-                                    t-attf-class="payment-method-btn #{state.selectedPaymentMethodId === method.id ? 'selected' : ''}"
-                                    t-on-click="() => this.selectPaymentMethod(method)"
-                                >
-
-                                    <div class="payment-method-icon">
-
-                                        <t t-if="method.image">
-                                            <img
-                                                t-att-src="'data:image/png;base64,' + method.image"
-                                                t-att-alt="method.name"
-                                                class="payment-method-image"
-                                            />
-                                        </t>
-
-                                        <t t-else="">
-                                            <i class="fa fa-credit-card"/>
-                                        </t>
-
+                            <div class="order-info-card p-3 mb-3">
+                                <div class="info-row">
+                                    <div class="info-icon">
+                                        <i class="fa fa-shopping-bag"/>
                                     </div>
-
-                                    <div class="payment-method-name">
-                                        <t t-esc="method.name"/>
+                                    <div>
+                                        <div class="text-muted">Laundry Order</div>
+                                        <strong>
+                                            <t t-esc="state.paymentData.order_name || '-'"/>
+                                        </strong>
                                     </div>
+                                </div>
 
+                                <div class="info-row">
+                                    <div class="info-icon">
+                                        <i class="fa fa-calendar"/>
+                                    </div>
+                                    <div>
+                                        <div class="text-muted">Order Date</div>
+                                        <strong>
+                                            <t t-esc="state.paymentData.order_date || '-'"/>
+                                        </strong>
+                                    </div>
+                                </div>
+
+                                <div class="info-row">
+                                    <div class="info-icon">
+                                        <i class="fa fa-tag"/>
+                                    </div>
+                                    <div>
+                                        <div class="text-muted">Order Type</div>
+                                        <strong>
+                                            <t t-esc="state.paymentData.order_type || '-'"/>
+                                        </strong>
+                                    </div>
+                                </div>
+
+                                <div class="info-row">
+                                    <div class="status-icon">
+                                        <i class="fa fa-info"/>
+                                    </div>
+                                    <div>
+                                        <div class="text-muted">Payment Status</div>
+                                        <h4 class="m-0 text-primary">
+                                            <t t-esc="state.paymentData.payment_status || 'Unpaid'"/>
+                                        </h4>
+                                    </div>
+                                </div>
+                            </div>
+
+                            
+
+                        </div>
+                    </div>
+
+                    <!-- Center Payment Panel -->
+                    <div class="col-12 col-lg-8 col-xl-6">
+                        <div class="payment-main-panel d-flex flex-column h-100">
+
+                            <!-- Summary Cards -->
+                            <div class="summary-cards row g-3 mb-3">
+                                <div class="col-12 col-md-4">
+                                    <div class="summary-card invoice-total h-100">
+                                        <div class="summary-icon">
+                                            <i class="fa fa-file-text"/>
+                                        </div>
+                                        <div>
+                                            <div>Invoice Total</div>
+                                            <h3>BD <t t-esc="state.paymentData.invoice_total || '0.000'"/></h3>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 col-md-4">
+                                    <div class="summary-card already-paid h-100">
+                                        <div class="summary-icon">
+                                            <i class="fa fa-wallet"/>
+                                        </div>
+                                        <div>
+                                            <div>Already Paid</div>
+                                            <h3>BD <t t-esc="state.paymentData.paid_amount || '0.000'"/></h3>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 col-md-4">
+                                    <div class="summary-card balance-due h-100">
+                                        <div class="summary-icon">
+                                            <i class="fa fa-money"/>
+                                        </div>
+                                        <div>
+                                            <div>Balance Due</div>
+                                            <h3>BD <t t-esc="state.paymentData.balance_due || '0.000'"/></h3>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            
+
+                            <!-- Quick Amounts -->
+                            <div class="payment-section mb-3">
+                                <label class="form-label fw-bold">Quick Amounts</label>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <button class="btn quick-amount-btn"
+                                            t-on-click="setFullBalance">
+                                        Full Balance
+                                    </button>
+
+                                    <button class="btn quick-amount-btn"
+                                            t-on-click="() => setAmount('1.000')">
+                                        BD 1.000
+                                    </button>
+
+                                    <button class="btn quick-amount-btn"
+                                            t-on-click="() => setAmount('2.000')">
+                                        BD 2.000
+                                    </button>
+
+                                    <button class="btn quick-amount-btn"
+                                            t-on-click="() => setAmount('5.000')">
+                                        BD 5.000
+                                    </button>
+
+                                    <button class="btn quick-amount-btn"
+                                            t-on-click="() => setAmount('10.000')">
+                                        BD 10.000
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Payment Methods -->
+                            <div class="payment-section mb-3">
+                                <label class="form-label fw-bold">Payment Method</label>
+
+                                <div class="payment-method-grid">
+                                    <t t-foreach="state.paymentMethods" t-as="method" t-key="method.id">
+                                        <button
+                                            t-attf-class="payment-method-btn #{state.selectedPaymentMethodId === method.id ? 'selected' : ''}"
+                                            t-on-click="() => this.selectPaymentMethod(method)"
+                                        >
+                                            <div class="payment-method-icon">
+                                                <t t-if="method.image">
+                                                    <img
+                                                        t-att-src="'data:image/png;base64,' + method.image"
+                                                        t-att-alt="method.name"
+                                                        class="payment-method-image"
+                                                    />
+                                                </t>
+
+                                                <t t-else="">
+                                                    <i class="fa fa-credit-card"/>
+                                                </t>
+                                            </div>
+
+                                            <div class="payment-method-name">
+                                                <t t-esc="method.name"/>
+                                            </div>
+                                        </button>
+                                    </t>
+                                </div>
+                            </div>
+
+                            <!-- Notes 
+                            <div class="payment-section mt-lg-auto">
+                                <label class="form-label fw-bold">Notes</label>
+                                <textarea class="form-control payment-notes"
+                                          placeholder="Optional payment note..."
+                                          t-model="state.notes"/>
+                            </div>
+                            -->
+                        </div>
+                    </div>
+
+                    <!-- Right Amount + Numpad Panel -->
+                    <div class="col-12 col-xl-3 d-flex flex-column gap-3 align-items-stretch">
+
+                        <!-- Amount -->
+                        <div class="payment-section">
+                            <label class="form-label fw-bold">Payment Amount</label>
+                            <div class="amount-input d-flex align-items-center justify-content-between">
+                                <span>
+                                    <t t-esc="state.amount || '0.000'"/>
+                                </span>
+                                <span>BD</span>
+                            </div>
+                        </div>
+
+                        <!-- Numpad -->
+                        <div class="payment-numpad-panel">
+                            <div class="numpad-grid">
+                                <button t-on-click="() => this.addDigit('7')">7</button>
+                                <button t-on-click="() => this.addDigit('8')">8</button>
+                                <button t-on-click="() => this.addDigit('9')">9</button>
+
+                                <button t-on-click="() => this.addDigit('4')">4</button>
+                                <button t-on-click="() => this.addDigit('5')">5</button>
+                                <button t-on-click="() => this.addDigit('6')">6</button>
+
+                                <button t-on-click="() => this.addDigit('1')">1</button>
+                                <button t-on-click="() => this.addDigit('2')">2</button>
+                                <button t-on-click="() => this.addDigit('3')">3</button>
+
+                                <button t-on-click="() => this.addDigit('.')">.</button>
+                                <button t-on-click="() => this.addDigit('0')">0</button>
+                                <button t-on-click="() => this.backspace()">
+                                    <i class="fa fa-backspace"/>
                                 </button>
-                            </t>
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- Notes -->
-                    <div class="payment-section mt-auto">
-                        <label class="form-label fw-bold">Notes</label>
-                        <textarea class="form-control payment-notes"
-                                  placeholder="Optional payment note..."
-                                  t-model="state.notes"/>
                     </div>
 
                 </div>
-
-                <!-- Right Numpad Panel -->
-                <div class="payment-numpad-panel">
-                    <div class="numpad-grid">
-                        <button t-on-click="() => addDigit('7')">7</button>
-                        <button t-on-click="() => addDigit('8')">8</button>
-                        <button t-on-click="() => addDigit('9')">9</button>
-
-                        <button t-on-click="() => addDigit('4')">4</button>
-                        <button t-on-click="() => addDigit('5')">5</button>
-                        <button t-on-click="() => addDigit('6')">6</button>
-
-                        <button t-on-click="() => addDigit('1')">1</button>
-                        <button t-on-click="() => addDigit('2')">2</button>
-                        <button t-on-click="() => addDigit('3')">3</button>
-
-                        <button t-on-click="() => addDigit('.')">.</button>
-                        <button t-on-click="() => addDigit('0')">0</button>
-                        <button t-on-click="backspace">
-                            <i class="fa fa-backspace"/>
-                        </button>
-                    </div>
-                </div>
-
             </div>
 
             <!-- Footer -->
-            <div class="payment-footer d-flex gap-3 p-3">
+            <div class="payment-footer d-flex flex-column flex-md-row gap-3 p-3">
                 <button class="btn btn-light footer-btn"
                         t-on-click="cancel">
                     <i class="fa fa-times me-2"/>
@@ -259,7 +274,7 @@
                     Print Receipt
                 </button>
 
-                <button class="btn btn-primary footer-btn validate-btn"
+                <button class="btn btn-primary footer-btn validate-btn flex-md-grow-1"
                         t-on-click="validatePayment">
                     <i class="fa fa-check me-2"/>
                     Validate Payment

@@ -3,7 +3,7 @@
     color: #1f2937;
 
     .payment-topbar {
-        height: 70px;
+        min-height: 70px;
         background: #ffffff;
         border-bottom: 1px solid #e5e7eb;
 
@@ -22,12 +22,21 @@
     }
 
     .payment-content {
-        overflow: hidden;
+        overflow: auto;
+
+        > .row {
+            --bs-gutter-x: 24px;
+            --bs-gutter-y: 24px;
+        }
     }
 
-    .payment-left-panel {
-        width: 300px;
-        min-width: 300px;
+    .payment-left-panel,
+    .payment-main-panel {
+        width: 100%;
+    }
+
+    .payment-main-panel {
+        gap: 20px;
     }
 
     .customer-card,
@@ -48,6 +57,7 @@
     .summary-icon {
         width: 44px;
         height: 44px;
+        min-width: 44px;
         border-radius: 12px;
         display: flex;
         align-items: center;
@@ -69,11 +79,16 @@
         }
     }
 
+    .summary-cards {
+        margin-bottom: 0 !important;
+    }
+
     .summary-card {
         padding: 18px;
         display: flex;
         align-items: center;
         gap: 14px;
+        height: 100%;
 
         h3 {
             margin: 4px 0 0;
@@ -84,6 +99,7 @@
 
     .payment-section {
         padding: 16px;
+        margin-bottom: 0 !important;
     }
 
     .amount-input {
@@ -110,13 +126,12 @@
     }
 
     .payment-method-grid {
-        display: flex;
-        gap: 12px;
-        flex-wrap: wrap;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+        gap: 24px;
     }
 
     .payment-method-btn {
-        width: 135px;
         height: 115px;
         border-radius: 16px;
         border: 2px solid #e5e7eb;
@@ -140,8 +155,8 @@
     }
 
     .payment-method-image {
-        width: 44px;
-        height: 44px;
+        width: 52px;
+        height: 52px;
         object-fit: contain;
     }
 
@@ -157,8 +172,9 @@
     }
 
     .payment-numpad-panel {
-        width: 280px;
-        min-width: 280px;
+        width: 100%;
+        height: auto !important;
+        align-self: flex-start;
         padding: 16px;
     }
 
@@ -168,7 +184,7 @@
         gap: 12px;
 
         button {
-            height: 76px;
+            height: 60px;
             border-radius: 16px;
             border: 1px solid #d1d5db;
             background: #f8fafc;
@@ -201,5 +217,9 @@
     .validate-btn {
         margin-left: auto;
         min-width: 260px;
+    }
+
+    .min-w-0 {
+        min-width: 0;
     }
 }

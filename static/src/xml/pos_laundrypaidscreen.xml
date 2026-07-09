@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="pos_laundry.LaundryPaidOrderScreen">
+
+        <div class="laundry-paid-order-screen h-100 d-flex flex-column">
+
+            <!-- Header -->
+            <div class="payment-topbar d-flex align-items-center justify-content-between px-3 py-2">
+
+                <button class="btn btn-light"
+                        t-on-click="back">
+                    <i class="fa fa-arrow-left me-2"/>
+                    Back
+                </button>
+
+                <h2 class="m-0">
+                    Order Details
+                </h2>
+
+                <span class="badge text-bg-success fs-6">
+                    Paid
+                </span>
+
+            </div>
+
+            <!-- Content -->
+            <div class="flex-grow-1 p-3 overflow-auto">
+
+                <div class="row g-3">
+
+                    <!-- Customer -->
+                    <div class="col-lg-4">
+
+                        <div class="card h-100">
+
+                            <div class="card-header fw-bold">
+                                Customer
+                            </div>
+
+                            <div class="card-body">
+
+                                <p class="mb-2">
+                                    <strong>Name:</strong><br/>
+                                    <t t-esc="state.order.customer_name"/>
+                                </p>
+
+                                <p class="mb-2">
+                                    <strong>Mobile:</strong><br/>
+                                    <t t-esc="state.order.customer_mobile"/>
+                                </p>
+
+                                <p class="mb-0">
+                                    <strong>Order:</strong><br/>
+                                    <t t-esc="state.order.order_name"/>
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Summary -->
+                    <div class="col-lg-8">
+
+                        <div class="card">
+
+                            <div class="card-header fw-bold">
+                                Payment Summary
+                            </div>
+
+                            <div class="card-body">
+
+                                <div class="row">
+
+                                    <div class="col-md-4">
+
+                                        <div class="summary-card">
+                                            <small>Total</small>
+                                            <h3>
+                                                BD
+                                                <t t-esc="state.order.total"/>
+                                            </h3>
+                                        </div>
+
+                                    </div>
+
+                                    <div class="col-md-4">
+
+                                        <div class="summary-card">
+                                            <small>Paid</small>
+                                            <h3>
+                                                BD
+                                                <t t-esc="state.order.paid"/>
+                                            </h3>
+                                        </div>
+
+                                    </div>
+
+                                    <div class="col-md-4">
+
+                                        <div class="summary-card">
+                                            <small>Balance</small>
+                                            <h3>
+                                                BD
+                                                <t t-esc="state.order.balance"/>
+                                            </h3>
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Order Lines -->
+                    <div class="col-12">
+
+                        <div class="card">
+
+                            <div class="card-header fw-bold">
+                                Order Details
+                            </div>
+
+                            <div class="card-body p-0">
+
+                                <table class="table table-striped mb-0">
+
+                                    <thead>
+
+                                        <tr>
+                                            <th>Item</th>
+                                            <th width="120">Qty</th>
+                                            <th width="150">Price</th>
+                                            <th width="150">Subtotal</th>
+                                        </tr>
+
+                                    </thead>
+
+                                    <tbody>
+
+                                        <tr
+                                            t-foreach="state.lines"
+                                            t-as="line"
+                                            t-key="line.id">
+
+                                            <td>
+                                                <t t-esc="line.product_name"/>
+                                            </td>
+
+                                            <td>
+                                                <t t-esc="line.qty"/>
+                                            </td>
+
+                                            <td>
+                                                BD
+                                                <t t-esc="line.price"/>
+                                            </td>
+
+                                            <td>
+                                                BD
+                                                <t t-esc="line.subtotal"/>
+                                            </td>
+
+                                        </tr>
+
+                                    </tbody>
+
+                                </table>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Footer -->
+
+            <div class="payment-footer d-flex gap-3 p-3">
+
+                <button
+                    class="btn btn-light footer-btn"
+                    t-on-click="printReceipt">
+
+                    <i class="fa fa-print me-2"/>
+
+                    Print Receipt
+
+                </button>
+
+                <button
+                    class="btn btn-danger footer-btn ms-auto"
+                    t-on-click="refundOrder">
+
+                    <i class="fa fa-undo me-2"/>
+
+                    Refund Order
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </t>
+
+</templates>
