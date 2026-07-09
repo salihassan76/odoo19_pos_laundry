@@ -7,6 +7,7 @@ import { _t } from "@web/core/l10n/translation";
 
 export class LaundryPaymentScreen extends Component {
     static template = "pos_laundry.LaundryPaymentScreen";
+    static props = ["*"];
 
     setup() {
         this.pos = useService("pos");
@@ -57,7 +58,7 @@ export class LaundryPaymentScreen extends Component {
         const result = await this.orm.call(
             "laundry.order",
             "get_payment_data",
-            [this.laundryOrderId]
+            [[this.laundryOrderId]]
         );
 
         this.state.paymentData = result || {};
@@ -191,4 +192,9 @@ export class LaundryPaymentScreen extends Component {
     }
 }
 
-registry.category("pos_page").add("LaundryPaymentScreen", LaundryPaymentScreen);
+registry.category("pos_pages").add("LaundryPaymentScreen", {
+    name: "LaundryPaymentScreen",
+    component: LaundryPaymentScreen,
+    route: `/pos/ui/${odoo.pos_config_id}/laundry-payment`,
+    params: {},
+});
