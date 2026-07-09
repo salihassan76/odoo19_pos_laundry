@@ -153,22 +153,22 @@
                             </button>
 
                             <button class="btn quick-amount-btn"
-                                    t-on-click="() => this.setAmount('1.000')">
+                                    t-on-click="() => setAmount('1.000')">
                                 BD 1.000
                             </button>
 
                             <button class="btn quick-amount-btn"
-                                    t-on-click="() => this.setAmount('2.000')">
+                                    t-on-click="() => setAmount('2.000')">
                                 BD 2.000
                             </button>
 
                             <button class="btn quick-amount-btn"
-                                    t-on-click="() => this.setAmount('5.000')">
+                                    t-on-click="() => setAmount('5.000')">
                                 BD 5.000
                             </button>
 
                             <button class="btn quick-amount-btn"
-                                    t-on-click="() => this.setAmount('10.000')">
+                                    t-on-click="() => setAmount('10.000')">
                                 BD 10.000
                             </button>
                         </div>
@@ -223,20 +223,20 @@
                 <!-- Right Numpad Panel -->
                 <div class="payment-numpad-panel">
                     <div class="numpad-grid">
-                        <button t-on-click="() => this.addDigit('7')">7</button>
-                        <button t-on-click="() => this.addDigit('8')">8</button>
-                        <button t-on-click="() => this.addDigit('9')">9</button>
+                        <button t-on-click="() => addDigit('7')">7</button>
+                        <button t-on-click="() => addDigit('8')">8</button>
+                        <button t-on-click="() => addDigit('9')">9</button>
 
-                        <button t-on-click="() => this.addDigit('4')">4</button>
-                        <button t-on-click="() => this.addDigit('5')">5</button>
-                        <button t-on-click="() => this.addDigit('6')">6</button>
+                        <button t-on-click="() => addDigit('4')">4</button>
+                        <button t-on-click="() => addDigit('5')">5</button>
+                        <button t-on-click="() => addDigit('6')">6</button>
 
-                        <button t-on-click="() => this.addDigit('1')">1</button>
-                        <button t-on-click="() => this.addDigit('2')">2</button>
-                        <button t-on-click="() => this.addDigit('3')">3</button>
+                        <button t-on-click="() => addDigit('1')">1</button>
+                        <button t-on-click="() => addDigit('2')">2</button>
+                        <button t-on-click="() => addDigit('3')">3</button>
 
-                        <button t-on-click="() => this.addDigit('.')">.</button>
-                        <button t-on-click="() => this.addDigit('0')">0</button>
+                        <button t-on-click="() => addDigit('.')">.</button>
+                        <button t-on-click="() => addDigit('0')">0</button>
                         <button t-on-click="backspace">
                             <i class="fa fa-backspace"/>
                         </button>

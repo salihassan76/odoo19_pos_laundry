@@ -219,6 +219,29 @@ class LaundryPosPayment(models.Model):
         return True
 
     def _after_receive_payment(self, account_payment=False):
+        for payment in self:
+            order = payment.laundry_order_id
+            invoice = order.invoice_id
+            pos_config = order.pos_config_id
+
+            if not order or not invoice or not pos_config:
+                continue
+
+            invoice.invalidate_recordset(["payment_state", "amount_residual"])
+
+            vals = {}
+
+            if invoice.payment_state == "paid" or invoice.amount_residual <= 0:
+                if pos_config.paid_payment_id:
+                    vals["payment_status_id"] = pos_config.paid_payment_id.id
+
+            elif invoice.amount_residual > 0:
+                if pos_config.partial_payment_id:
+                    vals["payment_status_id"] = pos_config.partial_payment_id.id
+
+            if vals:
+                order.write(vals)
+
         return True
 
     def _cancel_account_payment(self):

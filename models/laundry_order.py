@@ -511,7 +511,7 @@ class LaundryOrder(models.Model):
                 "name": method.name,
                 "journal_id": method.journal_id.id,
                 "journal_name": method.journal_id.name,
-                "icon": method.laundry_icon or False,
+                "icon": method.image or False,
             })
 
         return {
@@ -520,7 +520,7 @@ class LaundryOrder(models.Model):
             "order_date": fields.Datetime.to_string(self.order_datetime),
             "order_type": self.order_type_id.name if self.order_type_id else "",
             "customer_name": self.customer_id.name or "",
-            "customer_mobile": self.customer_id.mobile or self.customer_id.phone or "",
+            "customer_mobile": self.customer_id.phone or "",
             "partner": {
                 "id": self.customer_id.id,
                 "name": self.customer_id.name,

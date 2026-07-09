@@ -188,7 +188,11 @@ export class LaundryPaymentScreen extends Component {
             { type: "success" }
         );
 
-        this.back();
+        await this.loadScreen();
+
+        if (Number(this.state.paymentData.balance_due || 0) <= 0) {
+            this.back();
+        }
     }
 }
 

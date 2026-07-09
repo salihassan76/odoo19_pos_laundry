@@ -61,7 +61,7 @@ class LaundryPosPayment(models.Model):
             "currency_id": self.currency_id.id,
             "date": self.payment_date.date(),
             "journal_id": self.journal_id.id,
-            "ref": self.name,
+            "memo": self.name,
         }
 
     def _reconcile_invoice(self, account_payment=False):

@@ -13,6 +13,7 @@
     "license": "LGPL-3",
     "data": [
         "security/ir.model.access.csv",
+        "data/laundry_pos_payment_sequence.xml",
         "views/laundry_order_type_views.xml",
         "views/laundry_order_type_actions.xml",
         "views/laundry_configuration_views.xml",
