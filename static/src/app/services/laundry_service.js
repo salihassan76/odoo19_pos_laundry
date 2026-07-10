@@ -1,28 +1,64 @@
+
 /** @odoo-module **/
 
 import { registry } from "@web/core/registry";
 import { _t } from "@web/core/l10n/translation";
 import { AlertDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 import { printLaundryReceipt } from "../utils/receipt_service";
+import {
+    laundryLog,
+    setLaundryVisibility,
+    traceLaundryState,
+} from "../utils/laundry_visibility";
+
 
 function getOrderLines(order) {
-    return order?.lines || order?.orderlines || order?.getOrderlines?.() || [];
+    return (
+        order?.lines ||
+        order?.orderlines ||
+        order?.getOrderlines?.() ||
+        []
+    );
 }
+
 
 function getLineProduct(line) {
-    return line.product_id || line.product || line.get_product?.();
+    return (
+        line?.product_id ||
+        line?.product ||
+        line?.get_product?.() ||
+        null
+    );
 }
+
 
 function getLineQty(line) {
-    return line.qty || line.quantity || line.get_quantity?.() || 1;
+    return (
+        line?.qty ??
+        line?.quantity ??
+        line?.get_quantity?.() ??
+        1
+    );
 }
+
 
 function getLinePrice(line) {
-    return line.price_unit || line.price || line.get_unit_price?.() || 0;
+    return (
+        line?.price_unit ??
+        line?.price ??
+        line?.get_unit_price?.() ??
+        0
+    );
 }
 
+
 export const laundryService = {
-    dependencies: ["pos", "orm", "dialog", "printer"],
+    dependencies: [
+        "pos",
+        "orm",
+        "dialog",
+        "printer",
+    ],
 
     start(env, { pos, orm, dialog, printer }) {
         return {
@@ -32,40 +68,111 @@ export const laundryService = {
             printer,
 
             isEnabled() {
-                return Boolean(pos.config?.enable_laundry_workflow);
+                return Boolean(
+                    this.pos.config?.enable_laundry_workflow
+                );
             },
 
             getOrder() {
-                return pos.getOrder?.() || pos.get_order?.();
+                return (
+                    this.pos.getOrder?.() ||
+                    this.pos.get_order?.() ||
+                    null
+                );
+            },
+
+            setCurrentOrder(order) {
+                if (!order) {
+                    return;
+                }
+
+                if (this.pos.setOrder) {
+                    this.pos.setOrder(order);
+                } else if (this.pos.set_order) {
+                    this.pos.set_order(order);
+                }
+            },
+
+            removeOrder(order) {
+                if (!order) {
+                    return;
+                }
+
+                if (this.pos.removeOrder) {
+                    this.pos.removeOrder(order, false);
+                } else if (this.pos.remove_order) {
+                    this.pos.remove_order(order);
+                }
+            },
+
+            addNewOrder() {
+                return (
+                    this.pos.addNewOrder?.() ||
+                    this.pos.add_new_order?.() ||
+                    null
+                );
+            },
+
+            setOrderPartner(order, partner) {
+                if (!order || !partner) {
+                    return;
+                }
+
+                if (order.setPartner) {
+                    order.setPartner(partner);
+                } else if (order.set_partner) {
+                    order.set_partner(partner);
+                }
             },
 
             getPartner() {
                 const order = this.getOrder();
+
                 return (
                     order?.getPartner?.() ||
                     order?.get_partner?.() ||
                     order?.partner_id ||
-                    pos.selected_customer ||
+                    this.pos.selected_customer ||
                     null
                 );
             },
 
             getOrderType() {
                 const order = this.getOrder();
+
                 return {
-                    id: order?.uiState?.laundry_order_type_id || false,
-                    name: order?.uiState?.laundry_order_type_name || "",
-                    prefix: order?.uiState?.laundry_order_type_prefix || "",
+                    id:
+                        order?.uiState
+                            ?.laundry_order_type_id ||
+                        false,
+
+                    name:
+                        order?.uiState
+                            ?.laundry_order_type_name ||
+                        "",
+
+                    prefix:
+                        order?.uiState
+                            ?.laundry_order_type_prefix ||
+                        "",
                 };
             },
 
             getAllowedCategoryIds() {
                 const order = this.getOrder();
-                return order?.uiState?.laundry_allowed_pos_category_ids || [];
+
+                return this._normalizeCategoryIds(
+                    order?.uiState
+                        ?.laundry_allowed_pos_category_ids ||
+                    []
+                );
             },
 
             getVisibleOrderTypeDomain() {
-                return [["active", "=", true], ["is_hidden", "=", false]];
+                return [
+                    ["active", "=", true],
+                    ["is_hidden", "=", false],
+                ];
             },
 
             getVisibleOrderTypeFields() {
@@ -83,196 +190,601 @@ export const laundryService = {
             },
 
             async getVisibleOrderTypes() {
-                const orderTypes = await this.orm.searchRead(
-                    "laundry.order.type",
-                    this.getVisibleOrderTypeDomain(),
-                    this.getVisibleOrderTypeFields()
+                const orderTypes =
+                    await this.orm.searchRead(
+                        "laundry.order.type",
+                        this.getVisibleOrderTypeDomain(),
+                        this.getVisibleOrderTypeFields()
+                    );
+
+                return orderTypes.sort(
+                    (a, b) =>
+                        (a.sequence || 0) -
+                        (b.sequence || 0)
                 );
-                return orderTypes.sort((a, b) => (a.sequence || 0) - (b.sequence || 0));
             },
 
             prepareOrder(customer = null) {
                 let order = this.getOrder();
+
                 if (!order) {
-                    order = this.pos.addNewOrder?.() || this.pos.add_new_order?.();
+                    order = this.addNewOrder();
                 }
-                if (order && customer) {
-                    order.setPartner?.(customer);
-                    order.set_partner?.(customer);
+
+                if (!order) {
+                    return null;
                 }
-                if (order) {
-                    order.uiState = order.uiState || {};
-                    order.uiState.is_saved = Boolean(order.uiState.laundry_order_id);
-                    order.uiState.status_id = order.uiState.status_id || false;
-                    order.uiState.status_name = order.uiState.status_name || (order.uiState.is_saved ? "" : _t("Unsaved"));
+
+                this.setCurrentOrder(order);
+
+                if (customer) {
+                    this.setOrderPartner(
+                        order,
+                        customer
+                    );
                 }
+
+                order.uiState =
+                    order.uiState || {};
+
+                order.uiState.is_saved =
+                    Boolean(
+                        order.uiState
+                            .laundry_order_id
+                    );
+
+                order.uiState.status_id =
+                    order.uiState.status_id ||
+                    false;
+
+                order.uiState.status_name =
+                    order.uiState.status_name ||
+                    (
+                        order.uiState.is_saved
+                            ? ""
+                            : _t("Unsaved")
+                    );
+
                 return order;
             },
 
             async createFreshOrder(customer = null) {
-                const currentOrder = this.getOrder();
-                if (currentOrder && currentOrder.isEmpty?.()) {
-                    this.pos.removeOrder?.(currentOrder, false);
+                const currentOrder =
+                    this.getOrder();
+
+                if (
+                    currentOrder &&
+                    currentOrder.isEmpty?.()
+                ) {
+                    this.removeOrder(currentOrder);
                 }
-                const order = this.pos.addNewOrder?.() || this.pos.add_new_order?.();
+
+                const order =
+                    this.addNewOrder();
+
+                if (!order) {
+                    throw new Error(
+                        _t(
+                            "Unable to create a new POS order."
+                        )
+                    );
+                }
+
+                this.setCurrentOrder(order);
+
                 if (customer) {
-                    order.setPartner?.(customer);
-                    order.set_partner?.(customer);
+                    this.setOrderPartner(
+                        order,
+                        customer
+                    );
                 }
-                if (order) {
-                    order.uiState = order.uiState || {};
-                    order.uiState.is_saved = false;
-                    order.uiState.status_id = false;
-                    order.uiState.status_name = _t("Unsaved");
-                }
+
+                order.uiState =
+                    order.uiState || {};
+
+                order.uiState.is_saved =
+                    false;
+
+                order.uiState.is_existing_laundry_order =
+                    false;
+
+                order.uiState.status_id =
+                    false;
+
+                order.uiState.status_name =
+                    _t("Unsaved");
+
                 return order;
             },
 
-            _normalizeCategoryIds(ids = []) {
-                return ids.map((cat) => (typeof cat === "object" ? cat.id : cat)).filter(Boolean);
+            _normalizeCategoryIds(values = []) {
+                return [
+                    ...new Set(
+                        (values || [])
+                            .map((value) => {
+                                if (
+                                    typeof value ===
+                                    "number"
+                                ) {
+                                    return value;
+                                }
+
+                                if (
+                                    typeof value ===
+                                    "string"
+                                ) {
+                                    return Number(
+                                        value
+                                    );
+                                }
+
+                                if (
+                                    Array.isArray(value)
+                                ) {
+                                    return Number(
+                                        value[0]
+                                    );
+                                }
+
+                                return Number(
+                                    value?.id
+                                );
+                            })
+                            .filter(
+                                (value) =>
+                                    Number.isInteger(
+                                        value
+                                    ) &&
+                                    value > 0
+                            )
+                    ),
+                ];
             },
 
             _getModelRecord(modelName, id) {
                 if (!id) {
                     return null;
                 }
-                return this.pos.models?.[modelName]?.get?.(id) || this.pos.data?.models?.[modelName]?.get?.(id) || null;
+
+                return (
+                    this.pos.models
+                        ?.[modelName]
+                        ?.get?.(id) ||
+                    this.pos.data
+                        ?.models
+                        ?.[modelName]
+                        ?.get?.(id) ||
+                    null
+                );
             },
 
-            _afterSetLaundryOrderState(order, values = {}) {},
+            /*
+             * Extension hook used by optional addons,
+             * including pos_laundry_packages.
+             */
+            _afterSetLaundryOrderState(
+                order,
+                values = {}
+            ) {},
 
-            _setLaundryOrderState(order, values = {}) {
-                order.uiState = order.uiState || {};
-
-                const isSaved = Boolean(values.laundry_order_id);
-
-                order.uiState.laundry_order_id = values.laundry_order_id || false;
-                order.uiState.laundry_order_name = values.laundry_order_name || "";
-                order.uiState.is_saved = isSaved;
-                order.uiState.is_existing_laundry_order = isSaved;
-                order.uiState.status_id = values.status_id || false;
-                order.uiState.status_name = values.status_name || (isSaved ? "" : _t("Unsaved"));
-                order.uiState.laundry_order_type_id = values.laundry_order_type_id || false;
-                order.uiState.laundry_order_type_name = values.laundry_order_type_name || "";
-                order.uiState.laundry_order_type_prefix = values.laundry_order_type_prefix || "";
-                order.uiState.laundry_allowed_pos_category_ids = values.allowed_category_ids || [];
-
-                this._afterSetLaundryOrderState(order, values);
-            },
-
-            _prepareOrderTypeState(orderType) {
-                return {
-                    laundry_order_type_id: orderType.id,
-                    laundry_order_type_name: orderType.name,
-                    laundry_order_type_prefix: orderType.prefix || "",
-                    allowed_category_ids: this._normalizeCategoryIds(orderType.pos_category_ids || []),
-                };
-            },
-
-            selectOrderType(orderType, customer = null) {
-                const order = this.prepareOrder(customer);
+            _setLaundryOrderState(
+                order,
+                values = {}
+            ) {
                 if (!order) {
                     return;
                 }
 
-                this._setLaundryOrderState(order, this._prepareOrderTypeState(orderType));
+                order.uiState =
+                    order.uiState || {};
 
-                this.pos.selected_laundry_order_type = orderType;
-                this.pos.navigate("ProductScreen", { orderUuid: order.uuid });
+                const isSaved =
+                    Boolean(
+                        values.laundry_order_id
+                    );
+
+                order.uiState.laundry_order_id =
+                    values.laundry_order_id ||
+                    false;
+
+                order.uiState.laundry_order_name =
+                    values.laundry_order_name ||
+                    "";
+
+                order.uiState.is_saved =
+                    isSaved;
+
+                order.uiState
+                    .is_existing_laundry_order =
+                    isSaved;
+
+                order.uiState.status_id =
+                    values.status_id ||
+                    false;
+
+                order.uiState.status_name =
+                    values.status_name ||
+                    (
+                        isSaved
+                            ? ""
+                            : _t("Unsaved")
+                    );
+
+                order.uiState
+                    .laundry_order_type_id =
+                    values
+                        .laundry_order_type_id ||
+                    false;
+
+                order.uiState
+                    .laundry_order_type_name =
+                    values
+                        .laundry_order_type_name ||
+                    "";
+
+                order.uiState
+                    .laundry_order_type_prefix =
+                    values
+                        .laundry_order_type_prefix ||
+                    "";
+
+                order.uiState
+                    .laundry_allowed_pos_category_ids =
+                    this._normalizeCategoryIds(
+                        values
+                            .allowed_category_ids ||
+                        values
+                            .laundry_allowed_pos_category_ids ||
+                        []
+                    );
+
+                this._afterSetLaundryOrderState(
+                    order,
+                    values
+                );
+
+                setLaundryVisibility(order, {
+                    orderTypeId: order.uiState.laundry_order_type_id,
+                    allowedCategoryIds: order.uiState.laundry_allowed_pos_category_ids,
+                    isPackageUsage: order.uiState.is_package_usage,
+                    allowedPackageProductIds: order.uiState.allowed_package_products,
+                });
+
+                laundryLog("State", "laundry order state applied", {
+                    orderUuid: order.uuid,
+                    laundryOrderId: order.uiState.laundry_order_id,
+                    values,
+                    visibility: order.uiState.laundry_visibility,
+                });
             },
 
-            _validateLaundryOrderData(order, partner, lines) {
+            _prepareOrderTypeState(orderType) {
+                return {
+                    laundry_order_type_id:
+                        orderType.id,
+
+                    laundry_order_type_name:
+                        orderType.name,
+
+                    laundry_order_type_prefix:
+                        orderType.prefix || "",
+
+                    allowed_category_ids:
+                        this._normalizeCategoryIds(
+                            orderType
+                                .pos_category_ids ||
+                            []
+                        ),
+                };
+            },
+
+            selectOrderType(
+                orderType,
+                customer = null
+            ) {
+                const order =
+                    this.prepareOrder(customer);
+
+                if (!order) {
+                    return;
+                }
+
+                const stateValues =
+                    this._prepareOrderTypeState(
+                        orderType
+                    );
+
+                this._setLaundryOrderState(
+                    order,
+                    stateValues
+                );
+
+                this.pos
+                    .selected_laundry_order_type =
+                    {
+                        ...orderType,
+
+                        pos_category_ids:
+                            this
+                                ._normalizeCategoryIds(
+                                    orderType
+                                        .pos_category_ids ||
+                                    []
+                                ),
+                    };
+
+                this.clearCategorySelection(
+                    order
+                );
+
+                this.setCurrentOrder(order);
+
+                this.pos.navigate(
+                    "ProductScreen",
+                    {
+                        orderUuid:
+                            order.uuid,
+                    }
+                );
+            },
+
+            clearCategorySelection(order = null) {
+                this.pos.selectedCategory =
+                    undefined;
+
+                this.pos.selectedCategoryId =
+                    undefined;
+
+                this.pos.selected_category =
+                    undefined;
+
+                this.pos.selected_category_id =
+                    undefined;
+
+                this.pos.productListCategoryId =
+                    undefined;
+
+                if (order?.uiState) {
+                    order.uiState
+                        .laundry_start_category_opened =
+                        false;
+                }
+            },
+
+            _validateLaundryOrderData(
+                order,
+                partner,
+                lines
+            ) {
                 if (!partner) {
-                    throw new Error(_t("Please select a customer first."));
+                    throw new Error(
+                        _t(
+                            "Please select a customer first."
+                        )
+                    );
                 }
-                if (!order.uiState?.laundry_order_type_id) {
-                    throw new Error(_t("Please select a laundry order type."));
+
+                if (
+                    !order.uiState
+                        ?.laundry_order_type_id
+                ) {
+                    throw new Error(
+                        _t(
+                            "Please select a laundry order type."
+                        )
+                    );
                 }
+
                 if (!lines.length) {
-                    throw new Error(_t("Please add at least one product."));
+                    throw new Error(
+                        _t(
+                            "Please add at least one product."
+                        )
+                    );
                 }
             },
 
-            _extendLaundryOrderData(data, order) {
+            /*
+             * Extension hook used by optional addons.
+             */
+            _extendLaundryOrderData(
+                data,
+                order
+            ) {
                 return data;
             },
 
             buildLaundryOrderData() {
-                const order = this.getOrder();
+                const order =
+                    this.getOrder();
+
                 if (!order) {
-                    throw new Error(_t("No active POS order found."));
+                    throw new Error(
+                        _t(
+                            "No active POS order found."
+                        )
+                    );
                 }
 
-                const partner = this.getPartner();
-                const lines = getOrderLines(order)
-                    .map((line) => {
-                        const product = getLineProduct(line);
-                        return {
-                            product_id: product?.id || false,
-                            qty: getLineQty(line),
-                            price_unit: getLinePrice(line),
-                        };
-                    })
-                    .filter((line) => line.product_id);
+                const partner =
+                    this.getPartner();
 
-                this._validateLaundryOrderData(order, partner, lines);
+                const lines =
+                    getOrderLines(order)
+                        .map((line) => {
+                            const product =
+                                getLineProduct(
+                                    line
+                                );
+
+                            return {
+                                product_id:
+                                    product?.id ||
+                                    false,
+
+                                qty:
+                                    getLineQty(
+                                        line
+                                    ),
+
+                                price_unit:
+                                    getLinePrice(
+                                        line
+                                    ),
+                            };
+                        })
+                        .filter(
+                            (line) =>
+                                line.product_id
+                        );
+
+                this._validateLaundryOrderData(
+                    order,
+                    partner,
+                    lines
+                );
 
                 const data = {
-                    pos_config_id: this.pos.config?.id || false,
-                    laundry_order_id: order.uiState?.laundry_order_id || false,
-                    partner_id: partner.id,
-                    laundry_order_type_id: order.uiState.laundry_order_type_id,
-                    notes: order.uiState?.notes || "",
+                    pos_config_id:
+                        this.pos.config?.id ||
+                        false,
+
+                    laundry_order_id:
+                        order.uiState
+                            ?.laundry_order_id ||
+                        false,
+
+                    partner_id:
+                        partner.id,
+
+                    laundry_order_type_id:
+                        order.uiState
+                            .laundry_order_type_id,
+
+                    notes:
+                        order.uiState
+                            ?.notes ||
+                        "",
+
                     lines,
                 };
 
-                return this._extendLaundryOrderData(data, order);
+                return this._extendLaundryOrderData(
+                    data,
+                    order
+                );
             },
 
             async saveOrder() {
-                const data = this.buildLaundryOrderData();
-                return await orm.call("laundry.order", "process_pos_laundry_order", [data]);
+                const data =
+                    this.buildLaundryOrderData();
+
+                return await this.orm.call(
+                    "laundry.order",
+                    "process_pos_laundry_order",
+                    [data]
+                );
             },
 
             async handleReceipt(result) {
                 if (!result?.receipt) {
                     return;
                 }
-                if (result.show_receipt_preview) {
-                    dialog.add(AlertDialog, {
-                        title: _t("Receipt Preview"),
-                        body: JSON.stringify(result.receipt, null, 2),
-                    });
+
+                if (
+                    result.show_receipt_preview
+                ) {
+                    this.dialog.add(
+                        AlertDialog,
+                        {
+                            title:
+                                _t(
+                                    "Receipt Preview"
+                                ),
+
+                            body:
+                                JSON.stringify(
+                                    result.receipt,
+                                    null,
+                                    2
+                                ),
+                        }
+                    );
                 }
+
                 if (result.direct_print) {
-                    await printLaundryReceipt(printer, result.receipt, dialog);
+                    await printLaundryReceipt(
+                        this.printer,
+                        result.receipt,
+                        this.dialog
+                    );
                 }
             },
 
             resetOrder() {
-                const order = this.getOrder();
+                const order =
+                    this.getOrder();
+
                 if (order) {
-                    pos.removeOrder?.(order, false);
-                    pos.remove_order?.(order);
+                    this.removeOrder(order);
                 }
-                pos.addNewOrder?.();
-                pos.add_new_order?.();
+
+                const newOrder =
+                    this.addNewOrder();
+
+                if (newOrder) {
+                    this.setCurrentOrder(
+                        newOrder
+                    );
+                }
+
+                return newOrder;
             },
 
             navigateHome() {
-                pos.navigate?.("pos_homescreen");
+                this.pos.navigate?.(
+                    "pos_homescreen"
+                );
             },
 
-            _prepareSavedStateValues(result, order) {
+            _prepareSavedStateValues(
+                result,
+                order
+            ) {
                 return {
-                    laundry_order_id: result.laundry_order_id,
-                    laundry_order_name: result.laundry_order_name || order.uiState.laundry_order_name,
-                    status_id: result.status_id || false,
-                    status_name: result.status_name || "",
-                    laundry_order_type_id: order.uiState.laundry_order_type_id,
-                    laundry_order_type_name: order.uiState.laundry_order_type_name,
-                    laundry_order_type_prefix: order.uiState.laundry_order_type_prefix,
-                    allowed_category_ids: order.uiState.laundry_allowed_pos_category_ids,
+                    laundry_order_id:
+                        result
+                            .laundry_order_id,
+
+                    laundry_order_name:
+                        result
+                            .laundry_order_name ||
+                        order.uiState
+                            .laundry_order_name,
+
+                    status_id:
+                        result.status_id ||
+                        false,
+
+                    status_name:
+                        result.status_name ||
+                        "",
+
+                    laundry_order_type_id:
+                        order.uiState
+                            .laundry_order_type_id,
+
+                    laundry_order_type_name:
+                        order.uiState
+                            .laundry_order_type_name,
+
+                    laundry_order_type_prefix:
+                        order.uiState
+                            .laundry_order_type_prefix,
+
+                    allowed_category_ids:
+                        order.uiState
+                            .laundry_allowed_pos_category_ids,
                 };
             },
 
@@ -280,139 +792,402 @@ export const laundryService = {
                 if (!this.isEnabled()) {
                     return;
                 }
-                const order = this.getOrder();
+
+                const order =
+                    this.getOrder();
+
                 if (!order) {
                     return;
                 }
 
-                const result = await this.saveOrder();
+                const result =
+                    await this.saveOrder();
+
                 if (!result) {
                     return;
                 }
 
-                await this.handleReceipt(result);
-                this._setLaundryOrderState(order, this._prepareSavedStateValues(result, order));
+                await this.handleReceipt(
+                    result
+                );
+
+                this._setLaundryOrderState(
+                    order,
+                    this
+                        ._prepareSavedStateValues(
+                            result,
+                            order
+                        )
+                );
 
                 if (result.direct_sale) {
-                    pos.pay?.();
-                    return;
+                    this.pos.pay?.();
+                    return result;
                 }
 
                 this.resetOrder();
                 this.navigateHome();
+
                 return result;
             },
 
             async payLaundryOrder() {
-                const order = this.pos.getOrder();
-                const laundryOrderId = order?.uiState?.laundry_order_id;
+                const order =
+                    this.getOrder();
+
+                const laundryOrderId =
+                    order?.uiState
+                        ?.laundry_order_id;
+
                 if (!laundryOrderId) {
                     return;
                 }
 
-                await this.orm.call("laundry.order", "action_create_invoice", [[laundryOrderId]]);
+                await this.orm.call(
+                    "laundry.order",
+                    "action_create_invoice",
+                    [[laundryOrderId]]
+                );
 
-                this.pos.selected_laundry_order_id = laundryOrderId;
-                this.pos.navigate?.("LaundryPaymentScreen", {
-                    laundryOrderId,
-                    customer: order.getPartner?.() || null,
-                });
+                this.pos
+                    .selected_laundry_order_id =
+                    laundryOrderId;
+
+                this.pos.navigate?.(
+                    "LaundryPaymentScreen",
+                    {
+                        laundryOrderId,
+
+                        customer:
+                            order
+                                .getPartner?.() ||
+                            order
+                                .get_partner?.() ||
+                            null,
+                    }
+                );
             },
 
             cancelOrder() {
-                const order = this.getOrder();
+                const order =
+                    this.getOrder();
+
                 if (order) {
                     this.resetOrder();
                 }
-                this.pos.navigate?.("pos_customerscreen");
+
+                this.pos.navigate?.(
+                    "pos_customerscreen"
+                );
             },
 
-            async getCustomerOrdersByStatus(partnerId) {
+            async getCustomerOrdersByStatus(
+                partnerId
+            ) {
                 if (!partnerId) {
                     return [];
                 }
-                return await this.orm.call("laundry.order", "get_customer_orders_by_status_for_pos", [partnerId]);
+
+                return await this.orm.call(
+                    "laundry.order",
+                    "get_customer_orders_by_status_for_pos",
+                    [partnerId]
+                );
             },
 
-            async getLaundryOrderForPos(orderId) {
+            async getLaundryOrderForPos(
+                orderId
+            ) {
                 if (!orderId) {
                     return null;
                 }
-                return await this.orm.call("laundry.order", "get_laundry_order_for_pos", [orderId]);
+
+                return await this.orm.call(
+                    "laundry.order",
+                    "get_laundry_order_for_pos",
+                    [orderId]
+                );
             },
 
-            _prepareOpenOrderStateValues(data) {
+            _prepareOpenOrderStateValues(
+                data
+            ) {
                 return {
-                    laundry_order_id: data.id,
-                    laundry_order_name: data.name,
-                    laundry_order_type_id: data.order_type_id,
-                    laundry_order_type_name: data.order_type_name,
-                    laundry_order_type_prefix: data.order_type_prefix,
-                    status_id: data.status_id || false,
-                    status_name: data.status_name || "",
-                    allowed_category_ids: data.allowed_category_ids || [],
+                    laundry_order_id:
+                        data.id,
+
+                    laundry_order_name:
+                        data.name,
+
+                    laundry_order_type_id:
+                        data.order_type_id,
+
+                    laundry_order_type_name:
+                        data.order_type_name,
+
+                    laundry_order_type_prefix:
+                        data.order_type_prefix ||
+                        "",
+
+                    status_id:
+                        data.status_id ||
+                        false,
+
+                    status_name:
+                        data.status_name ||
+                        "",
+
+                    allowed_category_ids:
+                        this._normalizeCategoryIds(
+                            data.allowed_category_ids ||
+                            []
+                        ),
                 };
             },
-            async openLaundryOrder(orderId) {
-                const data = await this.getLaundryOrderForPos(orderId);
+
+            async openLaundryOrder(
+                orderId
+            ) {
+                const data =
+                    await this
+                        .getLaundryOrderForPos(
+                            orderId
+                        );
+
                 if (!data) {
                     return;
                 }
 
-                if (this.isReadOnlyPaymentStatus(data.payment_status_id)) {
-                    this.pos.selected_laundry_order_id = orderId;
+                laundryLog("OpenOrder", "backend payload received", {
+                    requestedOrderId: orderId,
+                    data,
+                });
 
-                    this.pos.navigate("laundry_paid_order", {
-                        laundryOrderId: orderId,
-                    });
+                if (
+                    this
+                        .isReadOnlyPaymentStatus(
+                            data.payment_status_id
+                        )
+                ) {
+                    this.pos
+                        .selected_laundry_order_id =
+                        orderId;
+
+                    this.pos.navigate(
+                        "pos_laundrypaidorderscreen",
+                        {
+                            laundryOrderId:
+                                orderId,
+                        }
+                    );
 
                     return;
                 }
 
-                const partner = this._getModelRecord("res.partner", data.partner_id);
-                const order = await this.createFreshOrder(partner || null);
+                const partner =
+                    this._getModelRecord(
+                        "res.partner",
+                        data.partner_id
+                    );
 
-                this._setLaundryOrderState(order, this._prepareOpenOrderStateValues(data));
+                const order =
+                    await this.createFreshOrder(
+                        partner || null
+                    );
 
-                this.pos.selected_laundry_order_type = {
-                    id: data.order_type_id,
-                    name: data.order_type_name,
-                    prefix: data.order_type_prefix,
-                    pos_category_ids: data.allowed_category_ids || [],
-                };
+                const stateValues =
+                    this
+                        ._prepareOpenOrderStateValues(
+                            data
+                        );
 
-                for (const line of data.lines || []) {
-                    const product = this._getModelRecord("product.product", line.product_id);
+                this._setLaundryOrderState(
+                    order,
+                    stateValues
+                );
+
+                traceLaundryState("OpenOrder:AfterRestore", this.pos, {
+                    requestedOrderId: orderId,
+                    backendAllowedCategoryIds: data.allowed_category_ids || [],
+                });
+
+                /*
+                 * Explicitly restore normalized category IDs.
+                 * This also guarantees the category selector and
+                 * product filter read the same state.
+                 */
+                const allowedCategoryIds =
+                    this._normalizeCategoryIds(
+                        data
+                            .allowed_category_ids ||
+                        []
+                    );
+
+                order.uiState
+                    .laundry_allowed_pos_category_ids =
+                    allowedCategoryIds;
+
+                this.pos
+                    .selected_laundry_order_type =
+                    {
+                        id:
+                            data.order_type_id,
+
+                        name:
+                            data.order_type_name,
+
+                        prefix:
+                            data
+                                .order_type_prefix ||
+                            "",
+
+                        pos_category_ids:
+                            allowedCategoryIds,
+                    };
+
+                this.clearCategorySelection(
+                    order
+                );
+
+                this.setCurrentOrder(order);
+
+                setLaundryVisibility(order, {
+                    orderTypeId: order.uiState.laundry_order_type_id,
+                    allowedCategoryIds: order.uiState.laundry_allowed_pos_category_ids,
+                    isPackageUsage: order.uiState.is_package_usage,
+                    allowedPackageProductIds: order.uiState.allowed_package_products,
+                });
+                traceLaundryState("OpenOrder:BeforeLines", this.pos, {
+                    requestedOrderId: orderId,
+                    activeMatchesOpened: this.getOrder()?.uuid === order.uuid,
+                });
+
+                /*
+                 * Ensure addLineToCurrentOrder adds lines to the
+                 * reopened order.
+                 */
+                this.setCurrentOrder(order);
+
+                for (
+                    const line of
+                    data.lines || []
+                ) {
+                    const product =
+                        this._getModelRecord(
+                            "product.product",
+                            line.product_id
+                        );
+
                     if (!product) {
+                        console.warn(
+                            "Laundry product was not found in POS cache:",
+                            line.product_id
+                        );
+
                         continue;
                     }
 
-                    await this.pos.addLineToCurrentOrder(
-                        {
-                            product_id: product,
-                            product_tmpl_id: product.product_tmpl_id,
-                            qty: line.qty,
-                            price_unit: line.price_unit,
-                        },
-                        { force: true },
-                        false
-                    );
+                    await this.pos
+                        .addLineToCurrentOrder(
+                            {
+                                product_id:
+                                    product,
+
+                                product_tmpl_id:
+                                    product
+                                        .product_tmpl_id,
+
+                                qty:
+                                    line.qty,
+
+                                price_unit:
+                                    line.price_unit,
+                            },
+                            {
+                                force: true,
+                            },
+                            false
+                        );
                 }
 
-                this.pos.navigate("ProductScreen", { orderUuid: order.uuid });
-            },
-            isReadOnlyPaymentStatus(paymentStatusId) {
-                const config = this.pos.config;
+                /*
+                 * Loading lines must not change the active order,
+                 * but reactivate it defensively before navigation.
+                 */
+                this.setCurrentOrder(order);
 
-                return [
-                    config.paid_payment_id,
-                    config.refund_payment_id,
-                    config.cancelled_payment_id,
-                ].includes(paymentStatusId);
+                traceLaundryState("OpenOrder:BeforeProductScreen", this.pos, {
+                    requestedOrderId: orderId,
+                    lineCount: (data.lines || []).length,
+                    activeMatchesOpened: this.getOrder()?.uuid === order.uuid,
+                });
+
+                this.pos.navigate(
+                    "ProductScreen",
+                    {
+                        orderUuid:
+                            order.uuid,
+                    }
+                );
             },
 
+            isReadOnlyPaymentStatus(
+                paymentStatusId
+            ) {
+                const config =
+                    this.pos.config;
+
+                const readOnlyStatusIds = [
+                    config
+                        ?.paid_payment_id,
+
+                    config
+                        ?.refund_payment_id,
+
+                    config
+                        ?.cancelled_payment_id,
+                ]
+                    .map((value) => {
+                        if (
+                            typeof value ===
+                            "number"
+                        ) {
+                            return value;
+                        }
+
+                        if (
+                            Array.isArray(value)
+                        ) {
+                            return value[0];
+                        }
+
+                        return value?.id;
+                    })
+                    .filter(Boolean);
+
+                const normalizedPaymentStatusId =
+                    Array.isArray(
+                        paymentStatusId
+                    )
+                        ? paymentStatusId[0]
+                        : (
+                            paymentStatusId?.id ||
+                            paymentStatusId
+                        );
+
+                return readOnlyStatusIds.includes(
+                    normalizedPaymentStatusId
+                );
+            },
         };
     },
 };
 
-registry.category("services").add("laundry", laundryService);
+
+registry
+    .category("services")
+    .add(
+        "laundry",
+        laundryService
+    );
+

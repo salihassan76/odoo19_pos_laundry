@@ -1,7 +1,10 @@
+import logging
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError, UserError
 from collections import OrderedDict
 from datetime import timedelta
+
+_logger = logging.getLogger(__name__)
 
 class LaundryOrder(models.Model):
     _name = "laundry.order"
@@ -483,6 +486,13 @@ class LaundryOrder(models.Model):
                 "subtotal": line.price_subtotal,
             } for line in order.order_line_ids],
         }
+        _logger.info(
+            "POS open order payload (core): order_id=%s type_id=%s allowed_categories=%s lines=%s",
+            order.id,
+            order.order_type_id.id,
+            data.get("allowed_category_ids"),
+            len(data.get("lines") or []),
+        )
         return self._extend_laundry_order_for_pos_data(data, order)
 
     def get_payment_data(self):
@@ -540,12 +550,13 @@ class LaundryOrder(models.Model):
     def get_paid_order_details_for_pos(self):
         self.ensure_one()
 
-        payments = self.env["laundry.pos.payment"].search([
-            ("laundry_order_id", "=", self.id),
-            ("state", "=", "posted"),
-        ], order="id desc")
-
-        last_payment = payments[:1]
+        payments = self.env["laundry.pos.payment"].search(
+            [
+                ("laundry_order_id", "=", self.id),
+                ("state", "=", "posted"),
+            ],
+            order="payment_date desc, id desc",
+        )
 
         paid_amount = sum(payments.mapped("amount"))
         balance = max((self.total_amount or 0.0) - paid_amount, 0.0)
@@ -553,33 +564,72 @@ class LaundryOrder(models.Model):
         return {
             "order": {
                 "id": self.id,
-                "order_name": self.name,
+                "order_name": self.name or "",
                 "customer_name": self.customer_id.name or "",
-                "customer_mobile": self.customer_id.mobile or self.customer_id.phone or "",
-                "order_type": self.order_type_id.name or "",
-                "order_date": self.order_datetime.strftime("%Y-%m-%d %H:%M:%S") if self.order_datetime else "",
-                "invoice_name": self.invoice_id.name or "",
+                "order_type": (
+                    self.order_type_id.name
+                    if self.order_type_id
+                    else ""
+                ),
+                "order_date": (
+                    fields.Datetime.to_string(self.order_datetime)
+                    if self.order_datetime
+                    else ""
+                ),
+                "invoice_name": (
+                    self.invoice_id.name
+                    if self.invoice_id
+                    else ""
+                ),
                 "invoice_total": f"{self.total_amount or 0.0:.3f}",
                 "paid_amount": f"{paid_amount:.3f}",
                 "balance": f"{balance:.3f}",
-                "payment_status": self.payment_status_id.name or "",
-                "payment_method": last_payment.payment_method_id.name if last_payment else "",
-                "payment_date": last_payment.payment_date.strftime("%Y-%m-%d %H:%M:%S") if last_payment and last_payment.payment_date else "",
-                "payment_reference": last_payment.name if last_payment else "",
+                "payment_status": (
+                    self.payment_status_id.name
+                    if self.payment_status_id
+                    else ""
+                ),
             },
+
             "lines": [
                 {
                     "id": line.id,
-                    "product_name": line.product_id.display_name,
-                    "category": line.category_id.name if line.category_id else "",
-                    "qty": f"{line.qty or 0.0:.3f}",
+                    "product_name": (
+                        line.product_id.display_name
+                        if line.product_id
+                        else ""
+                    ),
+                    "category": (
+                        line.category_id.name
+                        if line.category_id
+                        else ""
+                    ),
+                    "qty": f"{line.quantity or 0.0:.3f}",
                     "price": f"{line.price_unit or 0.0:.3f}",
-                    "subtotal": f"{line.subtotal or 0.0:.3f}",
+                    "subtotal": f"{line.price_subtotal or 0.0:.3f}",
                 }
-                for line in self.line_ids
+                for line in self.order_line_ids
+            ],
+
+            "payments": [
+                {
+                    "id": payment.id,
+                    "amount": f"{payment.amount or 0.0:.3f}",
+                    "method": (
+                        payment.payment_method_id.name
+                        if payment.payment_method_id
+                        else ""
+                    ),
+                    "date": (
+                        fields.Datetime.to_string(payment.payment_date)
+                        if payment.payment_date
+                        else ""
+                    ),
+                    "reference": payment.name or "",
+                }
+                for payment in payments
             ],
         }
-
     def action_refund_from_pos(self):
         self.ensure_one()
 

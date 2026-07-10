@@ -32,6 +32,7 @@
     "assets": {
         "point_of_sale._assets_pos": [
             "pos_laundry/static/src/app/utils/receipt_service.js",
+            "pos_laundry/static/src/app/utils/laundry_visibility.js",
             "pos_laundry/static/src/app/services/laundry_service.js",
             "pos_laundry/static/src/overrides/pos_startup.js",
             "pos_laundry/static/src/overrides/pos_patch.js",
@@ -57,9 +58,10 @@
             "pos_laundry/static/src/js/laundry_payment_screen.js",
             "pos_laundry/static/src/xml/laundry_payment_screen.xml",
             "pos_laundry/static/src/overrides/category_selector_native_patch.js",
+            "pos_laundry/static/src/overrides/product_filter_patch.js",
             "pos_laundry/static/src/xml/category_selector_native_patch.xml",
             "pos_laundry/static/src/js/pos_laundrypaidorderscreen.js",
-            "pos_laundry/static/src/xml/pos_laundrypaidorderscreen.xml",
+            "pos_laundry/static/src/xml/pos_laundrypaidscreen.xml",
         ],
     },
     "installable": True,

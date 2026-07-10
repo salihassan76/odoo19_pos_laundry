@@ -115,7 +115,7 @@ class LaundryPosPayment(models.Model):
         Later this can update laundry order payment status, print receipts,
         notify customer, or trigger other post-payment logic.
         """
-        return True
+        return super()._after_receive_payment(account_payment)
 
     def _cancel_account_payment(self):
         for payment in self:

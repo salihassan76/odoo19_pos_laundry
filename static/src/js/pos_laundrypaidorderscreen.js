@@ -19,6 +19,7 @@ export class PosLaundryPaidOrderScreen extends Component {
             loading: true,
             order: {},
             lines: [],
+            payments: [],
         });
 
         onWillStart(async () => {
@@ -51,6 +52,7 @@ export class PosLaundryPaidOrderScreen extends Component {
 
             this.state.order = result.order || {};
             this.state.lines = result.lines || [];
+            this.state.payments = result.payments || [];
         } catch (error) {
             console.error(error);
 
@@ -64,7 +66,7 @@ export class PosLaundryPaidOrderScreen extends Component {
     }
 
     back() {
-        this.pos.showScreen("LaundryHomeScreen");
+        this.pos.navigate("pos_homescreen");
     }
 
     async printReceipt() {
@@ -115,9 +117,8 @@ export class PosLaundryPaidOrderScreen extends Component {
 }
 
 
-
-registry.category("pos_pages").add("PosLaundryPaidOrderScreen", {
-    name: "laundry_paid_order",
+registry.category("pos_pages").add("pos_laundrypaidorderscreen", {
+    name: "pos_laundrypaidorderscreen",
     component: PosLaundryPaidOrderScreen,
     route: `/pos/ui/${odoo.pos_config_id}/pos_laundrypaidorderscreen`,
     params: {},

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
 
-    <t t-name="pos_laundry.LaundryPaidOrderScreen">
+    <t t-name="pos_laundry.PosLaundryPaidOrderScreen">
 
         <div class="laundry-paid-order-screen h-100 d-flex flex-column">
 
@@ -64,57 +64,104 @@
                     <!-- Summary -->
                     <div class="col-lg-8">
 
-                        <div class="card">
+                      <div class="card">
 
-                            <div class="card-header fw-bold">
-                                Payment Summary
-                            </div>
+                        <div class="card-header fw-bold">
+                            Payment Summary
+                        </div>
 
-                            <div class="card-body">
+                        <div class="card-body">
 
-                                <div class="row">
+                            <!-- Summary -->
+                            <div class="row mb-4">
 
-                                    <div class="col-md-4">
-
-                                        <div class="summary-card">
-                                            <small>Total</small>
-                                            <h3>
-                                                BD
-                                                <t t-esc="state.order.total"/>
-                                            </h3>
-                                        </div>
-
+                                <div class="col-md-4">
+                                    <div class="summary-card">
+                                        <small>Total</small>
+                                        <h3>
+                                            BD
+                                            <t t-esc="state.order.invoice_total || '0.000'"/>
+                                        </h3>
                                     </div>
+                                </div>
 
-                                    <div class="col-md-4">
-
-                                        <div class="summary-card">
-                                            <small>Paid</small>
-                                            <h3>
-                                                BD
-                                                <t t-esc="state.order.paid"/>
-                                            </h3>
-                                        </div>
-
+                                <div class="col-md-4">
+                                    <div class="summary-card">
+                                        <small>Paid</small>
+                                        <h3>
+                                            BD
+                                            <t t-esc="state.order.paid_amount || '0.000'"/>
+                                        </h3>
                                     </div>
+                                </div>
 
-                                    <div class="col-md-4">
-
-                                        <div class="summary-card">
-                                            <small>Balance</small>
-                                            <h3>
-                                                BD
-                                                <t t-esc="state.order.balance"/>
-                                            </h3>
-                                        </div>
-
+                                <div class="col-md-4">
+                                    <div class="summary-card">
+                                        <small>Balance</small>
+                                        <h3>
+                                            BD
+                                            <t t-esc="state.order.balance || '0.000'"/>
+                                        </h3>
                                     </div>
-
                                 </div>
 
                             </div>
 
+                            <!-- Payment History -->
+                            <table class="table table-sm table-striped table-hover align-middle">
+
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Amount</th>
+                                        <th>Method</th>
+                                        <th>Date</th>
+                                        <th>Reference</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+
+                                    <t t-if="state.payments.length">
+
+                                        <tr t-foreach="state.payments"
+                                            t-as="payment"
+                                            t-key="payment.id">
+
+                                            <td>
+                                                BD <t t-esc="payment.amount"/>
+                                            </td>
+
+                                            <td>
+                                                <t t-esc="payment.method || '-'"/>
+                                            </td>
+
+                                            <td>
+                                                <t t-esc="payment.date || '-'"/>
+                                            </td>
+
+                                            <td>
+                                                <t t-esc="payment.reference || '-'"/>
+                                            </td>
+
+                                        </tr>
+
+                                    </t>
+
+                                    <t t-else="">
+                                        <tr>
+                                            <td colspan="4" class="text-center text-muted py-3">
+                                                No payment records found.
+                                            </td>
+                                        </tr>
+                                    </t>
+
+                                </tbody>
+
+                            </table>
+
                         </div>
+
+                    </div>
 
                     </div>
 
@@ -135,6 +182,7 @@
 
                                         <tr>
                                             <th>Item</th>
+                                            <th>Service</th>
                                             <th width="120">Qty</th>
                                             <th width="150">Price</th>
                                             <th width="150">Subtotal</th>
@@ -151,6 +199,9 @@
 
                                             <td>
                                                 <t t-esc="line.product_name"/>
+                                            </td>
+                                            <td>
+                                                <t t-esc="line.category"/>
                                             </td>
 
                                             <td>
