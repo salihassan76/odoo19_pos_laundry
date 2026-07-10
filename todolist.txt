@@ -36,6 +36,15 @@
     → Update amount_paid / amount_due
 
 06/07/2026
-1. replace payment section in pos and create a total custom payment page.
+1. replace payment section in pos and create a total custom payment page. done - 10/07/2026
+
+
+10/07/2026
+
+1. package payment - direct invoicing not change status
+2. product screen buttons: add cancel order, save order and print Order
+3. order summery add order status and payment status
+4. add back button before the home button - navigate to customer screen with current customer.
+
 
     

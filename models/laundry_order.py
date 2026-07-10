@@ -600,8 +600,8 @@ class LaundryOrder(models.Model):
                         else ""
                     ),
                     "category": (
-                        line.category_id.name
-                        if line.category_id
+                        line.product_id.pos_categ_ids[:1].name
+                        if line.product_id and line.product_id.pos_categ_ids
                         else ""
                     ),
                     "qty": f"{line.quantity or 0.0:.3f}",
