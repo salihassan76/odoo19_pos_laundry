@@ -51,8 +51,11 @@ export class PosHomeScreen extends Component {
         });
     }
 
-    selectOrderType(orderType) {
-        this.laundry.selectOrderType(orderType, this.state.customer);
+    async selectOrderType(orderType) {
+        await this.laundry.selectOrderType(
+            orderType,
+            this.state.customer
+        );
     }
 
     openNewOrder() {

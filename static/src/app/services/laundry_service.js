@@ -477,13 +477,28 @@ export const laundryService = {
                         ),
                 };
             },
+            async selectOrderType(orderType,customer = null) {
+                const currentOrder =
+                    this.getOrder();
 
-            selectOrderType(
-                orderType,
-                customer = null
-            ) {
+                const hasExistingContext =
+                    Boolean(
+                        currentOrder?.uiState
+                            ?.laundry_order_id ||
+                        currentOrder?.uiState
+                            ?.laundry_order_type_id ||
+                        currentOrder?.uiState
+                            ?.is_existing_laundry_order
+                    );
+
                 const order =
-                    this.prepareOrder(customer);
+                    hasExistingContext
+                        ? await this.createFreshOrder(
+                            customer
+                        )
+                        : this.prepareOrder(
+                            customer
+                        );
 
                 if (!order) {
                     return;
@@ -505,19 +520,20 @@ export const laundryService = {
                         ...orderType,
 
                         pos_category_ids:
-                            this
-                                ._normalizeCategoryIds(
-                                    orderType
-                                        .pos_category_ids ||
-                                    []
-                                ),
+                            this._normalizeCategoryIds(
+                                orderType
+                                    .pos_category_ids ||
+                                []
+                            ),
                     };
 
                 this.clearCategorySelection(
                     order
                 );
 
-                this.setCurrentOrder(order);
+                this.setCurrentOrder(
+                    order
+                );
 
                 this.pos.navigate(
                     "ProductScreen",
@@ -741,6 +757,63 @@ export const laundryService = {
                 return newOrder;
             },
 
+            backToLaundryHome() {
+                const currentOrder = this.getOrder();
+
+                const customer =
+                    currentOrder?.getPartner?.() ||
+                    currentOrder?.get_partner?.() ||
+                    currentOrder?.partner_id ||
+                    this.pos.selected_customer ||
+                    null;
+
+                console.log("[Laundry:Navigation] Back to laundry home", {
+                    orderUuid: currentOrder?.uuid || false,
+                    laundryOrderId:
+                        currentOrder?.uiState?.laundry_order_id ||
+                        false,
+                    customerId: customer?.id || false,
+                });
+
+                /*
+                * Discard the frontend POS order.
+                * This does not cancel or modify the backend laundry.order.
+                */
+                if (currentOrder) {
+                    this.removeOrder(currentOrder);
+                }
+
+                const newOrder = this.addNewOrder();
+
+                if (newOrder) {
+                    this.setCurrentOrder(newOrder);
+
+                    if (customer) {
+                        this.setOrderPartner(
+                            newOrder,
+                            customer
+                        );
+                    }
+                }
+
+                this.pos.selected_laundry_order_id = false;
+
+                this.pos.selected_laundry_order_type = null;
+
+                this.pos.selected_customer = customer;
+
+                this.clearCategorySelection(
+                    newOrder
+                );
+
+                this.pos.navigate?.(
+                    "pos_homescreen",
+                    {
+                        customer,
+                    }
+                );
+            },
+
             navigateHome() {
                 this.pos.navigate?.(
                     "pos_homescreen"
@@ -868,18 +941,79 @@ export const laundryService = {
                 );
             },
 
-            cancelOrder() {
-                const order =
-                    this.getOrder();
+        cancelOrder() {
+            const currentOrder =
+                this.getOrder();
 
-                if (order) {
-                    this.resetOrder();
+            const customer =
+                currentOrder?.getPartner?.() ||
+                currentOrder?.get_partner?.() ||
+                currentOrder?.partner_id ||
+                this.pos.selected_customer ||
+                null;
+
+            console.log(
+                "[Laundry:Order] Cancelling unsaved order",
+                {
+                    orderUuid:
+                        currentOrder?.uuid ||
+                        false,
+                    customerId:
+                        customer?.id ||
+                        false,
+                    laundryOrderId:
+                        currentOrder?.uiState
+                            ?.laundry_order_id ||
+                        false,
                 }
+            );
 
-                this.pos.navigate?.(
-                    "pos_customerscreen"
+            /*
+            * The Cancel button is currently visible only for unsaved
+            * orders, so deleting the frontend POS order is sufficient.
+            */
+            if (currentOrder) {
+                this.removeOrder(
+                    currentOrder
                 );
-            },
+            }
+
+            const newOrder =
+                this.addNewOrder();
+
+            if (newOrder) {
+                this.setCurrentOrder(
+                    newOrder
+                );
+
+                if (customer) {
+                    this.setOrderPartner(
+                        newOrder,
+                        customer
+                    );
+                }
+            }
+
+            this.pos.selected_laundry_order_id =
+                false;
+
+            this.pos.selected_laundry_order_type =
+                null;
+
+            this.pos.selected_customer =
+                customer;
+
+            this.clearCategorySelection(
+                newOrder
+            );
+
+            this.pos.navigate?.(
+                "pos_homescreen",
+                {
+                    customer,
+                }
+            );
+        },
 
             async getCustomerOrdersByStatus(
                 partnerId

@@ -41,10 +41,29 @@
 
 10/07/2026
 
-1. package payment - direct invoicing not change status
-2. product screen buttons: add cancel order, save order and print Order
-3. order summery add order status and payment status
-4. add back button before the home button - navigate to customer screen with current customer.
+
+order status:
+1. new
+2. complete
+3. cancelled
+4. refunded
+
+payment status
+1. Unpaid
+2. partial paid
+3. package paid
+4. paid
+5. cancelled
+6. refunded
+
+1. package payment :
+    - when saved change order status [need to add an order status for this case], change payment status to package payment.
+2. product screen buttons(action pad): 
+    - add cancel order, save order [need to decide if to open ordre payment screen or go back to customer screen],  and print Order
+3. order summery:
+    - add ordertype, order number [initial number should be blank or another status then new] order status,payment status
+4. in the navbar only in the product screen add back button before the home button - navigate to customer screen with current customer.
 
 
-    
+11/07/2026
+- add new features for order type pickup and delivery.

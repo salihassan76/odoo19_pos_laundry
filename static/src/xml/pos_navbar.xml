@@ -5,40 +5,94 @@
        t-inherit="point_of_sale.Navbar"
        t-inherit-mode="extension">
 
-        <!-- Hide Register only when laundry workflow is enabled -->
-        <xpath expr="//button[hasclass('register-label')]" position="attributes">
-            <attribute name="t-if">!pos.config.enable_laundry_workflow</attribute>
+        <!-- Hide standard Register button -->
+        <xpath expr="//button[hasclass('register-label')]"
+               position="attributes">
+            <attribute name="t-if">
+                !pos.config.enable_laundry_workflow
+            </attribute>
         </xpath>
 
-        <!-- Hide Order Tabs only when laundry workflow is enabled -->
-        <xpath expr="//div[hasclass('pos-leftheader')]//OrderTabs" position="attributes">
-            <attribute name="t-if">!pos.config.enable_laundry_workflow</attribute>
+        <!-- Hide standard Order Tabs -->
+        <xpath expr="//div[hasclass('pos-leftheader')]//OrderTabs"
+               position="attributes">
+            <attribute name="t-if">
+                !pos.config.enable_laundry_workflow
+            </attribute>
         </xpath>
 
-        <xpath expr="//button[hasclass('orders-button')]" position="attributes">
-            <attribute name="t-if">!pos.config.enable_laundry_workflow</attribute>
+        <!-- Hide standard Orders button -->
+        <xpath expr="//button[hasclass('orders-button')]"
+               position="attributes">
+            <attribute name="t-if">
+                !pos.config.enable_laundry_workflow
+            </attribute>
         </xpath>
 
-        <!-- Replace Orders button content only when laundry workflow is enabled -->
-        <xpath expr="//button[hasclass('orders-button')]" position="after">
+        <!-- Laundry navigation buttons -->
+        <xpath expr="//button[hasclass('orders-button')]"
+               position="after">
 
             <t t-if="pos.config.enable_laundry_workflow">
 
-                <button class="btn btn-light lh-lg d-flex align-items-center justify-content-center gap-2"
-                        t-on-click="() => this.pos.navigate('pos_customerscreen')">
-                    <i class="fa fa-home text-warning fs-3"/>
-                    <span class="d-none d-md-inline">Home</span>
+                <!--
+                    Back:
+                    - Shown only during a laundry order flow
+                    - Uses the existing PosStore back-button patch
+                    - Keeps the customer
+                    - Removes the active frontend POS order
+                    - Returns to the laundry home screen
+                -->
+                
+                <button t-if="pos.router.state.current !== 'pos_homescreen' and pos.router.state.current !== 'pos_customerscreen'"
+                        class="btn btn-light lh-lg d-flex align-items-center justify-content-center gap-2"
+                        title="Back"
+                        t-on-click="() => pos.onClickBackButton()">
+
+                    <i class="fa fa-arrow-left text-secondary fs-3"/>
+
+                    <span class="d-none d-md-inline">
+                        Back
+                    </span>
+
                 </button>
 
+                <!--
+                    Home:
+                    Returns to customer selection.
+                    This currently does not use the Product Screen
+                    back-button cleanup.
+                -->
                 <button class="btn btn-light lh-lg d-flex align-items-center justify-content-center gap-2"
+                        title="Home"
+                        t-on-click="() => this.pos.navigate('pos_customerscreen')">
+
+                    <i class="fa fa-home text-warning fs-3"/>
+
+                    <span class="d-none d-md-inline">
+                        Home
+                    </span>
+
+                </button>
+
+                <!--
+                    Orders List:
+                    Opens the laundry orders list without clearing
+                    the current order.
+                -->
+                <button class="btn btn-light lh-lg d-flex align-items-center justify-content-center gap-2"
+                        title="Orders List"
                         t-on-click="() => this.pos.navigate('pos_orderlistscreen')">
+
                     <i class="fa fa-list-alt text-primary fs-3"/>
-                    <span class="d-none d-md-inline">Orders List</span>
+
+                    <span class="d-none d-md-inline">
+                        Orders List
+                    </span>
+
                 </button>
 
             </t>
-
-            
 
         </xpath>
 
