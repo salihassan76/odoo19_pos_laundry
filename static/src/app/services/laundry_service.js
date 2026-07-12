@@ -1,4 +1,3 @@
-
 /** @odoo-module **/
 
 import { registry } from "@web/core/registry";
@@ -6,17 +5,17 @@ import { _t } from "@web/core/l10n/translation";
 import { AlertDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 import { printLaundryReceipt } from "../utils/receipt_service";
 import {
-    laundryLog,
     setLaundryVisibility,
     traceLaundryState,
 } from "../utils/laundry_visibility";
 
 
 function getOrderLines(order) {
-    return (
+    return Array.from(
         order?.lines ||
         order?.orderlines ||
         order?.getOrderlines?.() ||
+        order?.get_orderlines?.() ||
         []
     );
 }
@@ -36,6 +35,7 @@ function getLineQty(line) {
     return (
         line?.qty ??
         line?.quantity ??
+        line?.getQuantity?.() ??
         line?.get_quantity?.() ??
         1
     );
@@ -46,6 +46,7 @@ function getLinePrice(line) {
     return (
         line?.price_unit ??
         line?.price ??
+        line?.getUnitPrice?.() ??
         line?.get_unit_price?.() ??
         0
     );
@@ -67,9 +68,14 @@ export const laundryService = {
             dialog,
             printer,
 
+            // -------------------------------------------------------------
+            // Basic helpers
+            // -------------------------------------------------------------
+
             isEnabled() {
                 return Boolean(
-                    this.pos.config?.enable_laundry_workflow
+                    this.pos.config
+                        ?.enable_laundry_workflow
                 );
             },
 
@@ -99,8 +105,13 @@ export const laundryService = {
                 }
 
                 if (this.pos.removeOrder) {
-                    this.pos.removeOrder(order, false);
-                } else if (this.pos.remove_order) {
+                    this.pos.removeOrder(
+                        order,
+                        false
+                    );
+                } else if (
+                    this.pos.remove_order
+                ) {
                     this.pos.remove_order(order);
                 }
             },
@@ -113,14 +124,19 @@ export const laundryService = {
                 );
             },
 
-            setOrderPartner(order, partner) {
+            setOrderPartner(
+                order,
+                partner
+            ) {
                 if (!order || !partner) {
                     return;
                 }
 
                 if (order.setPartner) {
                     order.setPartner(partner);
-                } else if (order.set_partner) {
+                } else if (
+                    order.set_partner
+                ) {
                     order.set_partner(partner);
                 }
             },
@@ -159,7 +175,8 @@ export const laundryService = {
             },
 
             getAllowedCategoryIds() {
-                const order = this.getOrder();
+                const order =
+                    this.getOrder();
 
                 return this._normalizeCategoryIds(
                     order?.uiState
@@ -167,6 +184,10 @@ export const laundryService = {
                     []
                 );
             },
+
+            // -------------------------------------------------------------
+            // Order types
+            // -------------------------------------------------------------
 
             getVisibleOrderTypeDomain() {
                 return [
@@ -193,8 +214,10 @@ export const laundryService = {
                 const orderTypes =
                     await this.orm.searchRead(
                         "laundry.order.type",
-                        this.getVisibleOrderTypeDomain(),
-                        this.getVisibleOrderTypeFields()
+                        this
+                            .getVisibleOrderTypeDomain(),
+                        this
+                            .getVisibleOrderTypeFields()
                     );
 
                 return orderTypes.sort(
@@ -204,7 +227,13 @@ export const laundryService = {
                 );
             },
 
-            prepareOrder(customer = null) {
+            // -------------------------------------------------------------
+            // POS order creation
+            // -------------------------------------------------------------
+
+            prepareOrder(
+                customer = null
+            ) {
                 let order = this.getOrder();
 
                 if (!order) {
@@ -248,7 +277,9 @@ export const laundryService = {
                 return order;
             },
 
-            async createFreshOrder(customer = null) {
+            async createFreshOrder(
+                customer = null
+            ) {
                 const currentOrder =
                     this.getOrder();
 
@@ -256,7 +287,9 @@ export const laundryService = {
                     currentOrder &&
                     currentOrder.isEmpty?.()
                 ) {
-                    this.removeOrder(currentOrder);
+                    this.removeOrder(
+                        currentOrder
+                    );
                 }
 
                 const order =
@@ -285,7 +318,8 @@ export const laundryService = {
                 order.uiState.is_saved =
                     false;
 
-                order.uiState.is_existing_laundry_order =
+                order.uiState
+                    .is_existing_laundry_order =
                     false;
 
                 order.uiState.status_id =
@@ -294,10 +328,20 @@ export const laundryService = {
                 order.uiState.status_name =
                     _t("Unsaved");
 
+                order.uiState
+                    .laundry_has_changes =
+                    false;
+
                 return order;
             },
 
-            _normalizeCategoryIds(values = []) {
+            // -------------------------------------------------------------
+            // Data normalization
+            // -------------------------------------------------------------
+
+            _normalizeCategoryIds(
+                values = []
+            ) {
                 return [
                     ...new Set(
                         (values || [])
@@ -319,7 +363,9 @@ export const laundryService = {
                                 }
 
                                 if (
-                                    Array.isArray(value)
+                                    Array.isArray(
+                                        value
+                                    )
                                 ) {
                                     return Number(
                                         value[0]
@@ -341,7 +387,10 @@ export const laundryService = {
                 ];
             },
 
-            _getModelRecord(modelName, id) {
+            _getModelRecord(
+                modelName,
+                id
+            ) {
                 if (!id) {
                     return null;
                 }
@@ -358,6 +407,10 @@ export const laundryService = {
                 );
             },
 
+            // -------------------------------------------------------------
+            // Laundry order state
+            // -------------------------------------------------------------
+
             /*
              * Extension hook used by optional addons,
              * including pos_laundry_packages.
@@ -367,109 +420,179 @@ export const laundryService = {
                 values = {}
             ) {},
 
-            _setLaundryOrderState(order, values = {}) {
+            _setLaundryOrderState(
+                order,
+                values = {}
+            ) {
                 if (!order) {
                     return;
                 }
 
-                order.uiState = order.uiState || {};
+                order.uiState =
+                    order.uiState || {};
 
-                const isSaved = Boolean(
-                    values.laundry_order_id
-                );
+                const isSaved =
+                    Boolean(
+                        values
+                            .laundry_order_id
+                    );
 
-                order.uiState.laundry_order_id =
-                    values.laundry_order_id || false;
+                order.uiState
+                    .laundry_order_id =
+                    values
+                        .laundry_order_id ||
+                    false;
 
-                order.uiState.laundry_order_name =
-                    values.laundry_order_name || "";
+                order.uiState
+                    .laundry_order_name =
+                    values
+                        .laundry_order_name ||
+                    "";
 
-                order.uiState.is_saved = isSaved;
-                order.uiState.is_existing_laundry_order =
+                order.uiState.is_saved =
                     isSaved;
 
-                // Keep older fields temporarily for compatibility.
+                order.uiState
+                    .is_existing_laundry_order =
+                    isSaved;
+
+                /*
+                 * Compatibility fields.
+                 */
                 order.uiState.status_id =
                     values.status_id ||
-                    values.laundry_status_id ||
+                    values
+                        .laundry_status_id ||
                     false;
 
                 order.uiState.status_name =
                     values.status_name ||
-                    values.laundry_status_name ||
-                    (isSaved ? "" : _t("Unsaved"));
+                    values
+                        .laundry_status_name ||
+                    (
+                        isSaved
+                            ? ""
+                            : _t("Unsaved")
+                    );
 
-                // New structured order-status state.
-                order.uiState.laundry_status_id =
-                    values.laundry_status_id ||
+                /*
+                 * Structured order-status state.
+                 */
+                order.uiState
+                    .laundry_status_id =
+                    values
+                        .laundry_status_id ||
                     values.status_id ||
                     false;
 
-                order.uiState.laundry_status_name =
-                    values.laundry_status_name ||
+                order.uiState
+                    .laundry_status_name =
+                    values
+                        .laundry_status_name ||
                     values.status_name ||
                     "";
 
-                order.uiState.laundry_status =
-                    values.laundry_status || {};
+                order.uiState
+                    .laundry_status =
+                    values.laundry_status ||
+                    {};
 
-                // Payment-status state.
-                order.uiState.laundry_payment_status_id =
-                    values.laundry_payment_status_id ||
+                /*
+                 * Payment-status state.
+                 */
+                order.uiState
+                    .laundry_payment_status_id =
+                    values
+                        .laundry_payment_status_id ||
                     false;
 
-                order.uiState.laundry_payment_status_name =
-                    values.laundry_payment_status_name ||
+                order.uiState
+                    .laundry_payment_status_name =
+                    values
+                        .laundry_payment_status_name ||
                     "";
 
-                // Order type.
-                order.uiState.laundry_order_type_id =
-                    values.laundry_order_type_id ||
+                /*
+                 * Order type.
+                 */
+                order.uiState
+                    .laundry_order_type_id =
+                    values
+                        .laundry_order_type_id ||
                     false;
 
-                order.uiState.laundry_order_type_name =
-                    values.laundry_order_type_name ||
+                order.uiState
+                    .laundry_order_type_name =
+                    values
+                        .laundry_order_type_name ||
                     "";
 
-                order.uiState.laundry_order_type_prefix =
-                    values.laundry_order_type_prefix ||
+                order.uiState
+                    .laundry_order_type_prefix =
+                    values
+                        .laundry_order_type_prefix ||
                     "";
 
-                order.uiState.laundry_allowed_pos_category_ids =
-                    values.allowed_category_ids ||
-                    values.laundry_allowed_pos_category_ids ||
-                    [];
-
-                // Financial state.
-                order.uiState.laundry_total_amount =
-                    Number(
-                        values.laundry_total_amount || 0
+                order.uiState
+                    .laundry_allowed_pos_category_ids =
+                    this._normalizeCategoryIds(
+                        values
+                            .allowed_category_ids ||
+                        values
+                            .laundry_allowed_pos_category_ids ||
+                        []
                     );
 
-                order.uiState.laundry_paid_amount =
+                /*
+                 * Financial state.
+                 */
+                order.uiState
+                    .laundry_total_amount =
                     Number(
-                        values.laundry_paid_amount || 0
+                        values
+                            .laundry_total_amount ||
+                        0
                     );
 
-                order.uiState.laundry_balance =
+                order.uiState
+                    .laundry_paid_amount =
                     Number(
-                        values.laundry_balance || 0
+                        values
+                            .laundry_paid_amount ||
+                        0
                     );
 
-                order.uiState.laundry_refundable_amount =
+                order.uiState
+                    .laundry_balance =
                     Number(
-                        values.laundry_refundable_amount || 0
+                        values
+                            .laundry_balance ||
+                        0
                     );
 
-                // Editing state.
-                order.uiState.laundry_has_changes =
+                order.uiState
+                    .laundry_refundable_amount =
+                    Number(
+                        values
+                            .laundry_refundable_amount ||
+                        0
+                    );
+
+                /*
+                 * Editing state.
+                 */
+                order.uiState
+                    .laundry_has_changes =
                     Boolean(
-                        values.laundry_has_changes
+                        values
+                            .laundry_has_changes
                     );
 
-                order.uiState.return_to_laundry_home =
+                order.uiState
+                    .return_to_laundry_home =
                     Boolean(
-                        values.return_to_laundry_home
+                        values
+                            .return_to_laundry_home
                     );
 
                 this._afterSetLaundryOrderState(
@@ -478,7 +601,9 @@ export const laundryService = {
                 );
             },
 
-            _prepareOrderTypeState(orderType) {
+            _prepareOrderTypeState(
+                orderType
+            ) {
                 return {
                     laundry_order_type_id:
                         orderType.id,
@@ -487,7 +612,8 @@ export const laundryService = {
                         orderType.name,
 
                     laundry_order_type_prefix:
-                        orderType.prefix || "",
+                        orderType.prefix ||
+                        "",
 
                     allowed_category_ids:
                         this._normalizeCategoryIds(
@@ -497,7 +623,11 @@ export const laundryService = {
                         ),
                 };
             },
-            async selectOrderType(orderType,customer = null) {
+
+            async selectOrderType(
+                orderType,
+                customer = null
+            ) {
                 const currentOrder =
                     this.getOrder();
 
@@ -513,9 +643,10 @@ export const laundryService = {
 
                 const order =
                     hasExistingContext
-                        ? await this.createFreshOrder(
-                            customer
-                        )
+                        ? await this
+                            .createFreshOrder(
+                                customer
+                            )
                         : this.prepareOrder(
                             customer
                         );
@@ -564,7 +695,9 @@ export const laundryService = {
                 );
             },
 
-            clearCategorySelection(order = null) {
+            clearCategorySelection(
+                order = null
+            ) {
                 this.pos.selectedCategory =
                     undefined;
 
@@ -586,6 +719,10 @@ export const laundryService = {
                         false;
                 }
             },
+
+            // -------------------------------------------------------------
+            // Validation and payload building
+            // -------------------------------------------------------------
 
             _validateLaundryOrderData(
                 order,
@@ -722,13 +859,18 @@ export const laundryService = {
                 );
             },
 
+            // -------------------------------------------------------------
+            // Receipt handling
+            // -------------------------------------------------------------
+
             async handleReceipt(result) {
                 if (!result?.receipt) {
                     return;
                 }
 
                 if (
-                    result.show_receipt_preview
+                    result
+                        .show_receipt_preview
                 ) {
                     this.dialog.add(
                         AlertDialog,
@@ -757,6 +899,53 @@ export const laundryService = {
                 }
             },
 
+            async printSavedLaundryOrder(
+                laundryOrderId = null
+            ) {
+                const order =
+                    this.getOrder();
+
+                const orderId =
+                    laundryOrderId ||
+                    order?.uiState
+                        ?.laundry_order_id;
+
+                if (!orderId) {
+                    throw new Error(
+                        _t(
+                            "Please save the laundry order before printing."
+                        )
+                    );
+                }
+
+                const result =
+                    await this.orm.call(
+                        "laundry.order",
+                        "action_get_receipt_data",
+                        [[orderId]]
+                    );
+
+                if (!result?.receipt) {
+                    throw new Error(
+                        _t(
+                            "No receipt data was returned."
+                        )
+                    );
+                }
+
+                await printLaundryReceipt(
+                    this.printer,
+                    result.receipt,
+                    this.dialog
+                );
+
+                return result;
+            },
+
+            // -------------------------------------------------------------
+            // Navigation and order reset
+            // -------------------------------------------------------------
+
             resetOrder() {
                 const order =
                     this.getOrder();
@@ -778,35 +967,52 @@ export const laundryService = {
             },
 
             backToLaundryHome() {
-                const currentOrder = this.getOrder();
+                const currentOrder =
+                    this.getOrder();
 
                 const customer =
-                    currentOrder?.getPartner?.() ||
-                    currentOrder?.get_partner?.() ||
-                    currentOrder?.partner_id ||
-                    this.pos.selected_customer ||
+                    currentOrder
+                        ?.getPartner?.() ||
+                    currentOrder
+                        ?.get_partner?.() ||
+                    currentOrder
+                        ?.partner_id ||
+                    this.pos
+                        .selected_customer ||
                     null;
 
-                console.log("[Laundry:Navigation] Back to laundry home", {
-                    orderUuid: currentOrder?.uuid || false,
-                    laundryOrderId:
-                        currentOrder?.uiState?.laundry_order_id ||
-                        false,
-                    customerId: customer?.id || false,
-                });
+                console.log(
+                    "[Laundry:Navigation] Back to laundry home",
+                    {
+                        orderUuid:
+                            currentOrder?.uuid ||
+                            false,
 
-                /*
-                * Discard the frontend POS order.
-                * This does not cancel or modify the backend laundry.order.
-                */
+                        laundryOrderId:
+                            currentOrder
+                                ?.uiState
+                                ?.laundry_order_id ||
+                            false,
+
+                        customerId:
+                            customer?.id ||
+                            false,
+                    }
+                );
+
                 if (currentOrder) {
-                    this.removeOrder(currentOrder);
+                    this.removeOrder(
+                        currentOrder
+                    );
                 }
 
-                const newOrder = this.addNewOrder();
+                const newOrder =
+                    this.addNewOrder();
 
                 if (newOrder) {
-                    this.setCurrentOrder(newOrder);
+                    this.setCurrentOrder(
+                        newOrder
+                    );
 
                     if (customer) {
                         this.setOrderPartner(
@@ -816,11 +1022,16 @@ export const laundryService = {
                     }
                 }
 
-                this.pos.selected_laundry_order_id = false;
+                this.pos
+                    .selected_laundry_order_id =
+                    false;
 
-                this.pos.selected_laundry_order_type = null;
+                this.pos
+                    .selected_laundry_order_type =
+                    null;
 
-                this.pos.selected_customer = customer;
+                this.pos.selected_customer =
+                    customer;
 
                 this.clearCategorySelection(
                     newOrder
@@ -840,7 +1051,75 @@ export const laundryService = {
                 );
             },
 
-            _prepareOpenOrderStateValues(data) {
+            discardCurrentOrder() {
+                const currentOrder =
+                    this.getOrder();
+
+                const customer =
+                    currentOrder
+                        ?.getPartner?.() ||
+                    currentOrder
+                        ?.get_partner?.() ||
+                    currentOrder
+                        ?.partner_id ||
+                    this.pos
+                        .selected_customer ||
+                    null;
+
+                if (currentOrder) {
+                    this.removeOrder(
+                        currentOrder
+                    );
+                }
+
+                const newOrder =
+                    this.addNewOrder();
+
+                if (newOrder) {
+                    this.setCurrentOrder(
+                        newOrder
+                    );
+
+                    if (customer) {
+                        this.setOrderPartner(
+                            newOrder,
+                            customer
+                        );
+                    }
+                }
+
+                this.pos
+                    .selected_laundry_order_id =
+                    false;
+
+                this.pos
+                    .selected_laundry_order_type =
+                    null;
+
+                this.pos.selected_customer =
+                    customer;
+
+                this.clearCategorySelection(
+                    newOrder
+                );
+
+                this.pos.navigate?.(
+                    "pos_homescreen",
+                    {
+                        customer,
+                    }
+                );
+
+                return true;
+            },
+
+            // -------------------------------------------------------------
+            // State preparation
+            // -------------------------------------------------------------
+
+            _prepareOpenOrderStateValues(
+                data
+            ) {
                 return {
                     laundry_order_id:
                         data.id || false,
@@ -849,83 +1128,131 @@ export const laundryService = {
                         data.name || "",
 
                     laundry_order_type_id:
-                        data.order_type_id || false,
+                        data
+                            .order_type_id ||
+                        false,
 
                     laundry_order_type_name:
-                        data.order_type_name || "",
+                        data
+                            .order_type_name ||
+                        "",
 
                     laundry_order_type_prefix:
-                        data.order_type_prefix || "",
+                        data
+                            .order_type_prefix ||
+                        "",
 
                     allowed_category_ids:
-                        data.allowed_category_ids || [],
+                        this._normalizeCategoryIds(
+                            data
+                                .allowed_category_ids ||
+                            []
+                        ),
 
                     laundry_status_id:
-                        data.status_id || false,
+                        data.status_id ||
+                        false,
 
                     laundry_status_name:
-                        data.status_name || "",
+                        data.status_name ||
+                        "",
 
                     laundry_status:
                         data.status || {},
 
                     laundry_payment_status_id:
-                        data.payment_status_id || false,
+                        data
+                            .payment_status_id ||
+                        false,
 
                     laundry_payment_status_name:
-                        data.payment_status_name || "",
+                        data
+                            .payment_status_name ||
+                        "",
 
                     laundry_total_amount:
-                        Number(data.total_amount || 0),
+                        Number(
+                            data.total_amount ||
+                            0
+                        ),
 
                     laundry_paid_amount:
-                        Number(data.paid_amount || 0),
+                        Number(
+                            data.paid_amount ||
+                            0
+                        ),
 
                     laundry_balance:
-                        Number(data.balance || 0),
+                        Number(
+                            data.balance ||
+                            0
+                        ),
 
                     laundry_refundable_amount:
-                        Number(data.refundable_amount || 0),
+                        Number(
+                            data
+                                .refundable_amount ||
+                            0
+                        ),
 
-                    laundry_has_changes: false,
+                    laundry_has_changes:
+                        false,
 
-                    return_to_laundry_home: true,
-                    is_existing_laundry_order: true,
+                    return_to_laundry_home:
+                        true,
+
+                    is_existing_laundry_order:
+                        true,
                 };
             },
 
-            _prepareSavedStateValues(result, order) {
+            _prepareSavedStateValues(
+                result,
+                order
+            ) {
                 return {
                     laundry_order_id:
-                        result.laundry_order_id,
+                        result
+                            .laundry_order_id,
 
                     laundry_order_name:
-                        result.laundry_order_name ||
-                        order.uiState.laundry_order_name,
+                        result
+                            .laundry_order_name ||
+                        order.uiState
+                            .laundry_order_name,
 
                     laundry_status_id:
-                        result.status_id || false,
+                        result.status_id ||
+                        false,
 
                     laundry_status_name:
-                        result.status_name || "",
+                        result.status_name ||
+                        "",
 
                     laundry_status:
                         result.status || {},
 
                     laundry_payment_status_id:
-                        result.payment_status_id || false,
+                        result
+                            .payment_status_id ||
+                        false,
 
                     laundry_payment_status_name:
-                        result.payment_status_name || "",
+                        result
+                            .payment_status_name ||
+                        "",
 
                     laundry_order_type_id:
-                        order.uiState.laundry_order_type_id,
+                        order.uiState
+                            .laundry_order_type_id,
 
                     laundry_order_type_name:
-                        order.uiState.laundry_order_type_name,
+                        order.uiState
+                            .laundry_order_type_name,
 
                     laundry_order_type_prefix:
-                        order.uiState.laundry_order_type_prefix,
+                        order.uiState
+                            .laundry_order_type_prefix,
 
                     allowed_category_ids:
                         order.uiState
@@ -933,26 +1260,174 @@ export const laundryService = {
 
                     laundry_total_amount:
                         Number(
-                            result.total_amount ||
-                            order.getTotalWithTax?.() ||
+                            result
+                                .total_amount ||
+                            order
+                                .getTotalWithTax?.() ||
                             0
                         ),
 
                     laundry_paid_amount:
-                        Number(result.paid_amount || 0),
+                        Number(
+                            result
+                                .paid_amount ||
+                            0
+                        ),
 
                     laundry_balance:
-                        Number(result.balance || 0),
+                        Number(
+                            result.balance ||
+                            0
+                        ),
 
                     laundry_refundable_amount:
                         Number(
-                            result.refundable_amount || 0
+                            result
+                                .refundable_amount ||
+                            0
                         ),
 
-                    laundry_has_changes: false,
-                    return_to_laundry_home: true,
+                    laundry_has_changes:
+                        false,
+
+                    return_to_laundry_home:
+                        true,
                 };
             },
+
+            // -------------------------------------------------------------
+            // Snapshot and change detection
+            // -------------------------------------------------------------
+
+            createLaundryOrderSnapshot(
+                order
+            ) {
+                if (!order) {
+                    return null;
+                }
+
+                const partner =
+                    order.getPartner?.() ||
+                    order.get_partner?.() ||
+                    order.partner_id ||
+                    null;
+
+                const lines =
+                    getOrderLines(order)
+                        .map((line) => {
+                            const product =
+                                getLineProduct(
+                                    line
+                                );
+
+                            return {
+                                product_id:
+                                    product?.id ||
+                                    false,
+
+                                qty:
+                                    Number(
+                                        getLineQty(
+                                            line
+                                        ) || 0
+                                    ),
+
+                                price_unit:
+                                    Number(
+                                        getLinePrice(
+                                            line
+                                        ) || 0
+                                    ),
+                            };
+                        })
+                        .filter(
+                            (line) =>
+                                line.product_id
+                        )
+                        .sort((a, b) => {
+                            if (
+                                a.product_id !==
+                                b.product_id
+                            ) {
+                                return (
+                                    a.product_id -
+                                    b.product_id
+                                );
+                            }
+
+                            if (
+                                a.qty !== b.qty
+                            ) {
+                                return (
+                                    a.qty -
+                                    b.qty
+                                );
+                            }
+
+                            return (
+                                a.price_unit -
+                                b.price_unit
+                            );
+                        });
+
+                return {
+                    partner_id:
+                        partner?.id ||
+                        false,
+
+                    laundry_order_type_id:
+                        order.uiState
+                            ?.laundry_order_type_id ||
+                        false,
+
+                    notes:
+                        order.uiState
+                            ?.notes ||
+                        "",
+
+                    lines,
+                };
+            },
+
+            hasLaundryOrderChanges(
+                order
+            ) {
+                if (!order) {
+                    return false;
+                }
+
+                const originalSnapshot =
+                    order.uiState
+                        ?.laundry_original_snapshot;
+
+                if (!originalSnapshot) {
+                    return false;
+                }
+
+                const currentSnapshot =
+                    this
+                        .createLaundryOrderSnapshot(
+                            order
+                        );
+
+                const hasChanges =
+                    JSON.stringify(
+                        currentSnapshot
+                    ) !==
+                    JSON.stringify(
+                        originalSnapshot
+                    );
+
+                order.uiState
+                    .laundry_has_changes =
+                    hasChanges;
+
+                return hasChanges;
+            },
+
+            // -------------------------------------------------------------
+            // Save / update
+            // -------------------------------------------------------------
 
             async saveAndHandleResult() {
                 if (!this.isEnabled()) {
@@ -986,6 +1461,17 @@ export const laundryService = {
                         )
                 );
 
+                order.uiState
+                    .laundry_original_snapshot =
+                    this
+                        .createLaundryOrderSnapshot(
+                            order
+                        );
+
+                order.uiState
+                    .laundry_has_changes =
+                    false;
+
                 if (result.direct_sale) {
                     this.pos.pay?.();
                     return result;
@@ -997,6 +1483,10 @@ export const laundryService = {
                 return result;
             },
 
+            // -------------------------------------------------------------
+            // Payment
+            // -------------------------------------------------------------
+
             async payLaundryOrder() {
                 const order =
                     this.getOrder();
@@ -1006,7 +1496,11 @@ export const laundryService = {
                         ?.laundry_order_id;
 
                 if (!laundryOrderId) {
-                    return;
+                    throw new Error(
+                        _t(
+                            "Please save the laundry order before receiving payment."
+                        )
+                    );
                 }
 
                 await this.orm.call(
@@ -1034,79 +1528,297 @@ export const laundryService = {
                 );
             },
 
-        cancelOrder() {
-            const currentOrder =
-                this.getOrder();
+            // -------------------------------------------------------------
+            // Refund
+            // -------------------------------------------------------------
 
-            const customer =
-                currentOrder?.getPartner?.() ||
-                currentOrder?.get_partner?.() ||
-                currentOrder?.partner_id ||
-                this.pos.selected_customer ||
-                null;
+            async refundLaundryOrder() {
+                const order =
+                    this.getOrder();
 
-            console.log(
-                "[Laundry:Order] Cancelling unsaved order",
-                {
-                    orderUuid:
-                        currentOrder?.uuid ||
-                        false,
-                    customerId:
-                        customer?.id ||
-                        false,
-                    laundryOrderId:
-                        currentOrder?.uiState
-                            ?.laundry_order_id ||
-                        false,
-                }
-            );
+                const laundryOrderId =
+                    order?.uiState
+                        ?.laundry_order_id;
 
-            /*
-            * The Cancel button is currently visible only for unsaved
-            * orders, so deleting the frontend POS order is sufficient.
-            */
-            if (currentOrder) {
-                this.removeOrder(
-                    currentOrder
-                );
-            }
-
-            const newOrder =
-                this.addNewOrder();
-
-            if (newOrder) {
-                this.setCurrentOrder(
-                    newOrder
-                );
-
-                if (customer) {
-                    this.setOrderPartner(
-                        newOrder,
-                        customer
+                if (!laundryOrderId) {
+                    throw new Error(
+                        _t(
+                            "Please save the laundry order before refunding."
+                        )
                     );
                 }
-            }
 
-            this.pos.selected_laundry_order_id =
-                false;
+                const policy =
+                    this.getActionPolicy(
+                        order
+                    );
 
-            this.pos.selected_laundry_order_type =
-                null;
-
-            this.pos.selected_customer =
-                customer;
-
-            this.clearCategorySelection(
-                newOrder
-            );
-
-            this.pos.navigate?.(
-                "pos_homescreen",
-                {
-                    customer,
+                if (!policy.canRefund) {
+                    throw new Error(
+                        _t(
+                            "This laundry order cannot be refunded."
+                        )
+                    );
                 }
-            );
-        },
+
+                const result =
+                    await this.orm.call(
+                        "laundry.order",
+                        "action_refund_from_pos",
+                        [[laundryOrderId]]
+                    );
+
+                if (!result?.success) {
+                    throw new Error(
+                        _t(
+                            "The laundry order refund failed."
+                        )
+                    );
+                }
+
+                this._setLaundryOrderState(
+                    order,
+                    {
+                        laundry_order_id:
+                            laundryOrderId,
+
+                        laundry_order_name:
+                            order.uiState
+                                .laundry_order_name,
+
+                        laundry_order_type_id:
+                            order.uiState
+                                .laundry_order_type_id,
+
+                        laundry_order_type_name:
+                            order.uiState
+                                .laundry_order_type_name,
+
+                        laundry_order_type_prefix:
+                            order.uiState
+                                .laundry_order_type_prefix,
+
+                        allowed_category_ids:
+                            order.uiState
+                                .laundry_allowed_pos_category_ids,
+
+                        laundry_status_id:
+                            result
+                                .status_id ||
+                            false,
+
+                        laundry_status_name:
+                            result
+                                .status_name ||
+                            "",
+
+                        laundry_status:
+                            result.status ||
+                            {},
+
+                        laundry_payment_status_id:
+                            result
+                                .payment_status_id ||
+                            false,
+
+                        laundry_payment_status_name:
+                            result
+                                .payment_status_name ||
+                            "",
+
+                        laundry_total_amount:
+                            Number(
+                                result
+                                    .total_amount ||
+                                0
+                            ),
+
+                        laundry_paid_amount:
+                            Number(
+                                result
+                                    .paid_amount ||
+                                0
+                            ),
+
+                        laundry_balance:
+                            Number(
+                                result.balance ||
+                                0
+                            ),
+
+                        laundry_refundable_amount:
+                            Number(
+                                result
+                                    .refundable_amount ||
+                                0
+                            ),
+
+                        laundry_has_changes:
+                            false,
+
+                        return_to_laundry_home:
+                            true,
+                    }
+                );
+
+                order.uiState
+                    .laundry_original_snapshot =
+                    this
+                        .createLaundryOrderSnapshot(
+                            order
+                        );
+
+                return result;
+            },
+
+            // -------------------------------------------------------------
+            // Backend saved-order cancellation
+            // -------------------------------------------------------------
+
+            async cancelOrder() {
+                const order =
+                    this.getOrder();
+
+                const laundryOrderId =
+                    order?.uiState
+                        ?.laundry_order_id;
+
+                if (!laundryOrderId) {
+                    throw new Error(
+                        _t(
+                            "Please save the laundry order before cancelling it."
+                        )
+                    );
+                }
+
+                const policy =
+                    this.getActionPolicy(
+                        order
+                    );
+
+                if (!policy.canCancel) {
+                    throw new Error(
+                        _t(
+                            "This laundry order cannot be cancelled."
+                        )
+                    );
+                }
+
+                const result =
+                    await this.orm.call(
+                        "laundry.order",
+                        "action_cancel_from_pos",
+                        [[laundryOrderId]]
+                    );
+
+                if (!result?.success) {
+                    throw new Error(
+                        _t(
+                            "The laundry order cancellation failed."
+                        )
+                    );
+                }
+
+                this._setLaundryOrderState(
+                    order,
+                    {
+                        laundry_order_id:
+                            laundryOrderId,
+
+                        laundry_order_name:
+                            order.uiState
+                                .laundry_order_name,
+
+                        laundry_order_type_id:
+                            order.uiState
+                                .laundry_order_type_id,
+
+                        laundry_order_type_name:
+                            order.uiState
+                                .laundry_order_type_name,
+
+                        laundry_order_type_prefix:
+                            order.uiState
+                                .laundry_order_type_prefix,
+
+                        allowed_category_ids:
+                            order.uiState
+                                .laundry_allowed_pos_category_ids,
+
+                        laundry_status_id:
+                            result
+                                .status_id ||
+                            false,
+
+                        laundry_status_name:
+                            result
+                                .status_name ||
+                            "",
+
+                        laundry_status:
+                            result.status ||
+                            {},
+
+                        laundry_payment_status_id:
+                            result
+                                .payment_status_id ||
+                            false,
+
+                        laundry_payment_status_name:
+                            result
+                                .payment_status_name ||
+                            "",
+
+                        laundry_total_amount:
+                            Number(
+                                result
+                                    .total_amount ||
+                                order.uiState
+                                    .laundry_total_amount ||
+                                0
+                            ),
+
+                        laundry_paid_amount:
+                            Number(
+                                result
+                                    .paid_amount ||
+                                0
+                            ),
+
+                        laundry_balance:
+                            Number(
+                                result.balance ||
+                                0
+                            ),
+
+                        laundry_refundable_amount:
+                            Number(
+                                result
+                                    .refundable_amount ||
+                                0
+                            ),
+
+                        laundry_has_changes:
+                            false,
+
+                        return_to_laundry_home:
+                            true,
+                    }
+                );
+
+                order.uiState
+                    .laundry_original_snapshot =
+                    this
+                        .createLaundryOrderSnapshot(
+                            order
+                        );
+
+                return result;
+            },
+
+            // -------------------------------------------------------------
+            // Backend queries
+            // -------------------------------------------------------------
 
             async getCustomerOrdersByStatus(
                 partnerId
@@ -1136,41 +1848,9 @@ export const laundryService = {
                 );
             },
 
-            _prepareOpenOrderStateValues(
-                data
-            ) {
-                return {
-                    laundry_order_id:
-                        data.id,
-
-                    laundry_order_name:
-                        data.name,
-
-                    laundry_order_type_id:
-                        data.order_type_id,
-
-                    laundry_order_type_name:
-                        data.order_type_name,
-
-                    laundry_order_type_prefix:
-                        data.order_type_prefix ||
-                        "",
-
-                    status_id:
-                        data.status_id ||
-                        false,
-
-                    status_name:
-                        data.status_name ||
-                        "",
-
-                    allowed_category_ids:
-                        this._normalizeCategoryIds(
-                            data.allowed_category_ids ||
-                            []
-                        ),
-                };
-            },
+            // -------------------------------------------------------------
+            // Open existing order
+            // -------------------------------------------------------------
 
             async openLaundryOrder(
                 orderId
@@ -1185,20 +1865,53 @@ export const laundryService = {
                     return;
                 }
 
-                const partner = this._getModelRecord("res.partner", data.partner_id);
-                const order = await this.createFreshOrder(partner || null);
+                const allowedCategoryIds =
+                    this._normalizeCategoryIds(
+                        data
+                            .allowed_category_ids ||
+                        []
+                    );
 
-                this._setLaundryOrderState(order, this._prepareOpenOrderStateValues(data));
-                console.log("OPEN EXISTING LAUNDRY ORDER", order.uiState);
+                const partner =
+                    this._getModelRecord(
+                        "res.partner",
+                        data.partner_id
+                    );
+
+                const order =
+                    await this
+                        .createFreshOrder(
+                            partner || null
+                        );
+
+                this._setLaundryOrderState(
+                    order,
+                    this
+                        ._prepareOpenOrderStateValues(
+                            {
+                                ...data,
+
+                                allowed_category_ids:
+                                    allowedCategoryIds,
+                            }
+                        )
+                );
+
+                console.log(
+                    "OPEN EXISTING LAUNDRY ORDER",
+                    order.uiState
+                );
 
                 this.pos
                     .selected_laundry_order_type =
                     {
                         id:
-                            data.order_type_id,
+                            data
+                                .order_type_id,
 
                         name:
-                            data.order_type_name,
+                            data
+                                .order_type_name,
 
                         prefix:
                             data
@@ -1215,21 +1928,41 @@ export const laundryService = {
 
                 this.setCurrentOrder(order);
 
-                setLaundryVisibility(order, {
-                    orderTypeId: order.uiState.laundry_order_type_id,
-                    allowedCategoryIds: order.uiState.laundry_allowed_pos_category_ids,
-                    isPackageUsage: order.uiState.is_package_usage,
-                    allowedPackageProductIds: order.uiState.allowed_package_products,
-                });
-                traceLaundryState("OpenOrder:BeforeLines", this.pos, {
-                    requestedOrderId: orderId,
-                    activeMatchesOpened: this.getOrder()?.uuid === order.uuid,
-                });
+                setLaundryVisibility(
+                    order,
+                    {
+                        orderTypeId:
+                            order.uiState
+                                .laundry_order_type_id,
 
-                /*
-                 * Ensure addLineToCurrentOrder adds lines to the
-                 * reopened order.
-                 */
+                        allowedCategoryIds:
+                            order.uiState
+                                .laundry_allowed_pos_category_ids,
+
+                        isPackageUsage:
+                            order.uiState
+                                .is_package_usage,
+
+                        allowedPackageProductIds:
+                            order.uiState
+                                .allowed_package_products,
+                    }
+                );
+
+                traceLaundryState(
+                    "OpenOrder:BeforeLines",
+                    this.pos,
+                    {
+                        requestedOrderId:
+                            orderId,
+
+                        activeMatchesOpened:
+                            this.getOrder()
+                                ?.uuid ===
+                            order.uuid,
+                    }
+                );
+
                 this.setCurrentOrder(order);
 
                 for (
@@ -1262,10 +1995,17 @@ export const laundryService = {
                                         .product_tmpl_id,
 
                                 qty:
-                                    line.qty,
+                                    Number(
+                                        line.qty ||
+                                        0
+                                    ),
 
                                 price_unit:
-                                    line.price_unit,
+                                    Number(
+                                        line
+                                            .price_unit ||
+                                        0
+                                    ),
                             },
                             {
                                 force: true,
@@ -1274,17 +2014,46 @@ export const laundryService = {
                         );
                 }
 
-                /*
-                 * Loading lines must not change the active order,
-                 * but reactivate it defensively before navigation.
-                 */
                 this.setCurrentOrder(order);
 
-                traceLaundryState("OpenOrder:BeforeProductScreen", this.pos, {
-                    requestedOrderId: orderId,
-                    lineCount: (data.lines || []).length,
-                    activeMatchesOpened: this.getOrder()?.uuid === order.uuid,
-                });
+                /*
+                 * Loading backend lines must not be
+                 * treated as local modifications.
+                 */
+                order.uiState
+                    .laundry_original_snapshot =
+                    this
+                        .createLaundryOrderSnapshot(
+                            order
+                        );
+
+                order.uiState
+                    .laundry_has_changes =
+                    false;
+
+                traceLaundryState(
+                    "OpenOrder:BeforeProductScreen",
+                    this.pos,
+                    {
+                        requestedOrderId:
+                            orderId,
+
+                        lineCount:
+                            (
+                                data.lines ||
+                                []
+                            ).length,
+
+                        activeMatchesOpened:
+                            this.getOrder()
+                                ?.uuid ===
+                            order.uuid,
+
+                        originalSnapshot:
+                            order.uiState
+                                .laundry_original_snapshot,
+                    }
+                );
 
                 this.pos.navigate(
                     "ProductScreen",
@@ -1295,82 +2064,131 @@ export const laundryService = {
                 );
             },
 
+            // -------------------------------------------------------------
+            // Read-only payment statuses
+            // -------------------------------------------------------------
+
             isReadOnlyPaymentStatus(
                 paymentStatusId
             ) {
                 const config =
                     this.pos.config;
 
-                const readOnlyStatusIds = [
-                    config
-                        ?.paid_payment_id,
+                const readOnlyStatusIds =
+                    [
+                        config
+                            ?.paid_payment_id,
 
-                    config
-                        ?.refund_payment_id,
+                        config
+                            ?.refund_payment_id,
 
-                    config
-                        ?.cancelled_payment_id,
-                ]
-                    .map((value) => {
-                        if (
-                            typeof value ===
-                            "number"
-                        ) {
-                            return value;
-                        }
+                        config
+                            ?.cancelled_payment_id,
+                    ]
+                        .map((value) => {
+                            if (
+                                typeof value ===
+                                "number"
+                            ) {
+                                return value;
+                            }
 
-                        if (
-                            Array.isArray(value)
-                        ) {
-                            return value[0];
-                        }
+                            if (
+                                Array.isArray(
+                                    value
+                                )
+                            ) {
+                                return value[0];
+                            }
 
-                        return value?.id;
-                    })
-                    .filter(Boolean);
+                            return value?.id;
+                        })
+                        .filter(Boolean);
 
-                const normalizedPaymentStatusId =
+                const normalizedId =
                     Array.isArray(
                         paymentStatusId
                     )
                         ? paymentStatusId[0]
                         : (
-                            paymentStatusId?.id ||
+                            paymentStatusId
+                                ?.id ||
                             paymentStatusId
                         );
 
-                return readOnlyStatusIds.includes(
-                    normalizedPaymentStatusId
-                );
+                return readOnlyStatusIds
+                    .includes(
+                        normalizedId
+                    );
             },
-            getActionPolicy(order = this.getOrder()) {
+
+            // -------------------------------------------------------------
+            // Central ActionPad policy
+            // -------------------------------------------------------------
+
+            getActionPolicy(
+                order = this.getOrder()
+            ) {
                 if (!order) {
-                    return {};
+                    return {
+                        canSave: false,
+                        canDiscard: false,
+                        canUpdate: false,
+                        canDiscardChanges:
+                            false,
+                        canCancel: false,
+                        canPayment: false,
+                        canRefund: false,
+                        canPrint: false,
+                    };
                 }
 
-                const ui = order.uiState || {};
-                const status = ui.laundry_status || {};
+                const ui =
+                    order.uiState || {};
 
-                const isSaved = Boolean(ui.laundry_order_id);
+                const status =
+                    ui.laundry_status ||
+                    {};
+
+                const isSaved =
+                    Boolean(
+                        ui.laundry_order_id
+                    );
 
                 const hasChanges =
-                    this.hasLaundryOrderChanges?.(order) || false;
+                    isSaved
+                        ? this
+                            .hasLaundryOrderChanges(
+                                order
+                            )
+                        : false;
 
                 const balance =
-                    Number(ui.laundry_balance || 0);
+                    Number(
+                        ui.laundry_balance ||
+                        0
+                    );
 
                 const refundableAmount =
-                    Number(ui.laundry_refundable_amount || 0);
+                    Number(
+                        ui
+                            .laundry_refundable_amount ||
+                        0
+                    );
 
                 return {
-                    canSave: !isSaved,
+                    canSave:
+                        !isSaved,
 
-                    canDiscard: !isSaved,
+                    canDiscard:
+                        !isSaved,
 
                     canUpdate:
                         isSaved &&
                         hasChanges &&
-                        Boolean(status.can_edit),
+                        Boolean(
+                            status.can_edit
+                        ),
 
                     canDiscardChanges:
                         isSaved &&
@@ -1379,21 +2197,30 @@ export const laundryService = {
                     canCancel:
                         isSaved &&
                         !hasChanges &&
-                        Boolean(status.can_cancel),
+                        Boolean(
+                            status.can_cancel
+                        ),
 
                     canPayment:
                         isSaved &&
-                        Boolean(status.can_receive_payment) &&
+                        Boolean(
+                            status
+                                .can_receive_payment
+                        ) &&
                         balance > 0,
 
                     canRefund:
                         isSaved &&
-                        Boolean(status.can_refund) &&
+                        Boolean(
+                            status.can_refund
+                        ) &&
                         refundableAmount > 0,
 
                     canPrint:
                         isSaved &&
-                        Boolean(status.can_print),
+                        Boolean(
+                            status.can_print
+                        ),
                 };
             },
         };
@@ -1407,4 +2234,3 @@ registry
         "laundry",
         laundryService
     );
-

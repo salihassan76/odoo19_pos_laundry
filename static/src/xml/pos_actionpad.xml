@@ -5,81 +5,150 @@
        t-inherit="point_of_sale.ActionpadWidget"
        t-inherit-mode="extension">
 
-        <!-- Add buttons before Pay -->
-        <xpath expr="//div[contains(@class, 'validation')]" position="before">
-            <t t-if="pos.config.enable_laundry_workflow">
-                <div class="gap-2 d-flex">
+        <!-- Laundry actions displayed before the payment area -->
+        <xpath expr="//div[contains(@class, 'validation')]"
+               position="before">
 
-                    <!-- Save Button: visible only before backend laundry.order is saved -->
-                    <button t-if="!pos.getOrder()?.uiState?.is_saved"
+            <t t-if="pos.config.enable_laundry_workflow">
+
+                <div class="d-flex flex-wrap gap-2 mb-2">
+
+                    <!-- Save new unsaved order -->
+                    <button t-if="laundryActions.canSave"
                             class="pay pay-order-button button btn btn-success btn-lg py-3 d-flex align-items-center justify-content-center"
                             style="flex: 2;"
                             t-on-click="clickSaveOrder">
 
-                        <!-- Mobile -->
                         <i class="fa fa-check d-md-none fs-3"/>
 
-                        <!-- Desktop -->
                         <span class="d-none d-md-inline">
                             Save
                         </span>
                     </button>
 
-                    <!-- Cancel Button: visible only before backend laundry.order is saved -->
-                    <button t-if="!pos.getOrder()?.uiState?.is_saved"
+                    <!-- Discard new unsaved order -->
+                    <button t-if="laundryActions.canDiscard"
+                            class="btn btn-secondary btn-lg py-3 d-flex align-items-center justify-content-center"
+                            style="flex: 1;"
+                            t-on-click="clickDiscardLaundryOrder">
+
+                        <i class="fa fa-trash d-md-none fs-3"/>
+
+                        <i class="fa fa-trash me-1 d-none d-md-inline"/>
+
+                        <span class="d-none d-md-inline">
+                            Discard
+                        </span>
+                    </button>
+
+                    <!-- Update modified saved order -->
+                    <button t-if="laundryActions.canUpdate"
+                            class="btn btn-success btn-lg py-3 d-flex align-items-center justify-content-center"
+                            style="flex: 2;"
+                            t-on-click="clickUpdateLaundryOrder">
+
+                        <i class="fa fa-save d-md-none fs-3"/>
+
+                        <i class="fa fa-save me-1 d-none d-md-inline"/>
+
+                        <span class="d-none d-md-inline">
+                            Update
+                        </span>
+                    </button>
+
+                    <!-- Discard changes to saved order -->
+                    <button t-if="laundryActions.canDiscardChanges"
+                            class="btn btn-secondary btn-lg py-3 d-flex align-items-center justify-content-center"
+                            style="flex: 1;"
+                            t-on-click="clickDiscardLaundryChanges">
+
+                        <i class="fa fa-undo d-md-none fs-3"/>
+
+                        <i class="fa fa-undo me-1 d-none d-md-inline"/>
+
+                        <span class="d-none d-md-inline">
+                            Discard Changes
+                        </span>
+                    </button>
+
+                    <!-- Cancel saved unpaid order -->
+                    <button t-if="laundryActions.canCancel"
                             class="btn btn-danger btn-lg py-3 d-flex align-items-center justify-content-center"
                             style="flex: 1;"
                             t-on-click="cancelLaundryOrder">
 
-                        <!-- Mobile -->
-                        <i class="fa fa-trash d-md-none fs-3"/>
+                        <i class="fa fa-ban d-md-none fs-3"/>
 
-                        <!-- Desktop -->
-                        <i class="fa fa-trash me-1"/>
+                        <i class="fa fa-ban me-1 d-none d-md-inline"/>
+
                         <span class="d-none d-md-inline">
-                            Cancel
+                            Cancel Order
                         </span>
                     </button>
 
-                    <!-- Print Button: visible after backend laundry.order is saved -->
-                    <button t-if="pos.getOrder()?.uiState?.is_saved"
+                    <!-- Full refund -->
+                    <button t-if="laundryActions.canRefund"
+                            class="btn btn-danger btn-lg py-3 d-flex align-items-center justify-content-center"
+                            style="flex: 1;"
+                            t-on-click="clickRefundLaundryOrder">
+
+                        <i class="fa fa-reply d-md-none fs-3"/>
+
+                        <i class="fa fa-reply me-1 d-none d-md-inline"/>
+
+                        <span class="d-none d-md-inline">
+                            Refund
+                        </span>
+                    </button>
+
+                    <!-- Print saved order -->
+                    <button t-if="laundryActions.canPrint"
                             class="btn btn-warning btn-lg py-3 d-flex align-items-center justify-content-center"
                             style="flex: 1;"
                             t-on-click="clickPrintLaundryOrder">
 
-                        <!-- Mobile -->
                         <i class="fa fa-print d-md-none fs-3"/>
 
-                        <!-- Desktop -->
-                        <i class="fa fa-print me-1"/>
+                        <i class="fa fa-print me-1 d-none d-md-inline"/>
+
                         <span class="d-none d-md-inline">
                             Print
                         </span>
                     </button>
 
                 </div>
-            </t> 
-        </xpath>
-        <xpath expr="//div[contains(@class, 'validation')]" position="replace">
-            <t t-if="pos.config.enable_laundry_workflow">
-                <!-- Payment Button: Replace payment button -->
-                <button 
-                        class="btn btn-warning btn-lg py-3 d-flex align-items-center justify-content-center"
-                        style="flex: 1;"
-                        t-on-click="clickPayLaundryOrder">
 
-                    <!-- Mobile -->
-                    <i class="fa fa-print d-md-none fs-3"/>
-
-                    <!-- Desktop -->
-                    <i class="fa fa-print me-1"/>
-                    <span class="d-none d-md-inline">
-                        Pay
-                    </span>
-                </button>
             </t>
+
         </xpath>
 
+        <!-- Replace the standard POS payment area for laundry workflow -->
+        <xpath expr="//div[contains(@class, 'validation')]"
+               position="replace">
+
+            <t t-if="pos.config.enable_laundry_workflow">
+
+                <div class="validation d-flex gap-2">
+
+                    <!-- Receive remaining payment -->
+                    <button t-if="laundryActions.canPayment"
+                            class="pay pay-order-button button btn btn-primary btn-lg py-3 d-flex align-items-center justify-content-center w-100"
+                            t-on-click="clickPayLaundryOrder">
+
+                        <i class="fa fa-credit-card d-md-none fs-3"/>
+
+                        <i class="fa fa-credit-card me-1 d-none d-md-inline"/>
+
+                        <span class="d-none d-md-inline">
+                            Payment
+                        </span>
+                    </button>
+
+                </div>
+
+            </t>
+
+        </xpath>
 
     </t>
 

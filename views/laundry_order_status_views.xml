@@ -122,7 +122,7 @@
                     domain="[('is_terminal', '=', True)]"
                 />
 
-                <group expand="0" string="Group By">
+                
                     <filter
                         name="group_active"
                         string="Active"
@@ -140,7 +140,7 @@
                         string="Show on Home"
                         context="{'group_by': 'show_on_home'}"
                     />
-                </group>
+                
             </search>
         </field>
     </record>

@@ -391,6 +391,17 @@ class LaundryOrder(models.Model):
                 pos_config,
                 context,
             )
+        # -------------------------------------------------------------
+        # CONFIRM ORDER AFTER SUCCESSFUL POS SAVE
+        # New -> Confirmed
+        # -------------------------------------------------------------
+        if pos_config.confirmed_order_status_id:
+            laundry_order.write({
+                "status_id": (
+                    pos_config.confirmed_order_status_id.id
+                ),
+            })
+
 
         financial_values = (
             laundry_order._get_pos_financial_values()
@@ -1331,25 +1342,25 @@ class LaundryOrder(models.Model):
                 config.refund_payment_id
             )
 
-            refunded_order_status = (
-                config.refunded_order_status_id
+        refunded_order_status = (
+            config.refunded_order_status_id
+        )
+
+        if not refund_payment_status:
+            raise UserError(
+                _(
+                    "Refund payment status "
+                    "is not configured."
+                )
             )
 
-            if not refund_payment_status:
-                raise UserError(
-                    _(
-                        "Refund payment status "
-                        "is not configured."
-                    )
+        if not refunded_order_status:
+            raise UserError(
+                _(
+                    "Refunded order status "
+                    "is not configured."
                 )
-
-            if not refunded_order_status:
-                raise UserError(
-                    _(
-                        "Refunded order status "
-                        "is not configured."
-                    )
-                )
+            )
 
         financial_values = (
             self._get_pos_financial_values()
@@ -1536,6 +1547,125 @@ class LaundryOrder(models.Model):
                     "balance"
                 ]
             ),
+
+            "refundable_amount": (
+                updated_financial_values[
+                    "refundable_amount"
+                ]
+            ),
+        }
+    
+    def action_cancel_from_pos(self):
+        self.ensure_one()
+
+        if not self.status_id:
+            raise UserError(
+                _("The laundry order does not have an order status.")
+            )
+
+        # Validate that the current dynamic status allows cancellation.
+        self.status_id.check_action_allowed("cancel")
+
+        config = self.pos_config_id
+
+        if not config:
+            raise UserError(
+                _("POS configuration is missing.")
+            )
+
+        cancelled_order_status = (
+            config.cancelled_order_status_id
+        )
+
+        cancelled_payment_status = (
+            config.cancelled_payment_id
+        )
+
+        if not cancelled_order_status:
+            raise UserError(
+                _("Cancelled order status is not configured.")
+            )
+
+        if not cancelled_payment_status:
+            raise UserError(
+                _("Cancelled payment status is not configured.")
+            )
+
+        financial_values = (
+            self._get_pos_financial_values()
+        )
+
+        paid_amount = financial_values[
+            "paid_amount"
+        ]
+
+        if paid_amount > 0:
+            raise UserError(
+                _(
+                    "A paid or partially paid order cannot be cancelled. "
+                    "Refund the order instead."
+                )
+            )
+
+        self.write({
+            "status_id": (
+                cancelled_order_status.id
+            ),
+            "payment_status_id": (
+                cancelled_payment_status.id
+            ),
+        })
+
+        updated_financial_values = (
+            self._get_pos_financial_values()
+        )
+
+        return {
+            "success": True,
+
+            "status_id": (
+                self.status_id.id
+                if self.status_id
+                else False
+            ),
+
+            "status_name": (
+                self.status_id.display_name
+                if self.status_id
+                else ""
+            ),
+
+            "status": (
+                self.status_id.get_pos_capabilities()
+                if self.status_id
+                else {}
+            ),
+
+            "payment_status_id": (
+                self.payment_status_id.id
+                if self.payment_status_id
+                else False
+            ),
+
+            "payment_status_name": (
+                self.payment_status_id.display_name
+                if self.payment_status_id
+                else ""
+            ),
+
+            "total_amount": (
+                updated_financial_values[
+                    "total_amount"
+                ]
+            ),
+
+            "paid_amount": (
+                updated_financial_values[
+                    "paid_amount"
+                ]
+            ),
+
+            "balance": 0.0,
 
             "refundable_amount": (
                 updated_financial_values[

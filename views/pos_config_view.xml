@@ -34,6 +34,8 @@
                                 <field name="order_status_id"/>
                                 <field name="complete_order_status_id"/>
                                 <field name="refunded_order_status_id"/>
+                                <field name="cancelled_order_status_id"/>
+                                <field name="confirmed_order_status_id"/>   
                             </group>
                         </page>
 

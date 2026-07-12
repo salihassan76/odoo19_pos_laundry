@@ -81,6 +81,20 @@ class PosConfig(models.Model):
         ),
     )
 
+    cancelled_order_status_id = fields.Many2one(
+        "laundry.order.status",
+        string="Cancelled Order Status",
+        help=(
+            "Order status assigned when an unpaid "
+            "laundry order is cancelled."
+        ),
+    )
+
+    confirmed_order_status_id = fields.Many2one(
+        "laundry.order.status",
+        string="Confirmed Order Status",
+    )
+
     # -------------------------------------------------------------------------
     # Printing
     # -------------------------------------------------------------------------
@@ -94,6 +108,7 @@ class PosConfig(models.Model):
         string="Show Receipt Preview",
         default=True,
     )
+
 
     # -------------------------------------------------------------------------
     # POS data loading
@@ -120,6 +135,8 @@ class PosConfig(models.Model):
             "refunded_order_status_id",
             "direct_print",
             "show_receipt_preview",
+            "cancelled_order_status_id",
+            "confirmed_order_status_id",
         ]
 
         for record in data:
@@ -197,6 +214,16 @@ class PosConfig(models.Model):
         add(
             _("Refunded Payment Status"),
             self.refund_payment_id,
+        )
+
+        add(
+            _("Cancelled Order Status"),
+            self.cancelled_order_status_id,
+        )
+
+        add(
+            _("Confirmed Order Status"),
+            self.confirmed_order_status_id,
         )
 
         # Required master data
