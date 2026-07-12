@@ -367,95 +367,115 @@ export const laundryService = {
                 values = {}
             ) {},
 
-            _setLaundryOrderState(
-                order,
-                values = {}
-            ) {
+            _setLaundryOrderState(order, values = {}) {
                 if (!order) {
                     return;
                 }
 
-                order.uiState =
-                    order.uiState || {};
+                order.uiState = order.uiState || {};
 
-                const isSaved =
-                    Boolean(
-                        values.laundry_order_id
-                    );
+                const isSaved = Boolean(
+                    values.laundry_order_id
+                );
 
                 order.uiState.laundry_order_id =
-                    values.laundry_order_id ||
-                    false;
+                    values.laundry_order_id || false;
 
                 order.uiState.laundry_order_name =
-                    values.laundry_order_name ||
-                    "";
+                    values.laundry_order_name || "";
 
-                order.uiState.is_saved =
+                order.uiState.is_saved = isSaved;
+                order.uiState.is_existing_laundry_order =
                     isSaved;
 
-                order.uiState
-                    .is_existing_laundry_order =
-                    isSaved;
-
+                // Keep older fields temporarily for compatibility.
                 order.uiState.status_id =
                     values.status_id ||
+                    values.laundry_status_id ||
                     false;
 
                 order.uiState.status_name =
                     values.status_name ||
-                    (
-                        isSaved
-                            ? ""
-                            : _t("Unsaved")
-                    );
+                    values.laundry_status_name ||
+                    (isSaved ? "" : _t("Unsaved"));
 
-                order.uiState
-                    .laundry_order_type_id =
-                    values
-                        .laundry_order_type_id ||
+                // New structured order-status state.
+                order.uiState.laundry_status_id =
+                    values.laundry_status_id ||
+                    values.status_id ||
                     false;
 
-                order.uiState
-                    .laundry_order_type_name =
-                    values
-                        .laundry_order_type_name ||
+                order.uiState.laundry_status_name =
+                    values.laundry_status_name ||
+                    values.status_name ||
                     "";
 
-                order.uiState
-                    .laundry_order_type_prefix =
-                    values
-                        .laundry_order_type_prefix ||
+                order.uiState.laundry_status =
+                    values.laundry_status || {};
+
+                // Payment-status state.
+                order.uiState.laundry_payment_status_id =
+                    values.laundry_payment_status_id ||
+                    false;
+
+                order.uiState.laundry_payment_status_name =
+                    values.laundry_payment_status_name ||
                     "";
 
-                order.uiState
-                    .laundry_allowed_pos_category_ids =
-                    this._normalizeCategoryIds(
-                        values
-                            .allowed_category_ids ||
-                        values
-                            .laundry_allowed_pos_category_ids ||
-                        []
+                // Order type.
+                order.uiState.laundry_order_type_id =
+                    values.laundry_order_type_id ||
+                    false;
+
+                order.uiState.laundry_order_type_name =
+                    values.laundry_order_type_name ||
+                    "";
+
+                order.uiState.laundry_order_type_prefix =
+                    values.laundry_order_type_prefix ||
+                    "";
+
+                order.uiState.laundry_allowed_pos_category_ids =
+                    values.allowed_category_ids ||
+                    values.laundry_allowed_pos_category_ids ||
+                    [];
+
+                // Financial state.
+                order.uiState.laundry_total_amount =
+                    Number(
+                        values.laundry_total_amount || 0
+                    );
+
+                order.uiState.laundry_paid_amount =
+                    Number(
+                        values.laundry_paid_amount || 0
+                    );
+
+                order.uiState.laundry_balance =
+                    Number(
+                        values.laundry_balance || 0
+                    );
+
+                order.uiState.laundry_refundable_amount =
+                    Number(
+                        values.laundry_refundable_amount || 0
+                    );
+
+                // Editing state.
+                order.uiState.laundry_has_changes =
+                    Boolean(
+                        values.laundry_has_changes
+                    );
+
+                order.uiState.return_to_laundry_home =
+                    Boolean(
+                        values.return_to_laundry_home
                     );
 
                 this._afterSetLaundryOrderState(
                     order,
                     values
                 );
-
-                setLaundryVisibility(order, {
-                    orderTypeId: order.uiState.laundry_order_type_id,
-                    allowedCategoryIds: order.uiState.laundry_allowed_pos_category_ids,
-                    isPackageUsage: order.uiState.is_package_usage,
-                    allowedPackageProductIds: order.uiState.allowed_package_products,
-                });
-
-                laundryLog("State", "laundry order state applied", {
-                    orderUuid: order.uuid,
-                    laundryOrderId: order.uiState.laundry_order_id,
-                    values,
-                    visibility: order.uiState.laundry_visibility,
-                });
             },
 
             _prepareOrderTypeState(orderType) {
@@ -820,44 +840,117 @@ export const laundryService = {
                 );
             },
 
-            _prepareSavedStateValues(
-                result,
-                order
-            ) {
+            _prepareOpenOrderStateValues(data) {
                 return {
                     laundry_order_id:
-                        result
-                            .laundry_order_id,
+                        data.id || false,
 
                     laundry_order_name:
-                        result
-                            .laundry_order_name ||
-                        order.uiState
-                            .laundry_order_name,
-
-                    status_id:
-                        result.status_id ||
-                        false,
-
-                    status_name:
-                        result.status_name ||
-                        "",
+                        data.name || "",
 
                     laundry_order_type_id:
-                        order.uiState
-                            .laundry_order_type_id,
+                        data.order_type_id || false,
 
                     laundry_order_type_name:
-                        order.uiState
-                            .laundry_order_type_name,
+                        data.order_type_name || "",
 
                     laundry_order_type_prefix:
-                        order.uiState
-                            .laundry_order_type_prefix,
+                        data.order_type_prefix || "",
+
+                    allowed_category_ids:
+                        data.allowed_category_ids || [],
+
+                    laundry_status_id:
+                        data.status_id || false,
+
+                    laundry_status_name:
+                        data.status_name || "",
+
+                    laundry_status:
+                        data.status || {},
+
+                    laundry_payment_status_id:
+                        data.payment_status_id || false,
+
+                    laundry_payment_status_name:
+                        data.payment_status_name || "",
+
+                    laundry_total_amount:
+                        Number(data.total_amount || 0),
+
+                    laundry_paid_amount:
+                        Number(data.paid_amount || 0),
+
+                    laundry_balance:
+                        Number(data.balance || 0),
+
+                    laundry_refundable_amount:
+                        Number(data.refundable_amount || 0),
+
+                    laundry_has_changes: false,
+
+                    return_to_laundry_home: true,
+                    is_existing_laundry_order: true,
+                };
+            },
+
+            _prepareSavedStateValues(result, order) {
+                return {
+                    laundry_order_id:
+                        result.laundry_order_id,
+
+                    laundry_order_name:
+                        result.laundry_order_name ||
+                        order.uiState.laundry_order_name,
+
+                    laundry_status_id:
+                        result.status_id || false,
+
+                    laundry_status_name:
+                        result.status_name || "",
+
+                    laundry_status:
+                        result.status || {},
+
+                    laundry_payment_status_id:
+                        result.payment_status_id || false,
+
+                    laundry_payment_status_name:
+                        result.payment_status_name || "",
+
+                    laundry_order_type_id:
+                        order.uiState.laundry_order_type_id,
+
+                    laundry_order_type_name:
+                        order.uiState.laundry_order_type_name,
+
+                    laundry_order_type_prefix:
+                        order.uiState.laundry_order_type_prefix,
 
                     allowed_category_ids:
                         order.uiState
                             .laundry_allowed_pos_category_ids,
+
+                    laundry_total_amount:
+                        Number(
+                            result.total_amount ||
+                            order.getTotalWithTax?.() ||
+                            0
+                        ),
+
+                    laundry_paid_amount:
+                        Number(result.paid_amount || 0),
+
+                    laundry_balance:
+                        Number(result.balance || 0),
+
+                    laundry_refundable_amount:
+                        Number(
+                            result.refundable_amount || 0
+                        ),
+
+                    laundry_has_changes: false,
+                    return_to_laundry_home: true,
                 };
             },
 

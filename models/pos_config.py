@@ -1,4 +1,5 @@
-from odoo import api, models, fields, _
+
+from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
 
@@ -20,6 +21,10 @@ class PosConfig(models.Model):
         string="Project",
     )
 
+    # -------------------------------------------------------------------------
+    # Laundry payment statuses
+    # -------------------------------------------------------------------------
+
     unpaid_payment_id = fields.Many2one(
         "laundry.order.payment.status",
         string="Unpaid Status",
@@ -35,25 +40,50 @@ class PosConfig(models.Model):
         string="Paid Status",
     )
 
-
     cancelled_payment_id = fields.Many2one(
         "laundry.order.payment.status",
-        string="Cancelled Status",
+        string="Cancelled Payment Status",
     )
 
     refund_payment_id = fields.Many2one(
         "laundry.order.payment.status",
-        string="Refund Status",
+        string="Refunded Payment Status",
     )
+
+    # -------------------------------------------------------------------------
+    # Laundry order statuses
+    # -------------------------------------------------------------------------
 
     order_status_id = fields.Many2one(
         "laundry.order.status",
         string="Default Order Status",
+        help=(
+            "Initial order status assigned when a new laundry "
+            "order is saved."
+        ),
     )
+
     complete_order_status_id = fields.Many2one(
         "laundry.order.status",
         string="Complete Order Status",
+        help=(
+            "Order status assigned when the laundry workflow "
+            "is completed."
+        ),
     )
+
+    refunded_order_status_id = fields.Many2one(
+        "laundry.order.status",
+        string="Refunded Order Status",
+        help=(
+            "Order status assigned after a laundry order "
+            "has been fully refunded."
+        ),
+    )
+
+    # -------------------------------------------------------------------------
+    # Printing
+    # -------------------------------------------------------------------------
 
     direct_print = fields.Boolean(
         string="Print After Save/Validate",
@@ -65,9 +95,16 @@ class PosConfig(models.Model):
         default=True,
     )
 
+    # -------------------------------------------------------------------------
+    # POS data loading
+    # -------------------------------------------------------------------------
+
     @api.model
     def _load_pos_data_read(self, records, config):
-        data = super()._load_pos_data_read(records, config)
+        data = super()._load_pos_data_read(
+            records,
+            config,
+        )
 
         fields_to_load = [
             "enable_laundry_workflow",
@@ -79,23 +116,35 @@ class PosConfig(models.Model):
             "cancelled_payment_id",
             "refund_payment_id",
             "order_status_id",
+            "complete_order_status_id",
+            "refunded_order_status_id",
             "direct_print",
             "show_receipt_preview",
-            "complete_order_status_id",
         ]
 
         for record in data:
-            pos_config = self.browse(record["id"])
-            for field_name in fields_to_load:
-                if field_name not in record:
-                    value = pos_config[field_name]
+            pos_config = self.browse(
+                record["id"]
+            )
 
-                    if hasattr(value, "id"):
-                        record[field_name] = value.id or False
-                    else:
-                        record[field_name] = value
+            for field_name in fields_to_load:
+                if field_name in record:
+                    continue
+
+                value = pos_config[field_name]
+
+                if hasattr(value, "id"):
+                    record[field_name] = (
+                        value.id or False
+                    )
+                else:
+                    record[field_name] = value
 
         return data
+
+    # -------------------------------------------------------------------------
+    # Configuration validation
+    # -------------------------------------------------------------------------
 
     def get_laundry_configuration_status(self):
         self.ensure_one()
@@ -108,26 +157,88 @@ class PosConfig(models.Model):
                 "ok": bool(ok),
             })
 
-        
-        add(_("Default Order Status"), self.order_status_id)
-        add(_("Complete Order Status"), self.complete_order_status_id)
-        add(_("Unpaid Payment Status"), self.unpaid_payment_id)
-        add(_("Paid Payment Status"), self.paid_payment_id)
-        
+        # Order statuses
+        add(
+            _("Default Order Status"),
+            self.order_status_id,
+        )
 
-        add(_("Laundry Order Types"), self.env["laundry.order.type"].search_count([
-            ("active", "=", True),
-            ("is_hidden", "=", False),
-        ]))
+        add(
+            _("Complete Order Status"),
+            self.complete_order_status_id,
+        )
 
-        add(_("Laundry Order Statuses"), self.env["laundry.order.status"].search_count([]))
-        add(_("Laundry Payment Statuses"), self.env["laundry.order.payment.status"].search_count([]))
+        add(
+            _("Refunded Order Status"),
+            self.refunded_order_status_id,
+        )
+
+        # Payment statuses
+        add(
+            _("Unpaid Payment Status"),
+            self.unpaid_payment_id,
+        )
+
+        add(
+            _("Partial Paid Payment Status"),
+            self.partial_payment_id,
+        )
+
+        add(
+            _("Paid Payment Status"),
+            self.paid_payment_id,
+        )
+
+        add(
+            _("Cancelled Payment Status"),
+            self.cancelled_payment_id,
+        )
+
+        add(
+            _("Refunded Payment Status"),
+            self.refund_payment_id,
+        )
+
+        # Required master data
+        add(
+            _("Laundry Order Types"),
+            self.env[
+                "laundry.order.type"
+            ].search_count([
+                ("active", "=", True),
+                ("is_hidden", "=", False),
+            ]),
+        )
+
+        add(
+            _("Laundry Order Statuses"),
+            self.env[
+                "laundry.order.status"
+            ].search_count([
+                ("active", "=", True),
+            ]),
+        )
+
+        add(
+            _("Laundry Payment Statuses"),
+            self.env[
+                "laundry.order.payment.status"
+            ].search_count([
+                ("active", "=", True),
+            ]),
+        )
 
         if self.is_project:
-            add(_("Project"), self.project_id)
+            add(
+                _("Project"),
+                self.project_id,
+            )
 
         return {
-            "valid": all(item["ok"] for item in items),
+            "valid": all(
+                item["ok"]
+                for item in items
+            ),
             "items": items,
         }
 
@@ -136,7 +247,9 @@ class PosConfig(models.Model):
             if not config.enable_laundry_workflow:
                 continue
 
-            status = config.get_laundry_configuration_status()
+            status = (
+                config.get_laundry_configuration_status()
+            )
 
             if status["valid"]:
                 continue
@@ -147,14 +260,24 @@ class PosConfig(models.Model):
                 if not item["ok"]
             ]
 
-            raise UserError(_(
-                "Laundry POS configuration is incomplete for '%s'.\n\n"
-                "Please configure:\n- %s"
-            ) % (config.name, "\n- ".join(missing)))
+            raise UserError(
+                _(
+                    "Laundry POS configuration is incomplete "
+                    "for '%(config)s'.\n\n"
+                    "Please configure:\n- %(missing)s"
+                )
+                % {
+                    "config": config.display_name,
+                    "missing": "\n- ".join(missing),
+                }
+            )
 
         return True
 
     def _check_before_creating_new_session(self):
-        res = super()._check_before_creating_new_session()
+        result = super()._check_before_creating_new_session()
+
         self.check_laundry_configuration()
-        return res
+
+        return result
+
