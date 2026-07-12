@@ -456,35 +456,77 @@ class LaundryOrder(models.Model):
     @api.model
     def get_laundry_order_for_pos(self, order_id):
         if not order_id:
-            raise ValidationError(_("Laundry order is required."))
+            raise ValidationError(
+                _("Laundry order is required.")
+            )
 
-        order = self.browse(order_id)
-        if not order.exists():
-            raise ValidationError(_("Laundry order was not found."))
+        order = self.browse(order_id).exists()
+
+        if not order:
+            raise ValidationError(
+                _("Laundry order was not found.")
+            )
+
+        status_capabilities = (
+            order.status_id.get_pos_capabilities()
+            if order.status_id
+            else {}
+        )
 
         data = {
             "id": order.id,
             "name": order.name,
+
             "partner_id": order.customer_id.id,
-            "partner_name": order.customer_id.name,
+            "partner_name": order.customer_id.display_name,
+
             "order_type_id": order.order_type_id.id,
-            "order_type_name": order.order_type_id.name,
-            "order_type_prefix": order.order_type_id.prefix or "",
-            "allowed_category_ids": order.order_type_id.pos_category_ids.ids,
+            "order_type_name": order.order_type_id.display_name,
+            "order_type_prefix": (
+                order.order_type_id.prefix or ""
+            ),
+
+            "allowed_category_ids": (
+                order.order_type_id.pos_category_ids.ids
+            ),
+
+            # Existing fields kept for compatibility
             "status_id": order.status_id.id,
-            "status_name": order.status_id.name,
-            "payment_status_id": order.payment_status_id.id,
-            "payment_status_name": order.payment_status_id.name,
+            "status_name": order.status_id.display_name,
+
+            # New structured status payload
+            "status": status_capabilities,
+
+            "payment_status_id": (
+                order.payment_status_id.id
+            ),
+            "payment_status_name": (
+                order.payment_status_id.display_name
+            ),
+
             "total_amount": order.total_amount,
-            "order_datetime": fields.Datetime.to_string(order.order_datetime),
-            "lines": [{
-                "id": line.id,
-                "product_id": line.product_id.id,
-                "product_name": line.product_id.display_name,
-                "qty": line.quantity,
-                "price_unit": line.price_unit,
-                "subtotal": line.price_subtotal,
-            } for line in order.order_line_ids],
+
+            "order_datetime": (
+                fields.Datetime.to_string(
+                    order.order_datetime
+                )
+                if order.order_datetime
+                else False
+            ),
+
+            "lines": [
+                {
+                    "id": line.id,
+                    "product_id": line.product_id.id,
+                    "product_name": (
+                        line.product_id.display_name
+                    ),
+                    "qty": line.quantity,
+                    "price_unit": line.price_unit,
+                    "subtotal": line.price_subtotal,
+                }
+                for line in order.order_line_ids
+            ],
         }
         _logger.info(
             "POS open order payload (core): order_id=%s type_id=%s allowed_categories=%s lines=%s",

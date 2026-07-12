@@ -1092,74 +1092,11 @@ export const laundryService = {
                     return;
                 }
 
-                laundryLog("OpenOrder", "backend payload received", {
-                    requestedOrderId: orderId,
-                    data,
-                });
+                const partner = this._getModelRecord("res.partner", data.partner_id);
+                const order = await this.createFreshOrder(partner || null);
 
-                if (
-                    this
-                        .isReadOnlyPaymentStatus(
-                            data.payment_status_id
-                        )
-                ) {
-                    this.pos
-                        .selected_laundry_order_id =
-                        orderId;
-
-                    this.pos.navigate(
-                        "pos_laundrypaidorderscreen",
-                        {
-                            laundryOrderId:
-                                orderId,
-                        }
-                    );
-
-                    return;
-                }
-
-                const partner =
-                    this._getModelRecord(
-                        "res.partner",
-                        data.partner_id
-                    );
-
-                const order =
-                    await this.createFreshOrder(
-                        partner || null
-                    );
-
-                const stateValues =
-                    this
-                        ._prepareOpenOrderStateValues(
-                            data
-                        );
-
-                this._setLaundryOrderState(
-                    order,
-                    stateValues
-                );
-
-                traceLaundryState("OpenOrder:AfterRestore", this.pos, {
-                    requestedOrderId: orderId,
-                    backendAllowedCategoryIds: data.allowed_category_ids || [],
-                });
-
-                /*
-                 * Explicitly restore normalized category IDs.
-                 * This also guarantees the category selector and
-                 * product filter read the same state.
-                 */
-                const allowedCategoryIds =
-                    this._normalizeCategoryIds(
-                        data
-                            .allowed_category_ids ||
-                        []
-                    );
-
-                order.uiState
-                    .laundry_allowed_pos_category_ids =
-                    allowedCategoryIds;
+                this._setLaundryOrderState(order, this._prepareOpenOrderStateValues(data));
+                console.log("OPEN EXISTING LAUNDRY ORDER", order.uiState);
 
                 this.pos
                     .selected_laundry_order_type =
@@ -1312,6 +1249,59 @@ export const laundryService = {
                 return readOnlyStatusIds.includes(
                     normalizedPaymentStatusId
                 );
+            },
+            getActionPolicy(order = this.getOrder()) {
+                if (!order) {
+                    return {};
+                }
+
+                const ui = order.uiState || {};
+                const status = ui.laundry_status || {};
+
+                const isSaved = Boolean(ui.laundry_order_id);
+
+                const hasChanges =
+                    this.hasLaundryOrderChanges?.(order) || false;
+
+                const balance =
+                    Number(ui.laundry_balance || 0);
+
+                const refundableAmount =
+                    Number(ui.laundry_refundable_amount || 0);
+
+                return {
+                    canSave: !isSaved,
+
+                    canDiscard: !isSaved,
+
+                    canUpdate:
+                        isSaved &&
+                        hasChanges &&
+                        Boolean(status.can_edit),
+
+                    canDiscardChanges:
+                        isSaved &&
+                        hasChanges,
+
+                    canCancel:
+                        isSaved &&
+                        !hasChanges &&
+                        Boolean(status.can_cancel),
+
+                    canPayment:
+                        isSaved &&
+                        Boolean(status.can_receive_payment) &&
+                        balance > 0,
+
+                    canRefund:
+                        isSaved &&
+                        Boolean(status.can_refund) &&
+                        refundableAmount > 0,
+
+                    canPrint:
+                        isSaved &&
+                        Boolean(status.can_print),
+                };
             },
         };
     },

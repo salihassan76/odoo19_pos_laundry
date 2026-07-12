@@ -7,11 +7,20 @@
         <field name="model">laundry.order.status</field>
         <field name="arch" type="xml">
             <list string="Order Status">
+                <field name="sequence" widget="handle"/>
                 <field name="name"/>
-                <field name="active"/>
-                <field name="show_on_home"/>
-                <field name="show_on_home_period"/>
-                <field name="sequence"/>
+                <field name="color" optional="show"/>
+                <field name="show_on_home" optional="show"/>
+                <field name="show_on_home_period" optional="show"/>
+
+                <field name="can_edit" optional="show"/>
+                <field name="can_cancel" optional="show"/>
+                <field name="can_receive_payment" optional="show"/>
+                <field name="can_refund" optional="show"/>
+                <field name="can_print" optional="show"/>
+                <field name="is_terminal" optional="show"/>
+
+                <field name="active" optional="show"/>
             </list>
         </field>
     </record>
@@ -23,16 +32,43 @@
         <field name="arch" type="xml">
             <form string="Order Status">
                 <sheet>
+
                     <group>
-                        <group>
+                        <group string="Status">
                             <field name="name"/>
-                            <field name="active"/>
-                            <field name="show_on_home"/>
-                            <field name="show_on_home_period"/>
                             <field name="sequence"/>
-                            <field name="color" widget="selection" options="{'no_create': True}"/>
+                            <field name="active"/>
+                            <field
+                                name="color"
+                                widget="selection"
+                                options="{'no_create': True}"
+                            />
                         </group>
 
+                        <group string="POS Home Display">
+                            <field name="show_on_home"/>
+                            <field
+                                name="show_on_home_period"
+                                invisible="not show_on_home"
+                                required="show_on_home"
+                            />
+                        </group>
+                    </group>
+
+                    <separator string="Allowed Actions"/>
+
+                    <group>
+                        <group>
+                            <field name="can_edit"/>
+                            <field name="can_cancel"/>
+                            <field name="can_receive_payment"/>
+                        </group>
+
+                        <group>
+                            <field name="can_refund"/>
+                            <field name="can_print"/>
+                            <field name="is_terminal"/>
+                        </group>
                     </group>
 
                 </sheet>
@@ -47,20 +83,65 @@
         <field name="arch" type="xml">
             <search>
                 <field name="name"/>
-                <filter name="active"
+
+                <filter
+                    name="active"
+                    string="Active"
+                    domain="[('active', '=', True)]"
+                />
+
+                <filter
+                    name="inactive"
+                    string="Inactive"
+                    domain="[('active', '=', False)]"
+                />
+
+                <separator/>
+
+                <filter
+                    name="show_on_home"
+                    string="Show on Home"
+                    domain="[('show_on_home', '=', True)]"
+                />
+
+                <filter
+                    name="editable"
+                    string="Editable"
+                    domain="[('can_edit', '=', True)]"
+                />
+
+                <filter
+                    name="payment_allowed"
+                    string="Payment Allowed"
+                    domain="[('can_receive_payment', '=', True)]"
+                />
+
+                <filter
+                    name="terminal"
+                    string="Terminal"
+                    domain="[('is_terminal', '=', True)]"
+                />
+
+                <group expand="0" string="Group By">
+                    <filter
+                        name="group_active"
                         string="Active"
-                        domain="[('active','=',True)]"/>
-                <filter name="inactive"
-                        string="Inactive"
-                        domain="[('active','=',False)]"/>
-                <filter name="show_on_home"
+                        context="{'group_by': 'active'}"
+                    />
+
+                    <filter
+                        name="group_terminal"
+                        string="Terminal"
+                        context="{'group_by': 'is_terminal'}"
+                    />
+
+                    <filter
+                        name="group_show_on_home"
                         string="Show on Home"
-                        domain="[('show_on_home','=',True)]"/>
+                        context="{'group_by': 'show_on_home'}"
+                    />
+                </group>
             </search>
         </field>
     </record>
-
-    
-    
-
 </odoo>

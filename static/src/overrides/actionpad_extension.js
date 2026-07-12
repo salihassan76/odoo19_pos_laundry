@@ -1,115 +1,295 @@
 /** @odoo-module **/
-import { ActionpadWidget } from "@point_of_sale/app/screens/product_screen/action_pad/action_pad";
+
+import { ActionpadWidget } from
+    "@point_of_sale/app/screens/product_screen/action_pad/action_pad";
 import { patch } from "@web/core/utils/patch";
-import { AlertDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
+import {
+    AlertDialog,
+    ConfirmationDialog,
+} from "@web/core/confirmation_dialog/confirmation_dialog";
 import { _t } from "@web/core/l10n/translation";
 import { useService } from "@web/core/utils/hooks";
 
 
-
 function getCurrentOrder(pos) {
-    return pos.getOrder?.() || pos.get_order?.() || null;
+    return (
+        pos.getOrder?.() ||
+        pos.get_order?.() ||
+        null
+    );
 }
 
-function addNewOrder(pos) {
-    return pos.addNewOrder?.() || pos.add_new_order?.() || null;
-}
-
-function removeOrder(pos, order) {
-    if (!order) return;
-    if (pos.removeOrder) {
-        pos.removeOrder(order);
-    } else if (pos.remove_order) {
-        pos.remove_order(order);
-    }
-}
-
-function getOrderLines(order) {
-    const lines = order?.lines || order?.orderlines || order?.get_orderlines?.() || [];
-    return Array.from(lines);
-}
-
-function getLineProduct(line) {
-    return line.product_id || line.product || line.get_product?.() || null;
-}
-
-function getLineQty(line) {
-    return line.qty ?? line.quantity ?? line.get_quantity?.() ?? 1;
-}
-
-function getLinePrice(line) {
-    return line.price_unit ?? line.price ?? line.get_unit_price?.() ?? 0;
-}
-
-function getOrderPartner(order) {
-    return order.partner_id || order.get_partner?.() || order.getPartner?.() || null;
-}
-
-function goToScreen(pos, screenName) {
-    if (pos.showScreen) {
-        pos.showScreen(screenName);
-    } else if (pos.navigate) {
-        pos.navigate(screenName);
-    }
-}
 
 patch(ActionpadWidget.prototype, {
     setup() {
         super.setup(...arguments);
+
         this.dialog = useService("dialog");
-        this.orm = useService("orm");
-        this.printer = useService("printer");
         this.laundry = useService("laundry");
     },
+
+    get laundryActions() {
+        const order = getCurrentOrder(this.pos);
+
+        if (!this.laundry?.isEnabled?.()) {
+            return {
+                canSave: false,
+                canDiscard: false,
+                canUpdate: false,
+                canDiscardChanges: false,
+                canCancel: false,
+                canPayment: false,
+                canRefund: false,
+                canPrint: false,
+            };
+        }
+
+        return this.laundry.getActionPolicy(order);
+    },
+
     async clickSaveOrder() {
-        if (!this.laundry.isEnabled()) {
+        if (!this.laundryActions.canSave) {
             return;
         }
 
         try {
             await this.laundry.saveAndHandleResult();
         } catch (error) {
+            console.error(
+                "[Laundry:ActionPad] Save failed",
+                error
+            );
+
             this.dialog.add(AlertDialog, {
                 title: _t("Save Laundry Order"),
-                body: error.message || _t("Could not save laundry order."),
+                body:
+                    error?.message ||
+                    _t("Could not save the laundry order."),
             });
         }
     },
 
-    async cancelLaundryOrder() {
-        this.dialog.add(AlertDialog, {
-            title: _t("Cancel Order"),
-            body: _t("Are you sure you want to cancel this order?"),
-            confirmLabel: _t("Yes, Cancel"),
-            confirm: () => {
-                this.laundry.cancelOrder();
+    clickDiscardLaundryOrder() {
+        if (!this.laundryActions.canDiscard) {
+            return;
+        }
+
+        this.dialog.add(ConfirmationDialog, {
+            title: _t("Discard Order"),
+            body: _t(
+                "This order has not been saved. "
+                + "Do you want to discard it?"
+            ),
+            confirmLabel: _t("Discard"),
+            cancelLabel: _t("Stay"),
+            confirm: async () => {
+                try {
+                    await this.laundry.discardCurrentOrder();
+                } catch (error) {
+                    console.error(
+                        "[Laundry:ActionPad] Discard failed",
+                        error
+                    );
+
+                    this.dialog.add(AlertDialog, {
+                        title: _t("Discard Order"),
+                        body:
+                            error?.message ||
+                            _t("Could not discard the order."),
+                    });
+                }
             },
         });
     },
-    async clickPayLaundryOrder() {
+
+    async clickUpdateLaundryOrder() {
+        if (!this.laundryActions.canUpdate) {
+            return;
+        }
+
         try {
-            await this.laundry.payLaundryOrder();
+            await this.laundry.saveAndHandleResult();
+
+            const order = getCurrentOrder(this.pos);
+
+            if (order?.uiState) {
+                order.uiState.laundry_has_changes = false;
+            }
         } catch (error) {
+            console.error(
+                "[Laundry:ActionPad] Update failed",
+                error
+            );
+
             this.dialog.add(AlertDialog, {
-                title: _t("Laundry Order Payment"),
-                body: error.message || _t("Could not pay laundry order."),
+                title: _t("Update Laundry Order"),
+                body:
+                    error?.message ||
+                    _t("Could not update the laundry order."),
             });
         }
     },
-    async clickPrintLaundryOrder() {
-        const order = this.pos.getOrder();
 
-        const laundryOrderId = order?.uiState?.laundry_order_id;
+    clickDiscardLaundryChanges() {
+        if (!this.laundryActions.canDiscardChanges) {
+            return;
+        }
+
+        const order = getCurrentOrder(this.pos);
+        const laundryOrderId =
+            order?.uiState?.laundry_order_id;
+
         if (!laundryOrderId) {
             return;
         }
 
-        const result = await this.orm.call(
-            "laundry.order",
-            "action_create_invoice",
-            [[laundryOrderId]]
-        );
+        this.dialog.add(ConfirmationDialog, {
+            title: _t("Discard Changes"),
+            body: _t(
+                "Do you want to discard the changes "
+                + "made to this order?"
+            ),
+            confirmLabel: _t("Discard Changes"),
+            cancelLabel: _t("Keep Editing"),
+            confirm: async () => {
+                try {
+                    await this.laundry.openLaundryOrder(
+                        laundryOrderId
+                    );
+                } catch (error) {
+                    console.error(
+                        "[Laundry:ActionPad] "
+                        + "Discard changes failed",
+                        error
+                    );
 
-        console.log(result);
+                    this.dialog.add(AlertDialog, {
+                        title: _t("Discard Changes"),
+                        body:
+                            error?.message ||
+                            _t(
+                                "Could not restore "
+                                + "the saved order."
+                            ),
+                    });
+                }
+            },
+        });
+    },
+
+    cancelLaundryOrder() {
+        if (!this.laundryActions.canCancel) {
+            return;
+        }
+
+        this.dialog.add(ConfirmationDialog, {
+            title: _t("Cancel Order"),
+            body: _t(
+                "Are you sure you want to cancel "
+                + "this saved laundry order?"
+            ),
+            confirmLabel: _t("Cancel Order"),
+            cancelLabel: _t("Keep Order"),
+            confirm: async () => {
+                try {
+                    await this.laundry.cancelOrder();
+                } catch (error) {
+                    console.error(
+                        "[Laundry:ActionPad] "
+                        + "Cancellation failed",
+                        error
+                    );
+
+                    this.dialog.add(AlertDialog, {
+                        title: _t("Cancel Order"),
+                        body:
+                            error?.message ||
+                            _t(
+                                "Could not cancel "
+                                + "the laundry order."
+                            ),
+                    });
+                }
+            },
+        });
+    },
+
+    async clickPayLaundryOrder() {
+        if (!this.laundryActions.canPayment) {
+            return;
+        }
+
+        try {
+            await this.laundry.payLaundryOrder();
+        } catch (error) {
+            console.error(
+                "[Laundry:ActionPad] Payment failed",
+                error
+            );
+
+            this.dialog.add(AlertDialog, {
+                title: _t("Laundry Order Payment"),
+                body:
+                    error?.message ||
+                    _t(
+                        "Could not receive payment "
+                        + "for the laundry order."
+                    ),
+            });
+        }
+    },
+
+    async clickRefundLaundryOrder() {
+        if (!this.laundryActions.canRefund) {
+            return;
+        }
+
+        try {
+            await this.laundry.refundLaundryOrder();
+        } catch (error) {
+            console.error(
+                "[Laundry:ActionPad] Refund failed",
+                error
+            );
+
+            this.dialog.add(AlertDialog, {
+                title: _t("Refund Laundry Order"),
+                body:
+                    error?.message ||
+                    _t("Could not refund the laundry order."),
+            });
+        }
+    },
+
+    async clickPrintLaundryOrder() {
+        if (!this.laundryActions.canPrint) {
+            return;
+        }
+
+        const order = getCurrentOrder(this.pos);
+        const laundryOrderId =
+            order?.uiState?.laundry_order_id;
+
+        if (!laundryOrderId) {
+            return;
+        }
+
+        try {
+            await this.laundry.printSavedLaundryOrder(
+                laundryOrderId
+            );
+        } catch (error) {
+            console.error(
+                "[Laundry:ActionPad] Print failed",
+                error
+            );
+
+            this.dialog.add(AlertDialog, {
+                title: _t("Print Laundry Order"),
+                body:
+                    error?.message ||
+                    _t("Could not print the laundry order."),
+            });
+        }
     },
 });
