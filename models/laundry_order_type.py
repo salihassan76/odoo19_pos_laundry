@@ -63,6 +63,12 @@ class LaundryOrderType(models.Model):
         default=False
     )
     
+    allow_pay = fields.Boolean(
+        string="Allow Payments",
+        help="Check if this order type can be paid.",
+        default=True
+    )
+    
 
     direct_sale = fields.Boolean(
         string="Direct Sale",

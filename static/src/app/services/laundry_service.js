@@ -207,6 +207,7 @@ export const laundryService = {
                     "pos_category_ids",
                     "direct_sale",
                     "billing_method",
+                    "allow_pay",
                 ];
             },
 
@@ -543,6 +544,19 @@ export const laundryService = {
                         []
                     );
 
+                if (
+                        values.laundry_allow_pay !== undefined ||
+                        values.allow_pay !== undefined
+                    ) {
+                        order.uiState
+                            .laundry_allow_pay =
+                            (
+                                values.laundry_allow_pay ??
+                                values.allow_pay
+                            ) !== false;
+                    }
+                
+
                 /*
                  * Financial state.
                  */
@@ -621,6 +635,8 @@ export const laundryService = {
                                 .pos_category_ids ||
                             []
                         ),
+                    allow_pay:
+                        orderType.allow_pay !== false,
                 };
             },
 
@@ -1141,6 +1157,8 @@ export const laundryService = {
                         data
                             .order_type_prefix ||
                         "",
+                    laundry_allow_pay:
+                        data.allow_pay !== false,
 
                     allowed_category_ids:
                         this._normalizeCategoryIds(
@@ -1253,6 +1271,10 @@ export const laundryService = {
                     laundry_order_type_prefix:
                         order.uiState
                             .laundry_order_type_prefix,
+                    
+                    laundry_allow_pay:
+                        order.uiState
+                            .laundry_allow_pay !== false,
 
                     allowed_category_ids:
                         order.uiState
@@ -2203,6 +2225,7 @@ export const laundryService = {
 
                     canPayment:
                         isSaved &&
+                        ui.laundry_allow_pay !== false &&
                         Boolean(
                             status
                                 .can_receive_payment

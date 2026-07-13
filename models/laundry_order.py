@@ -969,6 +969,9 @@ class LaundryOrder(models.Model):
             "allowed_category_ids": (
                 order.order_type_id.pos_category_ids.ids
             ),
+            "allow_pay": bool(
+                order.order_type_id.allow_pay
+            ),
 
             # Existing fields kept for compatibility
             "status_id": order.status_id.id,
