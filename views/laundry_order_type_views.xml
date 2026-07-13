@@ -41,6 +41,7 @@
                             <field name="is_hidden"/>
                             <field name="direct_sale"/>
                             <field name="allow_pay"/>
+                            <field name="allow_refund"/>
                         
                         </group>
                        

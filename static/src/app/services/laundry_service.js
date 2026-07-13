@@ -208,6 +208,7 @@ export const laundryService = {
                     "direct_sale",
                     "billing_method",
                     "allow_pay",
+                    "allow_refund",
                 ];
             },
 
@@ -555,6 +556,17 @@ export const laundryService = {
                                 values.allow_pay
                             ) !== false;
                     }
+                if (
+                        values.laundry_allow_refund !== undefined ||
+                        values.allow_refund !== undefined
+                    ) {
+                        order.uiState
+                            .laundry_allow_refund =
+                            (
+                                values.laundry_allow_refund ??
+                                values.allow_refund
+                            ) !== false;
+                    }
                 
 
                 /*
@@ -637,6 +649,9 @@ export const laundryService = {
                         ),
                     allow_pay:
                         orderType.allow_pay !== false,
+
+                    allow_refund:
+                        orderType.allow_refund !== false,
                 };
             },
 
@@ -1159,6 +1174,9 @@ export const laundryService = {
                         "",
                     laundry_allow_pay:
                         data.allow_pay !== false,
+                    
+                    laundry_allow_refund:
+                        data.allow_refund !== false,
 
                     allowed_category_ids:
                         this._normalizeCategoryIds(
@@ -1275,6 +1293,10 @@ export const laundryService = {
                     laundry_allow_pay:
                         order.uiState
                             .laundry_allow_pay !== false,
+
+                    laundry_allow_refund:
+                        order.uiState
+                            .laundry_allow_refund !== false,
 
                     allowed_category_ids:
                         order.uiState
@@ -2234,6 +2256,7 @@ export const laundryService = {
 
                     canRefund:
                         isSaved &&
+                        ui.laundry_allow_refund !== false &&
                         Boolean(
                             status.can_refund
                         ) &&

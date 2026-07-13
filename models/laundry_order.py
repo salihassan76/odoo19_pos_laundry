@@ -972,6 +972,9 @@ class LaundryOrder(models.Model):
             "allow_pay": bool(
                 order.order_type_id.allow_pay
             ),
+            "allow_refund": bool(
+                order.order_type_id.allow_refund
+            ),
 
             # Existing fields kept for compatibility
             "status_id": order.status_id.id,

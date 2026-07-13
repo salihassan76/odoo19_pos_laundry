@@ -68,6 +68,12 @@ class LaundryOrderType(models.Model):
         help="Check if this order type can be paid.",
         default=True
     )
+
+    allow_refund = fields.Boolean(
+        string="Allow Refunds",
+        help="Check if this order type can be refunded.",
+        default=True
+    )
     
 
     direct_sale = fields.Boolean(
