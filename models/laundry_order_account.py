@@ -1,5 +1,5 @@
 from odoo import fields, models, _
-from odoo.exceptions import ValidationError
+from odoo.exceptions import ValidationError,UserError
 
 
 class LaundryOrder(models.Model):
@@ -88,3 +88,93 @@ class LaundryOrder(models.Model):
             raise ValidationError(_("No valid invoice lines were found."))
 
         return lines
+    
+    def _cancel_unpaid_invoice(self):
+        self.ensure_one()
+
+        invoice = self.invoice_id
+
+        if not invoice:
+            return False
+
+        if invoice.move_type != "out_invoice":
+            raise UserError(
+                _(
+                    "The linked accounting document is not "
+                    "a customer invoice."
+                )
+            )
+
+        if invoice.partner_id != self.customer_id:
+            raise UserError(
+                _(
+                    "The invoice customer does not match "
+                    "the laundry order customer."
+                )
+            )
+
+        if invoice.state == "cancel":
+            return False
+
+        if invoice.payment_state in (
+            "partial",
+            "paid",
+            "in_payment",
+        ):
+            raise UserError(
+                _(
+                    "This invoice has received a payment. "
+                    "Use Refund instead of Cancel."
+                )
+            )
+
+        if invoice.state == "draft":
+            invoice.button_cancel()
+            return False
+
+        if invoice.state != "posted":
+            raise UserError(
+                _(
+                    "Only a draft or posted customer invoice "
+                    "can be cancelled."
+                )
+            )
+
+        if not invoice.journal_id:
+            raise UserError(
+                _("The invoice does not have an accounting journal.")
+            )
+
+        reversal = self.env[
+            "account.move.reversal"
+        ].with_context(
+            active_model="account.move",
+            active_ids=invoice.ids,
+        ).create({
+            "reason": _(
+                "Cancellation of laundry order %s"
+            ) % self.name,
+            "journal_id": invoice.journal_id.id,
+            "date": fields.Date.context_today(self),
+        })
+
+        reversal.reverse_moves()
+
+        credit_note = self.env["account.move"].search(
+            [
+                ("reversed_entry_id", "=", invoice.id),
+                ("move_type", "=", "out_refund"),
+            ],
+            order="id desc",
+            limit=1,
+        )
+
+        if not credit_note:
+            raise UserError(
+                _("The cancellation credit note could not be created.")
+            )
+
+        if credit_note.state == "draft":
+            credit_note.action_post()
+
+        return credit_note

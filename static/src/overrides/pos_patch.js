@@ -22,11 +22,19 @@ patch(PosStore.prototype, {
             null;
 
         /*
-         * Use the standard POS Back behavior when the current order
-         * is not part of the Laundry workflow.
-         */
+        * Use the standard POS Back behavior when Laundry workflow
+        * is disabled.
+        */
         if (!this.config?.enable_laundry_workflow) {
             return super.onClickBackButton?.(...arguments);
+        }
+
+        /*
+        * No active order: return directly to Laundry Home.
+        */
+        if (!order) {
+            this.navigate("pos_homescreen");
+            return;
         }
 
         const orderLines =
@@ -35,56 +43,121 @@ patch(PosStore.prototype, {
             order.lines ||
             [];
 
-        const hasItems = orderLines.length > 0;
+        const hasItems =
+            orderLines.length > 0;
 
-        const isSavedLaundryOrder = Boolean(
-            order.uiState?.laundry_order_id
-        );
-
-        const mustConfirmDiscard =
-            hasItems &&
-            !isSavedLaundryOrder;
-
-        console.log("[Laundry:Navigation] Back clicked", {
-            orderUuid: order.uuid || false,
-            laundryOrderId:
-                order.uiState?.laundry_order_id ||
-                false,
-            hasItems,
-            isSavedLaundryOrder,
-            mustConfirmDiscard,
-        });
+        const isSavedLaundryOrder =
+            Boolean(
+                order.uiState?.laundry_order_id
+            );
 
         /*
-         * Warn only when a new, unsaved order contains items.
-         */
+        * Use the existing Laundry action policy so the Back button
+        * follows the same change-detection logic as Update and
+        * Discard Changes.
+        */
+        const laundryService =
+            this.laundryService ||
+            this.env?.services?.laundryService ||
+            this.env?.services?.laundry ||
+            null;
+
+        const policy =
+            laundryService?.getActionPolicy?.(
+                order
+            ) || {};
+
+        /*
+        * New unsaved order:
+        * warn when it contains products.
+        */
+        const hasUnsavedNewOrder =
+            !isSavedLaundryOrder &&
+            hasItems;
+
+        /*
+        * Saved order:
+        * warn when local changes have not been saved.
+        *
+        * canDiscardChanges is the best value to use because it is
+        * true whenever a saved order has changes, even when the
+        * current status does not allow Update.
+        */
+        const hasSavedOrderChanges =
+            isSavedLaundryOrder &&
+            Boolean(
+                policy.canDiscardChanges
+            );
+
+        const mustConfirmDiscard =
+            hasUnsavedNewOrder ||
+            hasSavedOrderChanges;
+
+        console.log(
+            "[Laundry:Navigation] Back clicked",
+            {
+                orderUuid:
+                    order.uuid || false,
+                laundryOrderId:
+                    order.uiState
+                        ?.laundry_order_id ||
+                    false,
+                hasItems,
+                isSavedLaundryOrder,
+                hasUnsavedNewOrder,
+                hasSavedOrderChanges,
+                mustConfirmDiscard,
+            }
+        );
+
+        /*
+        * Warn before discarding either:
+        * 1. a new unsaved order with products, or
+        * 2. unsaved modifications to a saved order.
+        */
         if (mustConfirmDiscard) {
-            this.dialog.add(ConfirmationDialog, {
-                title: _t("Order Not Saved"),
-                body: _t(
-                    "This order has not been saved. Do you want to go back and discard it?"
-                ),
-                confirmLabel: _t("Yes, Go Back"),
-                cancelLabel: _t("No, Stay"),
-                confirmClass: "btn-danger",
+            this.dialog.add(
+                ConfirmationDialog,
+                {
+                    title:
+                        _t("Discard Changes?"),
 
-                confirm: () => {
-                    this._returnToLaundryHome(order);
-                },
+                    body:
+                        _t(
+                            "This order has unsaved changes. Do you want to discard them and go back?"
+                        ),
 
-                /*
-                 * No action is required.
-                 * The dialog closes and the user stays on ProductScreen.
-                 */
-                cancel: () => {},
-            });
+                    confirmLabel:
+                        _t(
+                            "Discard and Go Back"
+                        ),
+
+                    cancelLabel:
+                        _t("Stay"),
+
+                    confirmClass:
+                        "btn-danger",
+
+                    confirm: () => {
+                        this._returnToLaundryHome(
+                            order
+                        );
+                    },
+
+                    /*
+                    * The dialog closes and the user remains on
+                    * ProductScreen.
+                    */
+                    cancel: () => {},
+                }
+            );
 
             return;
         }
 
         /*
-         * Empty order or an already-saved laundry order.
-         */
+        * Empty new order or saved order without changes.
+        */
         this._returnToLaundryHome(order);
     },
 

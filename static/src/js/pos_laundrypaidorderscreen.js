@@ -80,7 +80,7 @@ export class PosLaundryPaidOrderScreen extends Component {
     async refundOrder() {
         const confirmed = window.confirm(
             _t(
-                "Refund this order?\n\nA refund payment and cancellation will be created."
+                "Refund this order?\n\nA credit note and refund payment will be created."
             )
         );
 

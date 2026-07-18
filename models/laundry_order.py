@@ -156,6 +156,55 @@ class LaundryOrder(models.Model):
         readonly=True,
     )
 
+    cancel_move_id = fields.Many2one(
+    "account.move",
+    string="Cancellation Credit Note",
+    readonly=True,
+    copy=False,
+    ondelete="restrict",
+    )
+
+    cancel_date = fields.Datetime(
+        string="Cancelled On",
+        readonly=True,
+        copy=False,
+    )
+
+    cancel_user_id = fields.Many2one(
+        "res.users",
+        string="Cancelled By",
+        readonly=True,
+        copy=False,
+    )
+    refund_move_id = fields.Many2one(
+        "account.move",
+        string="Refund Credit Note",
+        readonly=True,
+        copy=False,
+        ondelete="restrict",
+    )
+
+    refund_payment_id = fields.Many2one(
+        "account.payment",
+        string="Refund Payment",
+        readonly=True,
+        copy=False,
+        ondelete="restrict",
+    )
+
+    refund_date = fields.Datetime(
+        string="Refunded On",
+        readonly=True,
+        copy=False,
+    )
+
+    refund_user_id = fields.Many2one(
+        "res.users",
+        string="Refunded By",
+        readonly=True,
+        copy=False,
+    )
+
     # -------------------------------------------------------------------------
     # COMPUTED FIELDS
     # -------------------------------------------------------------------------
@@ -1327,17 +1376,20 @@ class LaundryOrder(models.Model):
     def action_refund_from_pos(self):
         self.ensure_one()
 
-        if not self.invoice_id:
+        invoice = self.invoice_id
+        config = self.pos_config_id
+
+        # -------------------------------------------------
+        # 1. Validate order, configuration, and invoice
+        # -------------------------------------------------
+        if not invoice:
             raise UserError(
                 _("No invoice found for this order.")
             )
 
-        # Status capability validation.
         self.status_id.check_action_allowed(
             "refund"
         )
-
-        config = self.pos_config_id
 
         if not config:
             raise UserError(
@@ -1345,8 +1397,8 @@ class LaundryOrder(models.Model):
             )
 
         refund_payment_status = (
-                config.refund_payment_id
-            )
+            config.refund_payment_id
+        )
 
         refunded_order_status = (
             config.refunded_order_status_id
@@ -1354,20 +1406,57 @@ class LaundryOrder(models.Model):
 
         if not refund_payment_status:
             raise UserError(
-                _(
-                    "Refund payment status "
-                    "is not configured."
-                )
+                _("Refund payment status is not configured.")
             )
 
         if not refunded_order_status:
             raise UserError(
+                _("Refunded order status is not configured.")
+            )
+
+        if (
+            self.status_id
+            == refunded_order_status
+        ):
+            raise UserError(
+                _("This order is already refunded.")
+            )
+
+        if (
+            self.refund_move_id
+            or self.refund_payment_id
+        ):
+            raise UserError(
                 _(
-                    "Refunded order status "
-                    "is not configured."
+                    "Refund accounting documents already "
+                    "exist for this order."
                 )
             )
 
+        if invoice.move_type != "out_invoice":
+            raise UserError(
+                _(
+                    "The linked accounting document is not "
+                    "a customer invoice."
+                )
+            )
+
+        if invoice.state != "posted":
+            raise UserError(
+                _("Only a posted invoice can be refunded.")
+            )
+
+        if invoice.partner_id != self.customer_id:
+            raise UserError(
+                _(
+                    "The invoice customer does not match "
+                    "the laundry order customer."
+                )
+            )
+
+        # -------------------------------------------------
+        # 2. Validate refundable amount
+        # -------------------------------------------------
         financial_values = (
             self._get_pos_financial_values()
         )
@@ -1378,47 +1467,12 @@ class LaundryOrder(models.Model):
 
         if amount_to_refund <= 0:
             raise UserError(
-                _(
-                    "This order has no refundable "
-                    "amount."
-                )
+                _("This order has no refundable amount.")
             )
 
-        # 1. Create credit note.
-        reversal = (
-            self.env["account.move.reversal"]
-            .with_context(
-                active_model="account.move",
-                active_ids=self.invoice_id.ids,
-            )
-            .create({
-                "reason": _(
-                    "POS laundry order refund"
-                ),
-                "journal_id": (
-                    self.invoice_id.journal_id.id
-                ),
-                "date": (
-                    fields.Date.context_today(self)
-                ),
-            })
-        )
-
-        reversal_result = reversal.reverse_moves()
-
-        refund_move = self.env[
-            "account.move"
-        ].browse(
-            reversal_result.get("res_id")
-        )
-
-        if (
-            refund_move
-            and refund_move.state == "draft"
-        ):
-            refund_move.action_post()
-
-        # 2. Find posted original payments.
+        # -------------------------------------------------
+        # 3. Validate original payment and refund journal
+        # -------------------------------------------------
         posted_payments = self.env[
             "laundry.pos.payment"
         ].search([
@@ -1427,7 +1481,11 @@ class LaundryOrder(models.Model):
                 "=",
                 self.id,
             ),
-            ("state", "=", "posted"),
+            (
+                "state",
+                "=",
+                "posted",
+            ),
         ])
 
         if not posted_payments:
@@ -1442,10 +1500,17 @@ class LaundryOrder(models.Model):
             posted_payments[:1].payment_method_id
         )
 
-        if (
-            not payment_method
-            or not payment_method.journal_id
-        ):
+        if not payment_method:
+            raise UserError(
+                _(
+                    "The original payment does not "
+                    "have a payment method."
+                )
+            )
+
+        refund_journal = payment_method.journal_id
+
+        if not refund_journal:
             raise UserError(
                 _(
                     "The original payment method "
@@ -1453,7 +1518,84 @@ class LaundryOrder(models.Model):
                 )
             )
 
-        # 3. Create outbound refund payment.
+        if refund_journal.company_id != invoice.company_id:
+            raise UserError(
+                _(
+                    "The refund journal belongs to "
+                    "a different company."
+                )
+            )
+
+        outbound_payment_method_line = (
+            refund_journal
+            .outbound_payment_method_line_ids[:1]
+        )
+
+        if not outbound_payment_method_line:
+            raise UserError(
+                _(
+                    "The selected refund journal does not "
+                    "have an outbound payment method."
+                )
+            )
+
+        if not invoice.journal_id:
+            raise UserError(
+                _("The invoice does not have a journal.")
+            )
+
+        # -------------------------------------------------
+        # 4. Create and post the credit note
+        # -------------------------------------------------
+        reversal = (
+            self.env["account.move.reversal"]
+            .with_context(
+                active_model="account.move",
+                active_ids=invoice.ids,
+            )
+            .create({
+                "reason": _(
+                    "POS laundry order refund: %s"
+                ) % self.name,
+                "journal_id": invoice.journal_id.id,
+                "date": fields.Date.context_today(
+                    self
+                ),
+            })
+        )
+
+        reversal.reverse_moves()
+
+        refund_move = self.env[
+            "account.move"
+        ].search(
+            [
+                (
+                    "reversed_entry_id",
+                    "=",
+                    invoice.id,
+                ),
+                (
+                    "move_type",
+                    "=",
+                    "out_refund",
+                ),
+            ],
+            order="id desc",
+            limit=1,
+        )
+
+        if not refund_move:
+            raise UserError(
+                _("The refund credit note could not be created.")
+            )
+
+        if refund_move.state == "draft":
+            refund_move.action_post()
+
+        # -------------------------------------------------
+        # 5. Create and post outbound refund payment
+        # -------------------------------------------------
         refund_payment = self.env[
             "account.payment"
         ].create({
@@ -1461,30 +1603,75 @@ class LaundryOrder(models.Model):
             "partner_type": "customer",
             "partner_id": self.customer_id.id,
             "amount": amount_to_refund,
-            "currency_id": (
-                self.invoice_id.currency_id.id
+            "currency_id": invoice.currency_id.id,
+            "date": fields.Date.context_today(
+                self
             ),
-            "date": (
-                fields.Date.context_today(self)
+            "journal_id": refund_journal.id,
+            "payment_method_line_id": (
+                outbound_payment_method_line.id
             ),
-            "journal_id": (
-                payment_method.journal_id.id
-            ),
-            "ref": _(
+            "memo": _(
                 "Refund for %s"
             ) % self.name,
         })
 
         refund_payment.action_post()
 
-        # 4. Update laundry order.
+        # -------------------------------------------------
+        # 6. Reconcile refund payment with credit note
+        # -------------------------------------------------
+        credit_receivable_lines = (
+            refund_move.line_ids.filtered(
+                lambda line: (
+                    line.account_id.account_type
+                    == "asset_receivable"
+                    and not line.reconciled
+                )
+            )
+        )
+
+        payment_receivable_lines = (
+            refund_payment.move_id.line_ids.filtered(
+                lambda line: (
+                    line.account_id.account_type
+                    == "asset_receivable"
+                    and not line.reconciled
+                )
+            )
+        )
+
+        lines_to_reconcile = (
+            credit_receivable_lines
+            + payment_receivable_lines
+        )
+
+        if not lines_to_reconcile:
+            raise UserError(
+                _(
+                    "No receivable lines were found "
+                    "for refund reconciliation."
+                )
+            )
+
+        lines_to_reconcile.reconcile()
+
+        # -------------------------------------------------
+        # 7. Update laundry order
+        # -------------------------------------------------
         self.write({
-            "payment_status_id": (
-                refund_payment_status.id
-            ),
-            "status_id": (
-                refunded_order_status.id
-            ),
+            "payment_status_id":
+                refund_payment_status.id,
+            "status_id":
+                refunded_order_status.id,
+            "refund_move_id":
+                refund_move.id,
+            "refund_payment_id":
+                refund_payment.id,
+            "refund_date":
+                fields.Datetime.now(),
+            "refund_user_id":
+                self.env.user.id,
         })
 
         updated_financial_values = (
@@ -1493,72 +1680,48 @@ class LaundryOrder(models.Model):
 
         return {
             "success": True,
-
-            "refund_payment_id": (
-                refund_payment.id
-            ),
-
-            "refund_invoice_id": (
-                refund_move.id
-                if refund_move
-                else False
-            ),
-
-            "refund_amount": amount_to_refund,
-
-            "status_id": (
+            "refund_payment_id":
+                refund_payment.id,
+            "refund_invoice_id":
+                refund_move.id,
+            "refund_amount":
+                amount_to_refund,
+            "status_id":
                 self.status_id.id
                 if self.status_id
-                else False
-            ),
-
-            "status_name": (
+                else False,
+            "status_name":
                 self.status_id.display_name
                 if self.status_id
-                else ""
-            ),
-
-            "status": (
+                else "",
+            "status":
                 self.status_id.get_pos_capabilities()
                 if self.status_id
-                else {}
-            ),
-
-            "payment_status_id": (
+                else {},
+            "payment_status_id":
                 self.payment_status_id.id
                 if self.payment_status_id
-                else False
-            ),
-
-            "payment_status_name": (
+                else False,
+            "payment_status_name":
                 self.payment_status_id.display_name
                 if self.payment_status_id
-                else ""
-            ),
-
-            "total_amount": (
+                else "",
+            "total_amount":
                 updated_financial_values[
                     "total_amount"
-                ]
-            ),
-
-            "paid_amount": (
+                ],
+            "paid_amount":
                 updated_financial_values[
                     "paid_amount"
-                ]
-            ),
-
-            "balance": (
+                ],
+            "balance":
                 updated_financial_values[
                     "balance"
-                ]
-            ),
-
-            "refundable_amount": (
+                ],
+            "refundable_amount":
                 updated_financial_values[
                     "refundable_amount"
-                ]
-            ),
+                ],
         }
     
     def action_cancel_from_pos(self):
@@ -1612,6 +1775,7 @@ class LaundryOrder(models.Model):
                     "Refund the order instead."
                 )
             )
+        cancel_move = self._cancel_unpaid_invoice()
 
         self.write({
             "status_id": (
@@ -1620,6 +1784,12 @@ class LaundryOrder(models.Model):
             "payment_status_id": (
                 cancelled_payment_status.id
             ),
+            "cancel_move_id":
+            cancel_move.id if cancel_move else False,
+            "cancel_date":
+                fields.Datetime.now(),
+            "cancel_user_id":
+                self.env.user.id,
         })
 
         updated_financial_values = (
@@ -1673,9 +1843,14 @@ class LaundryOrder(models.Model):
 
             "balance": 0.0,
 
+            "cancel_move_id":
+            cancel_move.id if cancel_move else False,
+
             "refundable_amount": (
                 updated_financial_values[
                     "refundable_amount"
                 ]
             ),
         }
+    
+    
