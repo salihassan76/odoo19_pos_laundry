@@ -95,6 +95,16 @@ class PosConfig(models.Model):
         string="Confirmed Order Status",
     )
 
+    ready_order_status_id = fields.Many2one(
+        comodel_name="laundry.order.status",
+        string="Ready Order Status",
+        domain=[("active", "=", True)],
+        help=(
+            "Orders in this status are counted as ready "
+            "on the laundry POS dashboard."
+        ),
+    )
+
     # -------------------------------------------------------------------------
     # Printing
     # -------------------------------------------------------------------------
@@ -137,6 +147,7 @@ class PosConfig(models.Model):
             "show_receipt_preview",
             "cancelled_order_status_id",
             "confirmed_order_status_id",
+            "ready_order_status_id",
         ]
 
         for record in data:
@@ -224,6 +235,11 @@ class PosConfig(models.Model):
         add(
             _("Confirmed Order Status"),
             self.confirmed_order_status_id,
+        )
+
+        add(
+            _("Ready Order Status"),
+            self.ready_order_status_id,
         )
 
         # Required master data

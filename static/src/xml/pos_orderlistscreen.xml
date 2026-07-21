@@ -1,91 +1,338 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <templates xml:space="preserve">
 
-    <t t-name="pos_laundry.pos_orderlistscreen">
+    <t t-name="pos_laundry.OrderListScreen" owl="1">
 
-        <div class="d-flex flex-column h-100 p-2 bg-100">
+        <div class="pos-laundry-dashboard d-flex flex-column h-100 bg-100">
 
-            <!-- Main Content -->
-            <div class="overflow-y-auto flex-grow-1 rounded-bottom-3 bg-view p-3">
+            <!-- ===================================================== -->
+            <!-- Header                                                -->
+            <!-- ===================================================== -->
 
-                <div class="container-fluid">
+            <div class="laundry-dashboard-header
+                        d-flex flex-wrap
+                        align-items-center
+                        justify-content-between
+                        gap-3
+                        px-3 py-3
+                        border-bottom
+                        bg-view">
 
-                    <div class="row g-3">
+                <div>
+                    <h2 class="mb-1 fw-bold">
+                        Laundry Dashboard
+                    </h2>
 
-                        <!-- New Orders -->
-                        <div class="col-12 col-lg-4">
-                            <div class="card shadow-sm border-0 h-100 bg-view rounded-3">
-                                <div class="card-header bg-100 border-bottom">
-                                    <h5 class="mb-0">
-                                        <i class="fa fa-plus-circle me-2 text-primary"/>
-                                        New Orders
-                                    </h5>
-                                </div>
-                                <div class="card-body d-flex flex-column gap-2">
-                                    <button class="btn btn-light border text-start rounded-3">
-                                        Order #1001
-                                    </button>
-                                </div>
-                            </div>
+                    <div class="text-muted">
+                        Monitor orders, payments and daily activity
+                    </div>
+                </div>
+
+                <div class="d-flex flex-wrap align-items-center gap-2">
+
+                    <button type="button"
+                            class="btn btn-outline-primary btn-lg"
+                            t-on-click="openCustomerScreen">
+
+                        <i class="fa fa-users me-2"/>
+                        Customers
+
+                    </button>
+
+                    <button type="button"
+                            class="btn btn-primary btn-lg"
+                            t-on-click="refreshDashboard"
+                            t-att-disabled="state.loading">
+
+                        <i t-att-class="
+                            state.loading
+                                ? 'fa fa-spinner fa-spin me-2'
+                                : 'fa fa-refresh me-2'
+                        "/>
+
+                        Refresh
+
+                    </button>
+
+                </div>
+
+            </div>
+
+            <!-- ===================================================== -->
+            <!-- Dashboard Body                                        -->
+            <!-- ===================================================== -->
+
+            <div class="laundry-dashboard-body
+                        flex-grow-1
+                        overflow-y-auto
+                        p-3">
+
+                <!-- ================================================= -->
+                <!-- Loading State                                     -->
+                <!-- ================================================= -->
+
+                <t t-if="state.loading">
+
+                    <div class="d-flex flex-column
+                                align-items-center
+                                justify-content-center
+                                py-5">
+
+                        <i class="fa fa-spinner
+                                  fa-spin
+                                  fs-1
+                                  text-primary
+                                  mb-3"/>
+
+                        <div class="fs-5 fw-semibold">
+                            Loading dashboard...
                         </div>
 
-                        <!-- In Progress Orders -->
-                        <div class="col-12 col-lg-4">
+                        <div class="text-muted mt-1">
+                            Retrieving laundry order information
+                        </div>
 
-                            <div class="card shadow-sm border-0 h-100 bg-view rounded-3">
+                    </div>
 
-                                <div class="card-header bg-100 border-bottom">
-                                    <h5 class="mb-0 text-warning">
-                                        <i class="fa fa-refresh me-2 text-warning"/>
-                                        In Progress
-                                    </h5>
+                </t>
+
+                <!-- ================================================= -->
+                <!-- Error State                                       -->
+                <!-- ================================================= -->
+
+                <t t-elif="state.error">
+
+                    <div class="alert alert-danger
+                                d-flex flex-column
+                                align-items-center
+                                text-center
+                                py-4">
+
+                        <i class="fa fa-exclamation-triangle
+                                  fs-1
+                                  mb-3"/>
+
+                        <h4 class="mb-2">
+                            Dashboard Could Not Be Loaded
+                        </h4>
+
+                        <div class="mb-3">
+                            <t t-out="state.error"/>
+                        </div>
+
+                        <button type="button"
+                                class="btn btn-danger"
+                                t-on-click="refreshDashboard">
+
+                            <i class="fa fa-refresh me-2"/>
+                            Try Again
+
+                        </button>
+
+                    </div>
+
+                </t>
+
+                <!-- ================================================= -->
+                <!-- Dashboard Content                                 -->
+                <!-- ================================================= -->
+
+                <t t-else="">
+
+                    <!-- ============================================= -->
+                    <!-- KPI Cards                                     -->
+                    <!-- ============================================= -->
+
+                    <div class="row g-3 mb-3">
+
+                        <!-- Today's Orders -->
+
+                        <div class="col-12 col-sm-6 col-xl-3">
+
+                            <button type="button"
+                                    class="laundry-kpi-card
+                                           card
+                                           border-0
+                                           shadow-sm
+                                           w-100
+                                           h-100
+                                           text-start"
+                                    t-on-click="showTodayOrders">
+
+                                <div class="card-body
+                                            d-flex
+                                            align-items-center
+                                            gap-3">
+
+                                    <div class="laundry-kpi-icon
+                                                bg-primary-subtle
+                                                text-primary">
+
+                                        <i class="fa fa-shopping-basket"/>
+
+                                    </div>
+
+                                    <div class="flex-grow-1">
+
+                                        <div class="text-muted small">
+                                            Today's Orders
+                                        </div>
+
+                                        <div class="fs-2 fw-bold">
+                                            <t t-out="
+                                                state.dashboard.today_orders || 0
+                                            "/>
+                                        </div>
+
+                                    </div>
+
+                                    <i class="fa fa-chevron-right text-muted"/>
+
                                 </div>
 
-                                <div class="card-body d-flex flex-column gap-2">
-
-                                    <button class="btn btn-outline-warning text-start">
-                                        Order #2001
-                                    </button>
-
-                                    <button class="btn btn-outline-warning text-start">
-                                        Order #2002
-                                    </button>
-
-                                    <button class="btn btn-outline-warning text-start">
-                                        Order #2003
-                                    </button>
-
-                                </div>
-
-                            </div>
+                            </button>
 
                         </div>
 
-                        <!-- Finished Orders -->
-                        <div class="col-12 col-lg-4">
+                        <!-- Unpaid Orders -->
 
-                            <div class="card shadow-sm border-0 h-100 bg-view rounded-3">
+                        <div class="col-12 col-sm-6 col-xl-3">
 
-                                <div class="card-header bg-100 border-bottom">
-                                    <h5 class="mb-0 text-success">
-                                        <i class="fa fa-check-circle me-2 text-success"/>
-                                        Finished Orders
-                                    </h5>
+                            <button type="button"
+                                    class="laundry-kpi-card
+                                           card
+                                           border-0
+                                           shadow-sm
+                                           w-100
+                                           h-100
+                                           text-start"
+                                    t-on-click="showUnpaidOrders">
+
+                                <div class="card-body
+                                            d-flex
+                                            align-items-center
+                                            gap-3">
+
+                                    <div class="laundry-kpi-icon
+                                                bg-warning-subtle
+                                                text-warning">
+
+                                        <i class="fa fa-money"/>
+
+                                    </div>
+
+                                    <div class="flex-grow-1">
+
+                                        <div class="text-muted small">
+                                            Unpaid Orders
+                                        </div>
+
+                                        <div class="fs-2 fw-bold">
+                                            <t t-out="
+                                                state.dashboard.unpaid_orders || 0
+                                            "/>
+                                        </div>
+
+                                    </div>
+
+                                    <i class="fa fa-chevron-right text-muted"/>
+
                                 </div>
 
-                                <div class="card-body d-flex flex-column gap-2">
+                            </button>
 
-                                    <button class="btn btn-outline-success text-start">
-                                        Order #3001
-                                    </button>
+                        </div>
 
-                                    <button class="btn btn-outline-success text-start">
-                                        Order #3002
-                                    </button>
+                        <!-- Ready Orders -->
 
-                                    <button class="btn btn-outline-success text-start">
-                                        Order #3003
-                                    </button>
+                        <div class="col-12 col-sm-6 col-xl-3">
+
+                            <button type="button"
+                                    class="laundry-kpi-card
+                                           card
+                                           border-0
+                                           shadow-sm
+                                           w-100
+                                           h-100
+                                           text-start"
+                                    t-on-click="showReadyOrders">
+
+                                <div class="card-body
+                                            d-flex
+                                            align-items-center
+                                            gap-3">
+
+                                    <div class="laundry-kpi-icon
+                                                bg-success-subtle
+                                                text-success">
+
+                                        <i class="fa fa-check-circle"/>
+
+                                    </div>
+
+                                    <div class="flex-grow-1">
+
+                                        <div class="text-muted small">
+                                            Ready for Pickup
+                                        </div>
+
+                                        <div class="fs-2 fw-bold">
+                                            <t t-out="
+                                                state.dashboard.ready_orders || 0
+                                            "/>
+                                        </div>
+
+                                    </div>
+
+                                    <i class="fa fa-chevron-right text-muted"/>
+
+                                </div>
+
+                            </button>
+
+                        </div>
+
+                        <!-- Today's Sales -->
+
+                        <div class="col-12 col-sm-6 col-xl-3">
+
+                            <div class="laundry-kpi-card
+                                        card
+                                        border-0
+                                        shadow-sm
+                                        h-100">
+
+                                <div class="card-body
+                                            d-flex
+                                            align-items-center
+                                            gap-3">
+
+                                    <div class="laundry-kpi-icon
+                                                bg-info-subtle
+                                                text-info">
+
+                                        <i class="fa fa-line-chart"/>
+
+                                    </div>
+
+                                    <div class="flex-grow-1">
+
+                                        <div class="text-muted small">
+                                            Today's Sales
+                                        </div>
+
+                                        <div class="fs-2 fw-bold">
+
+                                            <span class="me-1">
+                                                BD
+                                            </span>
+
+                                            <t t-out="formatAmount(state.dashboard.today_sales)"/>
+
+                                        </div>
+
+                                    </div>
 
                                 </div>
 
@@ -95,7 +342,776 @@
 
                     </div>
 
-                </div>
+                    <!-- ============================================= -->
+                    <!-- Search and Filters                            -->
+                    <!-- ============================================= -->
+
+                    <div class="card border-0 shadow-sm mb-3">
+
+                        <div class="card-body">
+
+                            <div class="row g-3 align-items-center">
+
+                                <!-- Search -->
+
+                                <div class="col-12 col-xl-5">
+
+                                    <div class="input-group input-group-lg">
+
+                                        <span class="input-group-text">
+                                            <i class="fa fa-search"/>
+                                        </span>
+
+                                        <input class="form-control"
+                                               type="text"
+                                               placeholder="Search order, customer or mobile..."
+                                               t-att-value="state.searchTerm"
+                                               t-on-input="onSearchInput"/>
+
+                                        <button t-if="state.searchTerm"
+                                                type="button"
+                                                class="btn btn-outline-secondary"
+                                                t-on-click="clearSearch"
+                                                title="Clear search">
+
+                                            <i class="fa fa-times"/>
+
+                                        </button>
+
+                                    </div>
+
+                                </div>
+
+                                <!-- Quick Filters -->
+
+                                <div class="col-12 col-xl-7">
+
+                                    <div class="d-flex
+                                                flex-wrap
+                                                justify-content-xl-end
+                                                gap-2">
+
+                                        <button type="button"
+                                                t-att-class="
+                                                    state.dateFilter === 'all'
+                                                        ? 'btn btn-outline-secondary active'
+                                                        : 'btn btn-outline-secondary'
+                                                "
+                                                t-on-click="showAllOrders">
+
+                                            All Orders
+
+                                        </button>
+
+                                        <button type="button"
+                                                t-att-class="
+                                                    state.dateFilter === 'today'
+                                                        ? 'btn btn-outline-primary active'
+                                                        : 'btn btn-outline-primary'
+                                                "
+                                                t-on-click="showTodayOrders">
+
+                                            Today
+
+                                        </button>
+
+                                        <button type="button"
+                                                t-att-class="
+                                                    state.unpaidOnly
+                                                        ? 'btn btn-outline-warning active'
+                                                        : 'btn btn-outline-warning'
+                                                "
+                                                t-on-click="toggleUnpaidFilter">
+
+                                            <i class="fa fa-money me-1"/>
+                                            Unpaid
+
+                                        </button>
+
+                                        <button type="button"
+                                                t-att-class="
+                                                    state.readyOnly
+                                                        ? 'btn btn-outline-success active'
+                                                        : 'btn btn-outline-success'
+                                                "
+                                                t-on-click="toggleReadyFilter">
+
+                                            <i class="fa fa-check-circle me-1"/>
+                                            Ready
+
+                                        </button>
+
+                                        <button t-if="hasActiveFilters"
+                                                type="button"
+                                                class="btn btn-outline-danger"
+                                                t-on-click="resetFilters">
+
+                                            <i class="fa fa-times me-1"/>
+                                            Reset
+
+                                        </button>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- ============================================= -->
+                    <!-- Main Dashboard Grid                           -->
+                    <!-- ============================================= -->
+
+                    <div class="row g-3">
+
+                        <!-- ========================================= -->
+                        <!-- Orders by Status                          -->
+                        <!-- ========================================= -->
+
+                        <div class="col-12 col-xl-4">
+
+                            <div class="card border-0 shadow-sm h-100">
+
+                                <div class="card-header
+                                            bg-view
+                                            border-bottom
+                                            p-3">
+
+                                    <div class="d-flex
+                                                align-items-center
+                                                justify-content-between
+                                                gap-2">
+
+                                        <div>
+
+                                            <h4 class="mb-1">
+                                                Orders by Status
+                                            </h4>
+
+                                            <div class="small text-muted">
+                                                Select a status to filter orders
+                                            </div>
+
+                                        </div>
+
+                                        <button t-if="
+                                                    state.selectedStatusId
+                                                "
+                                                type="button"
+                                                class="btn
+                                                       btn-sm
+                                                       btn-outline-secondary"
+                                                t-on-click="clearStatusFilter">
+
+                                            Clear
+
+                                        </button>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="card-body p-2">
+
+                                    <t t-if="
+                                        state.dashboard.statuses.length
+                                    ">
+
+                                        <div class="d-flex flex-column gap-2">
+
+                                            <t t-foreach="
+                                                state.dashboard.statuses
+                                            "
+                                               t-as="status"
+                                               t-key="status.id">
+
+                                                <button type="button"
+                                                        t-att-class="
+                                                            state.selectedStatusId === status.id
+                                                                ? 'laundry-status-card btn w-100 text-start p-3 active'
+                                                                : 'laundry-status-card btn w-100 text-start p-3'
+                                                        "
+                                                        t-on-click="
+                                                            () => this.selectStatus(
+                                                                status
+                                                            )
+                                                        ">
+
+                                                    <div class="d-flex
+                                                                align-items-center
+                                                                justify-content-between
+                                                                gap-3">
+
+                                                        <div class="d-flex
+                                                                    align-items-center
+                                                                    gap-3">
+
+                                                            <span class="
+                                                                    laundry-status-dot
+                                                                  "
+                                                                  t-att-style="
+                                                                      'background-color: ' +
+                                                                      (
+                                                                          status.color ||
+                                                                          '#6c757d'
+                                                                      ) +
+                                                                      ';'
+                                                                  "/>
+
+                                                            <div>
+
+                                                                <div class="fw-semibold">
+                                                                    <t t-out="
+                                                                        status.name
+                                                                    "/>
+                                                                </div>
+
+                                                                <div class="small
+                                                                            text-muted">
+
+                                                                    <t t-out="
+                                                                        status.order_count || 0
+                                                                    "/>
+
+                                                                    <span>
+                                                                        Orders
+                                                                    </span>
+
+                                                                </div>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                        <span class="badge
+                                                                     rounded-pill
+                                                                     bg-secondary
+                                                                     fs-6">
+
+                                                            <t t-out="
+                                                                status.order_count || 0
+                                                            "/>
+
+                                                        </span>
+
+                                                    </div>
+
+                                                </button>
+
+                                            </t>
+
+                                        </div>
+
+                                    </t>
+
+                                    <t t-else="">
+
+                                        <div class="text-center
+                                                    text-muted
+                                                    py-5">
+
+                                            <i class="fa fa-tasks
+                                                      fs-1
+                                                      mb-3"/>
+
+                                            <div class="fw-semibold">
+                                                No Statuses Available
+                                            </div>
+
+                                        </div>
+
+                                    </t>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <!-- ========================================= -->
+                        <!-- Recent Orders                             -->
+                        <!-- ========================================= -->
+
+                        <div class="col-12 col-xl-8">
+
+                            <div class="card border-0 shadow-sm h-100">
+
+                                <div class="card-header
+                                            bg-view
+                                            border-bottom
+                                            p-3">
+
+                                    <div class="d-flex
+                                                flex-wrap
+                                                align-items-center
+                                                justify-content-between
+                                                gap-2">
+
+                                        <div>
+
+                                            <h4 class="mb-1">
+                                                Recent Orders
+                                            </h4>
+
+                                            <div class="small text-muted">
+
+                                                <t t-out="
+                                                    filteredOrders.length
+                                                "/>
+
+                                                <span>
+                                                    matching orders
+                                                </span>
+
+                                            </div>
+
+                                        </div>
+
+                                        <button type="button"
+                                                class="btn btn-outline-primary"
+                                                t-on-click="showAllOrders">
+
+                                            View All
+
+                                            <i class="fa
+                                                      fa-chevron-right
+                                                      ms-2"/>
+
+                                        </button>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="card-body p-0">
+
+                                    <!-- Orders Available -->
+
+                                    <t t-if="filteredOrders.length">
+
+                                        <!-- Desktop Table -->
+
+                                        <div class="d-none
+                                                    d-lg-block
+                                                    table-responsive">
+
+                                            <table class="table
+                                                          table-hover
+                                                          align-middle
+                                                          mb-0">
+
+                                                <thead class="table-light">
+
+                                                    <tr>
+
+                                                        <th class="px-3 py-3">
+                                                            Order
+                                                        </th>
+
+                                                        <th class="py-3">
+                                                            Customer
+                                                        </th>
+
+                                                        <th class="py-3">
+                                                            Type
+                                                        </th>
+
+                                                        <th class="py-3">
+                                                            Status
+                                                        </th>
+
+                                                        <th class="py-3">
+                                                            Payment
+                                                        </th>
+
+                                                        <th class="py-3 text-end">
+                                                            Amount
+                                                        </th>
+
+                                                        <th class="py-3"/>
+
+                                                    </tr>
+
+                                                </thead>
+
+                                                <tbody>
+
+                                                    <t t-foreach="
+                                                        filteredOrders
+                                                    "
+                                                       t-as="order"
+                                                       t-key="order.id">
+
+                                                        <tr class="
+                                                                laundry-order-row
+                                                            "
+                                                            t-on-click="
+                                                                () => this.openOrder(
+                                                                    order
+                                                                )
+                                                            ">
+
+                                                            <td class="
+                                                                    px-3
+                                                                    py-3
+                                                                    fw-bold
+                                                                ">
+
+                                                                <t t-out="
+                                                                    order.name
+                                                                "/>
+
+                                                                <div class="
+                                                                        small
+                                                                        text-muted
+                                                                        fw-normal
+                                                                    ">
+
+                                                                    <t t-out="
+                                                                        order.order_datetime ||
+                                                                        ''
+                                                                    "/>
+
+                                                                </div>
+
+                                                            </td>
+
+                                                            <td>
+
+                                                                <div class="fw-semibold">
+
+                                                                    <t t-out="
+                                                                        order.customer_name ||
+                                                                        'Walk-In Customer'
+                                                                    "/>
+
+                                                                </div>
+
+                                                                <div class="
+                                                                        small
+                                                                        text-muted
+                                                                    ">
+
+                                                                    <t t-out="
+                                                                        order.customer_mobile ||
+                                                                        order.customer_phone ||
+                                                                        ''
+                                                                    "/>
+
+                                                                </div>
+
+                                                            </td>
+
+                                                            <td>
+
+                                                                <t t-out="
+                                                                    order.order_type_name ||
+                                                                    '-'
+                                                                "/>
+
+                                                            </td>
+
+                                                            <td>
+
+                                                                <span t-att-class="
+                                                                        'badge rounded-pill bg-white border ' +
+                                                                        (order.status_color || 'text-primary')
+                                                                    ">
+                                                                    <t t-out="order.status_name"/>
+                                                                </span>
+
+                                                            </td>
+
+                                                            <td>
+
+                                                                <span t-att-class="
+                                                                    'badge rounded-pill ' +
+                                                                    getPaymentBadgeClass(
+                                                                        order
+                                                                    )
+                                                                ">
+
+                                                                    <t t-out="
+                                                                        order.payment_status_name ||
+                                                                        '-'
+                                                                    "/>
+
+                                                                </span>
+
+                                                            </td>
+
+                                                            <td class="
+                                                                    text-end
+                                                                    fw-bold
+                                                                ">
+
+                                                                <span class="me-1">
+                                                                    BD
+                                                                </span>
+
+                                                                <t t-out="formatAmount(order.total_amount)"/>
+
+                                                            </td>
+
+                                                            <td class="
+                                                                    text-end
+                                                                    pe-3
+                                                                ">
+
+                                                                <i class="
+                                                                        fa
+                                                                        fa-chevron-right
+                                                                        text-muted
+                                                                    "/>
+
+                                                            </td>
+
+                                                        </tr>
+
+                                                    </t>
+
+                                                </tbody>
+
+                                            </table>
+
+                                        </div>
+
+                                        <!-- Mobile and Tablet Cards -->
+
+                                        <div class="d-lg-none p-2">
+
+                                            <div class="d-flex
+                                                        flex-column
+                                                        gap-2">
+
+                                                <t t-foreach="
+                                                    filteredOrders
+                                                "
+                                                   t-as="order"
+                                                   t-key="order.id">
+
+                                                    <button type="button"
+                                                            class="
+                                                                laundry-order-card
+                                                                btn
+                                                                w-100
+                                                                text-start
+                                                                p-3
+                                                            "
+                                                            t-on-click="
+                                                                () => this.openOrder(
+                                                                    order
+                                                                )
+                                                            ">
+
+                                                        <div class="
+                                                                d-flex
+                                                                justify-content-between
+                                                                align-items-start
+                                                                gap-3
+                                                            ">
+
+                                                            <div>
+
+                                                                <div class="
+                                                                        fw-bold
+                                                                        fs-5
+                                                                    ">
+
+                                                                    <t t-out="
+                                                                        order.name
+                                                                    "/>
+
+                                                                </div>
+
+                                                                <div class="
+                                                                        fw-semibold
+                                                                        mt-1
+                                                                    ">
+
+                                                                    <t t-out="
+                                                                        order.customer_name ||
+                                                                        'Walk-In Customer'
+                                                                    "/>
+
+                                                                </div>
+
+                                                                <div class="
+                                                                        small
+                                                                        text-muted
+                                                                    ">
+
+                                                                    <t t-out="
+                                                                        order.customer_mobile ||
+                                                                        order.customer_phone ||
+                                                                        ''
+                                                                    "/>
+
+                                                                </div>
+
+                                                                <div class="
+                                                                        small
+                                                                        text-muted
+                                                                        mt-1
+                                                                    ">
+
+                                                                    <t t-out="
+                                                                        order.order_datetime ||
+                                                                        ''
+                                                                    "/>
+
+                                                                </div>
+
+                                                            </div>
+
+                                                            <div class="
+                                                                    fw-bold
+                                                                    fs-5
+                                                                    text-nowrap
+                                                                ">
+
+                                                                <span class="me-1">
+                                                                    BD
+                                                                </span>
+
+                                                                <t t-out="formatAmount(order.total_amount)"/>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                        <div class="
+                                                                d-flex
+                                                                flex-wrap
+                                                                align-items-center
+                                                                gap-2
+                                                                mt-3
+                                                            ">
+
+                                                            <span t-att-class="
+                                                                    'badge rounded-pill bg-white border ' +
+                                                                    (order.status_color || 'text-primary')
+                                                                ">
+                                                                <t t-out="order.status_name"/>
+                                                            </span>
+
+                                                            <span t-att-class="
+                                                                'badge rounded-pill ' +
+                                                                getPaymentBadgeClass(
+                                                                    order
+                                                                )
+                                                            ">
+
+                                                                <t t-out="
+                                                                    order.payment_status_name ||
+                                                                    '-'
+                                                                "/>
+
+                                                            </span>
+
+                                                            <span class="
+                                                                    badge
+                                                                    bg-light
+                                                                    text-dark
+                                                                    border
+                                                                ">
+
+                                                                <t t-out="
+                                                                    order.order_type_name ||
+                                                                    '-'
+                                                                "/>
+
+                                                            </span>
+
+                                                        </div>
+
+                                                    </button>
+
+                                                </t>
+
+                                            </div>
+
+                                        </div>
+
+                                    </t>
+
+                                    <!-- Empty State -->
+
+                                    <t t-else="">
+
+                                        <div class="text-center py-5 px-3">
+
+                                            <div class="
+                                                    laundry-empty-icon
+                                                    d-inline-flex
+                                                    align-items-center
+                                                    justify-content-center
+                                                    rounded-circle
+                                                    bg-primary-subtle
+                                                    text-primary
+                                                    mb-3
+                                                ">
+
+                                                <i class="fa
+                                                          fa-shopping-basket
+                                                          fs-2"/>
+
+                                            </div>
+
+                                            <h4 class="mb-2">
+                                                No Orders Found
+                                            </h4>
+
+                                            <div class="text-muted mb-3">
+                                                No laundry orders match the
+                                                current search or filters.
+                                            </div>
+
+                                            <button t-if="hasActiveFilters"
+                                                    type="button"
+                                                    class="
+                                                        btn
+                                                        btn-outline-primary
+                                                    "
+                                                    t-on-click="resetFilters">
+
+                                                Clear Filters
+
+                                            </button>
+
+                                            <button t-else=""
+                                                    type="button"
+                                                    class="btn btn-primary"
+                                                    t-on-click="
+                                                        openCustomerScreen
+                                                    ">
+
+                                                <i class="
+                                                        fa
+                                                        fa-users
+                                                        me-2
+                                                    "/>
+
+                                                Find Customer
+
+                                            </button>
+
+                                        </div>
+
+                                    </t>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </t>
 
             </div>
 
