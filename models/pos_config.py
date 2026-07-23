@@ -119,6 +119,44 @@ class PosConfig(models.Model):
         default=True,
     )
 
+    # -------------------------------------------------------------------------
+    # Barcode Integration
+    # -------------------------------------------------------------------------
+    enable_laundry_barcode = fields.Boolean(
+        string="Enable Laundry Barcode"
+    )
+
+    continuous_barcode_scan = fields.Boolean(
+        string="Continuous Scanning",
+        default=True,
+    )
+
+    barcode_scan_behavior = fields.Selection(
+        [
+            ("popup", "Open Status Popup"),
+            ("direct", "Apply Action Directly"),
+        ],
+        default="popup",
+    )
+
+    barcode_order_access = fields.Selection(
+        [
+            ("own_pos", "Orders Created by This POS"),
+            ("same_company", "All Company Orders"),
+        ],
+        default="same_company",
+    )
+
+    duplicate_scan_delay = fields.Integer(
+        string="Duplicate Scan Delay (Seconds)",
+        default=2,
+    )
+
+    allow_backend_scan = fields.Boolean(
+        string="Allow Backend Barcode Processing",
+        default=True,
+    )
+
 
     # -------------------------------------------------------------------------
     # POS data loading
@@ -148,6 +186,13 @@ class PosConfig(models.Model):
             "cancelled_order_status_id",
             "confirmed_order_status_id",
             "ready_order_status_id",
+            "enable_laundry_barcode",
+            "continuous_barcode_scan",
+            "barcode_scan_behavior",
+            "barcode_order_access",
+            "duplicate_scan_delay",
+            "allow_backend_scan"
+
         ]
 
         for record in data:

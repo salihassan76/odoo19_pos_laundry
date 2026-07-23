@@ -59,6 +59,31 @@
                                        required="is_project"/>
                             </group>
                         </page>
+                        <page string="Barcode Integration">
+                            
+                            <group>
+
+                                <field name="enable_laundry_barcode"/>
+
+                                <field name="continuous_barcode_scan"
+                                    invisible="not enable_laundry_barcode"/>
+
+                                <field name="barcode_scan_behavior"
+                                    invisible="not enable_laundry_barcode"/>
+
+
+                                <field name="barcode_order_access"
+                                    invisible="not enable_laundry_barcode"/>
+
+                                <field name="duplicate_scan_delay"
+                                    invisible="not enable_laundry_barcode"/>
+
+                                <field name="allow_backend_scan"
+                                    invisible="not enable_laundry_barcode"/>
+
+                            </group>
+                            
+                        </page>
 
                     </notebook>
 
