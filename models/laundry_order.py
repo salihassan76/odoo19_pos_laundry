@@ -205,6 +205,15 @@ class LaundryOrder(models.Model):
         copy=False,
     )
 
+    company_id = fields.Many2one(
+        comodel_name="res.company",
+        string="Company",
+        related="pos_config_id.company_id",
+        store=True,
+        readonly=True,
+        index=True,
+    )
+
     # -------------------------------------------------------------------------
     # COMPUTED FIELDS
     # -------------------------------------------------------------------------

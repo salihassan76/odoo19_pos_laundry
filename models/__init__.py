@@ -11,6 +11,8 @@ from . import laundry_pos_payment_account
 from . import laundry_pos_payment_pos
 from . import laundry_order_account
 from . import laundry_order_dashboard
+from . import laundry_order_barcode
+from . import laundry_order_scan_log
 
 
 

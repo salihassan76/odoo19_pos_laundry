@@ -39,6 +39,7 @@
 
                         <group string="Order Details">
                             <field name="pos_config_id" readonly="1"/>
+                            <field name="barcode" readonly="1"/>
                             <field name="name" readonly="1"/>
                             <field name="customer_id"/>
                             <field name="order_type_id"/>

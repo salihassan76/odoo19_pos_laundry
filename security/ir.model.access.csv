@@ -6,3 +6,7 @@ access_laundry_order_payment_status,laundry.order.payment.status,model_laundry_o
 access_laundry_order,laundry.order,model_laundry_order,base.group_user,1,1,1,1
 access_laundry_order_line,laundry.order.line,model_laundry_order_line,base.group_user,1,1,1,1
 access_laundry_pos_payment_user,laundry.pos.payment user,model_laundry_pos_payment,base.group_user,1,1,1,0
+access_laundry_order_scan_log_user,laundry.order.scan.log.user,model_laundry_order_scan_log,point_of_sale.group_pos_user,1,0,1,0
+access_laundry_order_scan_log_manager,laundry.order.scan.log.manager,model_laundry_order_scan_log,point_of_sale.group_pos_manager,1,0,1,0
+access_laundry_order_scan_log_admin,laundry.order.scan.log.admin,model_laundry_order_scan_log,base.group_system,1,1,1,1
+access_laundry_barcode_entry_wizard,laundry.barcode.entry.wizard,model_laundry_barcode_entry_wizard,point_of_sale.group_pos_user,1,1,1,1

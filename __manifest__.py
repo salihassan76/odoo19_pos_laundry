@@ -14,6 +14,7 @@
     "data": [
         "security/ir.model.access.csv",
         "data/laundry_pos_payment_sequence.xml",
+        "data/laundry_order_barcode_sequence.xml",
         "views/laundry_order_type_views.xml",
         "views/laundry_order_type_actions.xml",
         "views/laundry_configuration_views.xml",
@@ -25,6 +26,8 @@
         "views/laundry_order_payment_status_action.xml",
         "views/laundry_order_view.xml",
         "views/laundry_order_action.xml",
+        "views/laundry_order_scan_log_views.xml",
+        "wizard/laundry_barcode_entry_wizard_views.xml",
         "views/laundry_menus.xml",
         "views/pos_config_view.xml",
         "views/laundry_pos_payment_views.xml",
@@ -32,8 +35,10 @@
     "assets": {
         "point_of_sale._assets_pos": [
             "pos_laundry/static/src/app/utils/receipt_service.js",
+            "pos_laundry/static/src/js/barcode_parser.js",
             "pos_laundry/static/src/app/utils/laundry_visibility.js",
             "pos_laundry/static/src/app/services/laundry_service.js",
+            "pos_laundry/static/src/app/services/barcode_service.js",
             "pos_laundry/static/src/overrides/pos_startup.js",
             "pos_laundry/static/src/overrides/pos_patch.js",
             "pos_laundry/static/src/overrides/paymentscreen_patch.js",
@@ -62,6 +67,12 @@
             "pos_laundry/static/src/xml/category_selector_native_patch.xml",
             "pos_laundry/static/src/js/pos_laundrypaidorderscreen.js",
             "pos_laundry/static/src/xml/pos_laundrypaidscreen.xml",
+            "pos_laundry/static/src/app/utils/barcode_listener.js",
+            "pos_laundry/static/src/js/status_popup.js",
+            "pos_laundry/static/src/xml/status_popup.xml",
+            "pos_laundry/static/src/js/manual_barcode_popup.js",
+            "pos_laundry/static/src/xml/manual_barcode_popup.xml",
+            
         ],
     },
     "installable": True,

@@ -68,6 +68,7 @@
                             <field name="can_refund"/>
                             <field name="can_print"/>
                             <field name="is_terminal"/>
+                            <field name="allow_barcode_update"/>
                         </group>
                     </group>
 

@@ -19,6 +19,22 @@
               parent="menu_laundry_orders_root"
               action="action_laundry_order"
               sequence="10"/>
+     <!-- Barcode Scan Logs -->
+    <menuitem id="menu_laundry_order_scan_log"
+              name="Barcode Scan Logs"
+              parent="menu_laundry_orders_root"
+              action="action_laundry_order_scan_log"
+              sequence="20"
+              groups="point_of_sale.group_pos_manager"/>
+    <menuitem
+                id="menu_laundry_barcode_entry"
+                name="Enter Barcode"
+                parent="menu_laundry_root"
+                action="action_laundry_barcode_entry_wizard"
+                sequence="30"
+            />
+              
+
 
 
     <!-- Configuration -->

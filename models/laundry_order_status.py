@@ -75,6 +75,15 @@ class LaundryOrderStatus(models.Model):
         ),
     )
 
+    allow_barcode_update = fields.Boolean(
+        string="Allow Barcode Status Update",
+        default=True,
+        help=(
+            "Allow this status to be selected from the "
+            "barcode status-change popup."
+        ),
+    )
+
     # ---------------------------------------------------------
     # Action capabilities
     # ---------------------------------------------------------

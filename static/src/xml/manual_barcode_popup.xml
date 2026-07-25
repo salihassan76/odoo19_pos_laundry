@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="pos_laundry.ManualBarcodePopup">
+        <Dialog
+            title="title"
+            size="'md'"
+        >
+            <div
+                class="d-flex flex-column gap-3"
+                t-on-keydown="onKeydown"
+            >
+                <div>
+                    <label
+                        class="form-label fw-bold"
+                        for="manual_laundry_barcode"
+                    >
+                        Laundry Barcode
+                    </label>
+
+                    <input
+                        id="manual_laundry_barcode"
+                        type="text"
+                        class="form-control form-control-lg"
+                        placeholder="LND0000000001"
+                        autocomplete="off"
+                        autofocus="autofocus"
+                        t-att-disabled="state.processing"
+                        t-att-value="state.barcode"
+                        t-on-input="onBarcodeInput"
+                    />
+                </div>
+
+                <div
+                    t-if="state.errorMessage"
+                    class="alert alert-danger mb-0"
+                    role="alert"
+                >
+                    <t t-esc="state.errorMessage"/>
+                </div>
+            </div>
+
+            <t t-set-slot="footer">
+                <button
+                    type="button"
+                    class="btn btn-secondary"
+                    t-att-disabled="state.processing"
+                    t-on-click="cancel"
+                >
+                    Cancel
+                </button>
+
+                <button
+                    type="button"
+                    class="btn btn-primary"
+                    t-att-disabled="state.processing"
+                    t-on-click="confirm"
+                >
+                    <t t-if="state.processing">
+                        Processing...
+                    </t>
+                    <t t-else="">
+                        Open
+                    </t>
+                </button>
+            </t>
+        </Dialog>
+    </t>
+
+</templates>

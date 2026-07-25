@@ -1,0 +1,397 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- ================================================================
+         List View
+         ================================================================ -->
+
+    <record id="view_laundry_order_scan_log_list" model="ir.ui.view">
+        <field name="name">laundry.order.scan.log.list</field>
+        <field name="model">laundry.order.scan.log</field>
+        <field name="arch" type="xml">
+            <list
+                string="Barcode Scan Logs"
+                create="false"
+                edit="false"
+                delete="false"
+                default_order="scan_datetime desc"
+                decoration-success="result == 'status_updated'"
+                decoration-info="result in ('popup_opened', 'order_opened', 'print_requested')"
+                decoration-muted="result in ('status_unchanged', 'duplicate_ignored')"
+                decoration-danger="result in ('access_denied', 'order_not_found', 'failed')">
+
+                <field name="scan_datetime"/>
+
+                <field name="order_id"/>
+
+                <field name="barcode"
+                       optional="show"/>
+
+                <field name="source"
+                       widget="badge"
+                       optional="show"
+                       decoration-info="source == 'pos'"
+                       decoration-primary="source == 'backend'"
+                       decoration-warning="source in ('delivery_portal', 'logistics')"/>
+
+                <field name="origin_pos_config_id"
+                       optional="show"/>
+
+                <field name="scanning_pos_config_id"
+                       optional="show"/>
+
+                <field name="old_status_id"
+                       optional="show"/>
+
+                <field name="new_status_id"
+                       optional="show"/>
+
+                <field name="status_changed"
+                       optional="hide"/>
+
+                <field name="result"
+                       widget="badge"
+                       optional="show"
+                       decoration-success="result == 'status_updated'"
+                       decoration-info="result in ('popup_opened', 'order_opened', 'print_requested')"
+                       decoration-muted="result in ('status_unchanged', 'duplicate_ignored')"
+                       decoration-danger="result in ('access_denied', 'order_not_found', 'failed')"/>
+
+                <field name="user_id"
+                       optional="show"/>
+
+                <field name="company_id"
+                       groups="base.group_multi_company"
+                       optional="hide"/>
+
+                <field name="action_code"
+                       optional="hide"/>
+
+                <field name="device_reference"
+                       optional="hide"/>
+
+                <field name="ip_address"
+                       optional="hide"/>
+
+            </list>
+        </field>
+    </record>
+
+
+    <!-- ================================================================
+         Form View
+         ================================================================ -->
+
+    <record id="view_laundry_order_scan_log_form" model="ir.ui.view">
+        <field name="name">laundry.order.scan.log.form</field>
+        <field name="model">laundry.order.scan.log</field>
+        <field name="arch" type="xml">
+            <form
+                string="Barcode Scan Log"
+                create="false"
+                edit="false"
+                delete="false">
+
+                <sheet>
+
+                    <div class="oe_button_box" name="button_box">
+
+                        <button
+                            name="%(action_laundry_order)d"
+                            type="action"
+                            class="oe_stat_button"
+                            icon="fa-shopping-basket"
+                            context="{
+                                'search_default_id': order_id
+                            }">
+
+                            <field name="order_id"
+                                   widget="statinfo"
+                                   string="Laundry Order"/>
+
+                        </button>
+
+                    </div>
+
+                    <widget
+                        name="web_ribbon"
+                        title="Successful"
+                        bg_color="text-bg-success"
+                        invisible="not success"/>
+
+                    <widget
+                        name="web_ribbon"
+                        title="Failed"
+                        bg_color="text-bg-danger"
+                        invisible="success"/>
+
+                    <div class="oe_title">
+                        <label for="display_name"/>
+                        <h1>
+                            <field name="display_name"
+                                   readonly="1"/>
+                        </h1>
+                    </div>
+
+                    <group>
+
+                        <group string="Scan Information">
+
+                            <field name="scan_datetime"/>
+
+                            <field name="barcode"/>
+
+                            <field name="action_code"/>
+
+                            <field name="source"
+                                   widget="badge"
+                                   decoration-info="source == 'pos'"
+                                   decoration-primary="source == 'backend'"
+                                   decoration-warning="source in ('delivery_portal', 'logistics')"/>
+
+                            <field name="result"
+                                   widget="badge"
+                                   decoration-success="result == 'status_updated'"
+                                   decoration-info="result in ('popup_opened', 'order_opened', 'print_requested')"
+                                   decoration-muted="result in ('status_unchanged', 'duplicate_ignored')"
+                                   decoration-danger="result in ('access_denied', 'order_not_found', 'failed')"/>
+
+                            <field name="success"/>
+
+                            <field name="user_id"/>
+
+                        </group>
+
+                        <group string="Order Information">
+
+                            <field name="order_id"/>
+
+                            <field name="origin_pos_config_id"/>
+
+                            <field name="scanning_pos_config_id"/>
+
+                            <field name="company_id"
+                                   groups="base.group_multi_company"/>
+
+                        </group>
+
+                    </group>
+
+                    <group string="Status Change">
+
+                        <group>
+
+                            <field name="old_status_id"/>
+
+                            <field name="new_status_id"/>
+
+                        </group>
+
+                        <group>
+
+                            <field name="status_changed"/>
+
+                        </group>
+
+                    </group>
+
+                    <notebook>
+
+                        <page name="result_message"
+                              string="Result Message">
+
+                            <field name="message"
+                                   nolabel="1"
+                                   placeholder="No result message was recorded."/>
+
+                        </page>
+
+                        <page name="technical_information"
+                              string="Technical Information"
+                              groups="base.group_system">
+
+                            <group>
+
+                                <group>
+
+                                    <field name="device_reference"/>
+
+                                    <field name="ip_address"/>
+
+                                </group>
+
+                            </group>
+
+                            <field name="raw_payload"
+                                   nolabel="1"
+                                   placeholder="No raw payload was recorded."/>
+
+                        </page>
+
+                    </notebook>
+
+                </sheet>
+
+            </form>
+        </field>
+    </record>
+
+
+    <!-- ================================================================
+         Search View
+         ================================================================ -->
+
+    <record id="view_laundry_order_scan_log_search" model="ir.ui.view">
+        <field name="name">laundry.order.scan.log.search</field>
+        <field name="model">laundry.order.scan.log</field>
+        <field name="arch" type="xml">
+            <search string="Search Barcode Scan Logs">
+
+                <field name="barcode"/>
+
+                <field name="order_id"/>
+
+                <field name="user_id"/>
+
+                <field name="origin_pos_config_id"/>
+
+                <field name="scanning_pos_config_id"/>
+
+                <field name="old_status_id"/>
+
+                <field name="new_status_id"/>
+
+                <field name="device_reference"/>
+
+                <separator/>
+
+                <filter
+                    name="filter_successful"
+                    string="Successful"
+                    domain="[('success', '=', True)]"/>
+
+                <filter
+                    name="filter_failed"
+                    string="Failed"
+                    domain="[('success', '=', False)]"/>
+
+                <filter
+                    name="filter_status_updated"
+                    string="Status Updated"
+                    domain="[('result', '=', 'status_updated')]"/>
+
+                <filter
+                    name="filter_duplicate_ignored"
+                    string="Duplicate Ignored"
+                    domain="[('result', '=', 'duplicate_ignored')]"/>
+
+                <filter
+                    name="filter_access_denied"
+                    string="Access Denied"
+                    domain="[('result', '=', 'access_denied')]"/>
+
+                <separator/>
+
+                <filter
+                    name="filter_source_pos"
+                    string="Point of Sale"
+                    domain="[('source', '=', 'pos')]"/>
+
+                <filter
+                    name="filter_source_backend"
+                    string="Backend"
+                    domain="[('source', '=', 'backend')]"/>
+
+                <filter
+                    name="filter_source_delivery"
+                    string="Delivery Portal"
+                    domain="[('source', '=', 'delivery_portal')]"/>
+
+                <separator/>
+
+                <filter
+                    name="filter_today"
+                    string="Today"
+                    domain="[
+                        ('scan_datetime', '&gt;=', context_today().strftime('%Y-%m-%d 00:00:00')),
+                        ('scan_datetime', '&lt;=', context_today().strftime('%Y-%m-%d 23:59:59'))
+                    ]"/>
+
+                <filter
+                    name="filter_last_7_days"
+                    string="Last 7 Days"
+                    domain="[
+                        ('scan_datetime', '&gt;=', (context_today() - datetime.timedelta(days=7)).strftime('%Y-%m-%d 00:00:00'))
+                    ]"/>
+
+                <separator/>
+
+                <filter
+                    name="group_by_order"
+                    string="Order"
+                    context="{'group_by': 'order_id'}"/>
+
+                <filter
+                    name="group_by_source"
+                    string="Source"
+                    context="{'group_by': 'source'}"/>
+
+                <filter
+                    name="group_by_result"
+                    string="Result"
+                    context="{'group_by': 'result'}"/>
+
+                <filter
+                    name="group_by_origin_pos"
+                    string="Origin POS"
+                    context="{'group_by': 'origin_pos_config_id'}"/>
+
+                <filter
+                    name="group_by_scanning_pos"
+                    string="Scanning POS"
+                    context="{'group_by': 'scanning_pos_config_id'}"/>
+
+                <filter
+                    name="group_by_user"
+                    string="Scanned By"
+                    context="{'group_by': 'user_id'}"/>
+
+                <filter
+                    name="group_by_scan_date"
+                    string="Scan Date"
+                    context="{'group_by': 'scan_datetime:day'}"/>
+
+            </search>
+        </field>
+    </record>
+
+
+    <!-- ================================================================
+         Window Action
+         ================================================================ -->
+
+    <record id="action_laundry_order_scan_log" model="ir.actions.act_window">
+        <field name="name">Barcode Scan Logs</field>
+        <field name="res_model">laundry.order.scan.log</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id"
+               ref="view_laundry_order_scan_log_search"/>
+        <field name="context">
+            {
+                'search_default_filter_today': 1
+            }
+        </field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No barcode scans have been recorded.
+            </p>
+            <p>
+                Barcode scans from the Point of Sale, backend, delivery portal,
+                and logistics interfaces will appear here.
+            </p>
+        </field>
+    </record>
+
+
+
+</odoo>
