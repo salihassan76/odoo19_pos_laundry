@@ -68,7 +68,14 @@
                             <field name="can_refund"/>
                             <field name="can_print"/>
                             <field name="is_terminal"/>
+                        </group>
+                        
+                    </group>
+                    <separator string="Barcode Actions"/>
+                    <group>
+                        <group>
                             <field name="allow_barcode_update"/>
+                            <field name="next_status_id"/>
                         </group>
                     </group>
 

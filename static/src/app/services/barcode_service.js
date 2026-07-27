@@ -2,7 +2,9 @@
 
 import { registry } from "@web/core/registry";
 import { _t } from "@web/core/l10n/translation";
+
 import { LaundryStatusPopup } from "../../js/status_popup";
+import { ManualBarcodePopup } from "../../js/manual_barcode_popup";
 
 
 export class LaundryBarcodeService {
@@ -97,7 +99,7 @@ export class LaundryBarcodeService {
     }
 
     /**
-     * Update the order status selected from the popup.
+     * Confirm the configured next order status.
      *
      * @param {string} scannedBarcode
      * @param {number} statusId
@@ -121,7 +123,7 @@ export class LaundryBarcodeService {
         ) {
             this.notification.add(
                 _t(
-                    "A barcode and a new order status are required."
+                    "A barcode and a valid next status are required."
                 ),
                 {
                     type: "warning",
@@ -277,7 +279,7 @@ export class LaundryBarcodeService {
     }
 
     // ---------------------------------------------------------------------
-    // Popup
+    // Status confirmation popup
     // ---------------------------------------------------------------------
 
     _openStatusPopup(
@@ -293,10 +295,35 @@ export class LaundryBarcodeService {
             popupData.order ||
             {};
 
-        const availableStatuses =
-            popupData.available_statuses ||
-            popupData.statuses ||
-            [];
+        const currentStatus =
+            popupData.current_status ||
+            {};
+
+        const nextStatus =
+            popupData.next_status ||
+            {};
+
+        /*
+         * The backend should already reject orders that do
+         * not have a valid barcode-enabled next status.
+         *
+         * This check protects the frontend from malformed
+         * or outdated responses.
+         */
+        if (!Number(nextStatus.id || 0)) {
+            this.notification.add(
+                result.message ||
+                    _t(
+                        "No barcode-enabled next status is available."
+                    ),
+                {
+                    type: "warning",
+                    sticky: true,
+                }
+            );
+
+            return result;
+        }
 
         this.dialog.add(
             LaundryStatusPopup,
@@ -304,23 +331,20 @@ export class LaundryBarcodeService {
                 title:
                     popupData.title ||
                     _t(
-                        "Laundry Order Status"
+                        "Confirm Status Update"
                     ),
 
                 scannedBarcode,
 
                 order,
 
-                availableStatuses,
+                currentStatus,
 
-                currentStatusId:
-                    popupData.current_status_id ||
-                    order.status_id ||
-                    false,
+                nextStatus,
 
                 /*
-                 * Called by status_popup.js after the user
-                 * selects a new status.
+                 * Called by status_popup.js when the user
+                 * confirms the configured next status.
                  */
                 onConfirm:
                     async (statusId) => {
@@ -491,15 +515,16 @@ export class LaundryBarcodeService {
         );
     }
 
-    //----------------------------------------------------------------------
-    // Manual Barcode Entry
-    //----------------------------------------------------------------------
+    // ---------------------------------------------------------------------
+    // Manual barcode entry
+    // ---------------------------------------------------------------------
+
     async openManualBarcodeEntry() {
         this.dialog.add(
             ManualBarcodePopup,
             {
                 onConfirm: async (barcode) => {
-                    await this.processBarcode(
+                    return await this.process(
                         barcode
                     );
                 },

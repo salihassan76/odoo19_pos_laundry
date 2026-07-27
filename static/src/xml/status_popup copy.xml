@@ -1,0 +1,458 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="pos_laundry.LaundryStatusPopup">
+        <Dialog
+            title="false"
+            size="'xl'"
+            contentClass="'laundry-status-dialog'"
+        >
+            <div class="laundry-status-popup">
+
+                <div class="laundry-status-header d-flex align-items-center justify-content-between gap-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="laundry-header-icon d-flex align-items-center justify-content-center">
+                            <i class="fa fa-clipboard-check"/>
+                        </div>
+
+                        <h2 class="m-0 fw-bold">
+                            Change Order Status
+                        </h2>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="scanner-active-badge d-flex align-items-center gap-2">
+                            <span class="scanner-active-dot"/>
+                            <span class="fw-semibold">Scanner Active</span>
+                        </div>
+
+                        <button
+                            type="button"
+                            class="btn btn-link text-secondary p-2"
+                            t-on-click="cancel"
+                        >
+                            <i class="fa fa-times fs-2"/>
+                        </button>
+                    </div>
+                </div>
+
+                <section class="laundry-order-heading py-4">
+                    <div class="row g-4 align-items-center">
+                        <div class="col-12 col-lg-7">
+                            <div class="d-flex flex-wrap align-items-center gap-3">
+                                <h1 class="laundry-order-number m-0 fw-bold">
+                                    WS/2026/000482
+                                </h1>
+
+                                <button type="button" class="btn btn-outline-secondary btn-sm">
+                                    <i class="fa fa-copy"/>
+                                </button>
+                            </div>
+
+                            <div class="d-flex flex-wrap gap-2 mt-3">
+                                <span class="badge rounded-pill text-bg-primary px-3 py-2">
+                                    Unpaid
+                                </span>
+
+                                <span class="badge rounded-pill text-bg-light border px-3 py-2">
+                                    Washing &amp; Ironing
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-lg-5">
+                            <div class="d-flex flex-column flex-md-row align-items-center justify-content-lg-end gap-4">
+                                <div class="dummy-barcode-wrapper text-center">
+                                    <div class="dummy-barcode">
+                                        <span/><span/><span/><span/><span/><span/>
+                                        <span/><span/><span/><span/><span/><span/>
+                                        <span/><span/><span/><span/><span/><span/>
+                                        <span/><span/><span/><span/><span/><span/>
+                                    </div>
+
+                                    <div class="fw-semibold mt-2">
+                                        LND0000000482
+                                    </div>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    class="btn btn-outline-primary btn-lg d-flex align-items-center gap-2"
+                                    t-on-click="scanAgain"
+                                >
+                                    <i class="fa fa-barcode"/>
+                                    <span>Scan Again</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="laundry-info-panel card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4">
+                        <div class="row g-4 align-items-center">
+
+                            <div class="col-12 col-xl-4">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="info-avatar d-flex align-items-center justify-content-center">
+                                        <i class="fa fa-user"/>
+                                    </div>
+
+                                    <div>
+                                        <h4 class="mb-2 fw-bold">Ahmed Ali</h4>
+
+                                        <div class="text-secondary d-flex align-items-center gap-2 mb-1">
+                                            <i class="fa fa-phone text-primary"/>
+                                            <span>+973 3600 1234</span>
+                                        </div>
+
+                                        <div class="text-secondary d-flex align-items-center gap-2">
+                                            <i class="fa fa-map-marker text-primary"/>
+                                            <span>Manama, Bahrain</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-4 col-xl-3 laundry-info-divider">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="info-icon info-icon-blue d-flex align-items-center justify-content-center">
+                                        <i class="fa fa-tshirt"/>
+                                    </div>
+
+                                    <div>
+                                        <div class="text-secondary mb-1">Order Type</div>
+                                        <div class="fw-bold">Washing &amp; Ironing</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-4 col-xl-2 laundry-info-divider">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="info-icon info-icon-purple d-flex align-items-center justify-content-center">
+                                        <i class="fa fa-shopping-basket"/>
+                                    </div>
+
+                                    <div>
+                                        <div class="text-secondary mb-1">Items</div>
+                                        <div class="fw-bold">12 Items</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-4 col-xl-3 laundry-info-divider">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="info-icon info-icon-green d-flex align-items-center justify-content-center">
+                                        <i class="fa fa-calendar"/>
+                                    </div>
+
+                                    <div>
+                                        <div class="text-secondary mb-1">Order Date</div>
+                                        <div class="fw-semibold">21 Jul 2026</div>
+                                        <div class="text-secondary">10:30 AM</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </section>
+
+                <section class="laundry-timeline-panel card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4">
+                        <div class="laundry-status-timeline">
+
+                            <div class="timeline-step completed">
+                                <div class="timeline-track">
+                                    <div class="timeline-circle">
+                                        <i class="fa fa-check"/>
+                                    </div>
+                                    <div class="timeline-line"/>
+                                </div>
+
+                                <div class="timeline-content">
+                                    <div class="fw-bold">Confirmed</div>
+                                    <small class="text-secondary">21 Jul, 09:15 AM</small>
+                                </div>
+                            </div>
+
+                            <div class="timeline-step current">
+                                <div class="timeline-track">
+                                    <div class="timeline-circle"/>
+                                    <div class="timeline-line"/>
+                                </div>
+
+                                <div class="timeline-content">
+                                    <div class="fw-bold text-primary">In Progress</div>
+                                    <small class="text-secondary">21 Jul, 10:20 AM</small>
+
+                                    <div class="mt-2">
+                                        <span class="badge rounded-pill text-bg-primary">
+                                            Current
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="timeline-step next">
+                                <div class="timeline-track">
+                                    <div class="timeline-circle"/>
+                                    <div class="timeline-line"/>
+                                </div>
+
+                                <div class="timeline-content">
+                                    <div class="fw-bold">Ready</div>
+
+                                    <div class="mt-2">
+                                        <span class="badge rounded-pill bg-primary-subtle text-primary">
+                                            Next
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="timeline-step">
+                                <div class="timeline-track">
+                                    <div class="timeline-circle"/>
+                                    <div class="timeline-line"/>
+                                </div>
+
+                                <div class="timeline-content">
+                                    <div class="fw-semibold text-secondary">
+                                        Out for Delivery
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="timeline-step last">
+                                <div class="timeline-track">
+                                    <div class="timeline-circle"/>
+                                </div>
+
+                                <div class="timeline-content">
+                                    <div class="fw-semibold text-secondary">
+                                        Delivered
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </section>
+
+                <section class="row g-4 mb-4 mx-2">
+
+                    <div class="col-12 col-xl-3">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body p-4">
+                                <h5 class="fw-bold mb-4">Current Status</h5>
+
+                                <div class="current-status-box d-flex align-items-center gap-3">
+                                    <div class="current-status-icon d-flex align-items-center justify-content-center">
+                                        <i class="fa fa-spinner"/>
+                                    </div>
+
+                                    <div class="fw-bold text-primary fs-4">
+                                        In Progress
+                                    </div>
+                                </div>
+
+                                <div class="d-flex align-items-start gap-3 mt-4 text-secondary">
+                                    <i class="fa fa-clock-o fs-4 mt-1"/>
+
+                                    <div>
+                                        <div>Since</div>
+                                        <div class="fw-semibold text-dark">
+                                            21 Jul 2026 10:20 AM
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-xl-9">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body p-4">
+                                <h5 class="fw-bold mb-4">Select Next Status</h5>
+
+                                <div class="row g-3">
+
+                                    <div class="col-12 col-md-6 col-xxl-3">
+                                        <button
+                                            type="button"
+                                            class="status-option-card selected w-100"
+                                            t-on-click="() => this.selectDummyStatus('ready')"
+                                        >
+                                            <span class="status-selected-corner">
+                                                <i class="fa fa-check"/>
+                                            </span>
+
+                                            <span class="status-option-icon status-ready-icon">
+                                                <i class="fa fa-check-circle-o"/>
+                                            </span>
+
+                                            <span class="status-option-name">Ready</span>
+                                            <span class="status-option-description">
+                                                Order is ready for pickup
+                                            </span>
+                                        </button>
+                                    </div>
+
+                                    <div class="col-12 col-md-6 col-xxl-3">
+                                        <button
+                                            type="button"
+                                            class="status-option-card status-option-warning w-100"
+                                            t-on-click="() => this.selectDummyStatus('delivery')"
+                                        >
+                                            <span class="status-option-icon status-delivery-icon">
+                                                <i class="fa fa-truck"/>
+                                            </span>
+
+                                            <span class="status-option-name">
+                                                Out for Delivery
+                                            </span>
+
+                                            <span class="status-option-description">
+                                                Order is out for delivery to customer
+                                            </span>
+                                        </button>
+                                    </div>
+
+                                    <div class="col-12 col-md-6 col-xxl-3">
+                                        <button
+                                            type="button"
+                                            class="status-option-card w-100"
+                                            t-on-click="() => this.selectDummyStatus('collected')"
+                                        >
+                                            <span class="status-option-icon status-collected-icon">
+                                                <i class="fa fa-users"/>
+                                            </span>
+
+                                            <span class="status-option-name">Collected</span>
+
+                                            <span class="status-option-description">
+                                                Order collected by customer
+                                            </span>
+                                        </button>
+                                    </div>
+
+                                    <div class="col-12 col-md-6 col-xxl-3">
+                                        <button
+                                            type="button"
+                                            class="status-option-card status-option-danger w-100"
+                                            t-on-click="() => this.selectDummyStatus('cancelled')"
+                                        >
+                                            <span class="status-option-icon status-cancel-icon">
+                                                <i class="fa fa-times-circle-o"/>
+                                            </span>
+
+                                            <span class="status-option-name">
+                                                Cancel Order
+                                            </span>
+
+                                            <span class="status-option-description">
+                                                Cancel this order
+                                            </span>
+
+                                            <span class="status-danger-note">
+                                                Not recommended
+                                            </span>
+                                        </button>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </section>
+
+                <section class="scan-information-panel card border-0 mb-4">
+                    <div class="card-body px-4 py-3">
+                        <div class="row g-4 align-items-center">
+
+                            <div class="col-12 col-md-4">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="scan-info-icon scan-operator-icon d-flex align-items-center justify-content-center">
+                                        <i class="fa fa-user-o"/>
+                                    </div>
+
+                                    <div>
+                                        <div class="text-secondary">Operator</div>
+                                        <div class="fw-bold">Sayed Ali Hassan</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-4">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="scan-info-icon scan-time-icon d-flex align-items-center justify-content-center">
+                                        <i class="fa fa-clock-o"/>
+                                    </div>
+
+                                    <div>
+                                        <div class="text-secondary">Scan Time</div>
+                                        <div class="fw-bold">21 Jul 2026 11:25 AM</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-4">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="scan-info-icon scan-device-icon d-flex align-items-center justify-content-center">
+                                        <i class="fa fa-tablet"/>
+                                    </div>
+
+                                    <div>
+                                        <div class="text-secondary">Device</div>
+                                        <div class="fw-bold">POS-01 (Front Counter)</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </section>
+
+                <div class="laundry-status-footer d-flex flex-column flex-lg-row align-items-stretch align-items-lg-center justify-content-between gap-3">
+                    <label class="d-flex align-items-center gap-3 user-select-none">
+                        <input
+                            type="checkbox"
+                            class="form-check-input m-0 fs-4"
+                            checked="checked"
+                        />
+
+                        <span class="fw-semibold">
+                            Keep scanner active after closing
+                        </span>
+
+                        <i class="fa fa-info-circle text-secondary"/>
+                    </label>
+
+                    <div class="d-flex flex-column flex-sm-row gap-3">
+                        <button
+                            type="button"
+                            class="btn btn-light btn-lg px-5 d-flex align-items-center justify-content-center gap-2"
+                            t-on-click="cancel"
+                        >
+                            <i class="fa fa-times"/>
+                            <span>Cancel</span>
+                        </button>
+
+                        <button
+                            type="button"
+                            class="btn btn-primary btn-lg px-5 d-flex align-items-center justify-content-center gap-2"
+                            t-on-click="confirmStatus"
+                        >
+                            <i class="fa fa-check"/>
+                            <span>Confirm Status (Enter)</span>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </Dialog>
+    </t>
+
+</templates>

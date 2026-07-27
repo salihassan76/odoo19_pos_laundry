@@ -1,5 +1,5 @@
-from odoo import _, fields, models
-from odoo.exceptions import UserError
+from odoo import _, api, fields, models
+from odoo.exceptions import UserError, ValidationError
 
 
 class LaundryOrderStatus(models.Model):
@@ -79,8 +79,21 @@ class LaundryOrderStatus(models.Model):
         string="Allow Barcode Status Update",
         default=True,
         help=(
-            "Allow this status to be selected from the "
-            "barcode status-change popup."
+            "Allow this status to be assigned as the next status "
+            "through barcode scanning."
+        ),
+    )
+
+
+
+    next_status_id = fields.Many2one(
+        comodel_name="laundry.order.status",
+        string="Next Status",
+        domain="[('id', '!=', id), ('active', '=', True)]",
+        ondelete="restrict",
+        help=(
+            "The status that normally follows this status when an "
+            "order is updated using barcode scanning."
         ),
     )
 
@@ -146,6 +159,23 @@ class LaundryOrderStatus(models.Model):
     # POS helpers
     # ---------------------------------------------------------
 
+
+    @api.constrains("next_status_id", "is_terminal")
+    def _check_next_status_configuration(self):
+        for status in self:
+            if status.next_status_id == status:
+                raise ValidationError(
+                    _("A status cannot use itself as its next status.")
+                )
+
+            if status.is_terminal and status.next_status_id:
+                raise ValidationError(
+                    _(
+                        "Terminal status '%s' cannot have a next status."
+                    )
+                    % status.display_name
+                )
+            
     def get_pos_capabilities(self):
         """Return status details and capabilities for the POS."""
         self.ensure_one()
@@ -166,6 +196,9 @@ class LaundryOrderStatus(models.Model):
             "can_refund": bool(self.can_refund),
             "can_print": bool(self.can_print),
             "is_terminal": bool(self.is_terminal),
+            "allow_barcode_update": bool(self.allow_barcode_update),
+            "next_status_id": (self.next_status_id.id if self.next_status_id else False),
+            "next_status_name": (self.next_status_id.display_name if self.next_status_id else ""),
         }
 
     def allows_action(self, action):

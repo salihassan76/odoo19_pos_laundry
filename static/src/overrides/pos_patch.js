@@ -4,6 +4,8 @@ import { PosStore } from "@point_of_sale/app/services/pos_store";
 import { patch } from "@web/core/utils/patch";
 import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 import { _t } from "@web/core/l10n/translation";
+import { ManualBarcodePopup } from "../js/manual_barcode_popup";
+
 
 patch(PosStore.prototype, {
     /**
@@ -248,5 +250,80 @@ patch(PosStore.prototype, {
         this.navigate("pos_homescreen", {
             customer,
         });
+    },
+
+    /**
+    * Opens the manual Laundry barcode entry popup.
+    *
+    * The entered barcode is processed through the same service
+    * used by the physical barcode scanner.
+    */
+    openManualBarcode() {
+        if (!this.config?.enable_laundry_workflow) {
+            return;
+        }
+
+        const barcodeService =
+            this.laundryBarcodeService ||
+            this.env?.services?.laundry_barcode ||
+            this.env?.services?.laundryBarcode ||
+            null;
+
+        if (!barcodeService) {
+            console.error(
+                "[Laundry:Barcode] Barcode service is not available."
+            );
+
+            this.notification?.add(
+                _t(
+                    "The Laundry barcode service is not available."
+                ),
+                {
+                    type: "danger",
+                }
+            );
+
+            return;
+        }
+
+        this.dialog.add(
+            ManualBarcodePopup,
+            {
+                title: _t(
+                    "Enter Laundry Barcode"
+                ),
+
+                onConfirm: async (barcode) => {
+                    console.log(
+                        "[Laundry:Barcode] Manual barcode submitted",
+                        {
+                            barcode,
+                        }
+                    );
+
+                    /*
+                    * Use whichever method name exists in the
+                    * current barcode service implementation.
+                    */
+                    if (
+                        barcodeService.processBarcode
+                    ) {
+                        return await barcodeService
+                            .processBarcode(barcode);
+                    }
+
+                    if (barcodeService.process) {
+                        return await barcodeService
+                            .process(barcode);
+                    }
+
+                    throw new Error(
+                        _t(
+                            "The barcode processing method is not available."
+                        )
+                    );
+                },
+            }
+        );
     },
 });

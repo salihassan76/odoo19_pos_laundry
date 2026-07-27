@@ -1,0 +1,1176 @@
+// ============================================================================
+// Laundry POS - Barcode Status Confirmation Popup
+// Odoo 19
+//
+// Target:
+// pos_laundry/static/src/app/barcode/status_popup/status_popup.scss
+// ============================================================================
+
+
+// ============================================================================
+// Dialog variables and modal structure
+// ============================================================================
+
+.laundry-status-dialog {
+    --laundry-primary: #3b82f6;
+    --laundry-primary-dark: #2563eb;
+    --laundry-primary-soft: #eff6ff;
+
+    --laundry-success: #22c55e;
+    --laundry-success-dark: #15803d;
+    --laundry-success-soft: #ecfdf5;
+
+    --laundry-danger: #ef4444;
+    --laundry-danger-dark: #b91c1c;
+    --laundry-danger-soft: #fef2f2;
+
+    --laundry-purple: #8b5cf6;
+    --laundry-purple-soft: #f5f3ff;
+
+    --laundry-teal: #14b8a6;
+    --laundry-teal-soft: #f0fdfa;
+
+    --laundry-surface: #ffffff;
+    --laundry-background: #f8fafc;
+    --laundry-border: #e2e8f0;
+    --laundry-border-dark: #cbd5e1;
+
+    --laundry-text: #0f172a;
+    --laundry-text-secondary: #64748b;
+
+    --laundry-radius: 16px;
+    --laundry-radius-small: 12px;
+
+    --laundry-shadow:
+        0 16px 38px rgba(15, 23, 42, 0.14);
+
+    --laundry-shadow-soft:
+        0 5px 16px rgba(15, 23, 42, 0.07);
+
+    width: 94vw;
+    max-width: 1080px;
+    margin: 0.5rem auto;
+
+    .modal-content {
+        overflow: hidden;
+        border: 0;
+        border-radius: 20px;
+        background: var(--laundry-background);
+        box-shadow: var(--laundry-shadow);
+    }
+
+    .modal-header,
+    .modal-footer {
+        display: none;
+    }
+
+    .modal-body {
+        max-height: 96vh;
+        padding: 0;
+        overflow: hidden;
+        background: var(--laundry-background);
+    }
+}
+
+
+// ============================================================================
+// Main popup
+// ============================================================================
+
+.laundry-status-popup {
+    display: flex;
+    max-height: 96vh;
+    min-height: 0;
+    flex-direction: column;
+    overflow: hidden;
+
+    color: var(--laundry-text);
+
+    background:
+        radial-gradient(
+            circle at top right,
+            rgba(59, 130, 246, 0.08),
+            transparent 28%
+        ),
+        var(--laundry-background);
+
+    button {
+        font-family: inherit;
+    }
+}
+
+
+// ============================================================================
+// Header
+// ============================================================================
+
+.laundry-status-header {
+    position: relative;
+    z-index: 10;
+
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+
+    min-height: 66px;
+    padding: 0.7rem 1.1rem;
+
+    border-bottom: 1px solid var(--laundry-border);
+
+    background: rgba(255, 255, 255, 0.97);
+    backdrop-filter: blur(12px);
+}
+
+.laundry-header-title,
+.laundry-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+}
+
+.laundry-header-title {
+    min-width: 0;
+}
+
+.laundry-header-icon {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+
+    width: 42px;
+    height: 42px;
+
+    border-radius: 12px;
+
+    color: #ffffff;
+    font-size: 1.15rem;
+
+    background:
+        linear-gradient(
+            135deg,
+            var(--laundry-primary),
+            var(--laundry-purple)
+        );
+
+    box-shadow:
+        0 8px 18px rgba(59, 130, 246, 0.24);
+}
+
+.laundry-popup-title {
+    margin: 0;
+
+    overflow: hidden;
+
+    color: var(--laundry-text);
+    font-size: 1.2rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.laundry-popup-subtitle {
+    margin-top: 0.1rem;
+
+    overflow: hidden;
+
+    color: var(--laundry-text-secondary);
+    font-size: 0.78rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.scanner-active-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    padding: 0.45rem 0.7rem;
+
+    border: 1px solid rgba(34, 197, 94, 0.25);
+    border-radius: 999px;
+
+    color: var(--laundry-success-dark);
+    font-size: 0.8rem;
+    font-weight: 700;
+
+    background: var(--laundry-success-soft);
+}
+
+.scanner-active-dot {
+    width: 9px;
+    height: 9px;
+
+    border-radius: 50%;
+
+    background: var(--laundry-success);
+
+    animation:
+        laundryScannerPulse 1.8s infinite;
+}
+
+.laundry-close-button {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+
+    width: 36px;
+    height: 36px;
+    padding: 0;
+
+    border: 0;
+    border-radius: 10px;
+
+    color: var(--laundry-text-secondary);
+    font-size: 1.25rem;
+
+    background: transparent;
+
+    transition:
+        color 0.16s ease,
+        background-color 0.16s ease;
+
+    &:hover:not(:disabled) {
+        color: var(--laundry-danger-dark);
+        background: var(--laundry-danger-soft);
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+}
+
+
+// ============================================================================
+// Order heading
+// ============================================================================
+
+.laundry-order-heading {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+
+    padding: 0.8rem 1.1rem;
+}
+
+.laundry-order-primary {
+    min-width: 0;
+}
+
+.laundry-section-label {
+    margin-bottom: 0.15rem;
+
+    color: var(--laundry-text-secondary);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.laundry-order-number {
+    margin: 0;
+
+    overflow: hidden;
+
+    color: var(--laundry-text);
+    font-size: 1.45rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.laundry-order-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+
+    margin-top: 0.45rem;
+}
+
+.laundry-badge {
+    display: inline-flex;
+    align-items: center;
+
+    padding: 0.3rem 0.65rem;
+
+    border-radius: 999px;
+
+    font-size: 0.74rem;
+    font-weight: 700;
+}
+
+.laundry-badge-payment {
+    color: #1d4ed8;
+    background: var(--laundry-primary-soft);
+}
+
+.laundry-badge-type {
+    border: 1px solid var(--laundry-border);
+
+    color: var(--laundry-text-secondary);
+    background: #ffffff;
+}
+
+.laundry-barcode-summary {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 0.7rem;
+
+    min-width: 240px;
+    padding: 0.65rem 0.85rem;
+
+    border: 1px solid var(--laundry-border);
+    border-radius: var(--laundry-radius-small);
+
+    background: #ffffff;
+    box-shadow: var(--laundry-shadow-soft);
+}
+
+.laundry-barcode-icon {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+
+    width: 38px;
+    height: 38px;
+
+    border-radius: 11px;
+
+    color: var(--laundry-primary-dark);
+    font-size: 1.2rem;
+
+    background: var(--laundry-primary-soft);
+}
+
+.laundry-barcode-value {
+    color: var(--laundry-text);
+    font-size: 0.9rem;
+    font-weight: 800;
+    letter-spacing: 0.035em;
+}
+
+.laundry-barcode-caption {
+    margin-top: 0.1rem;
+
+    color: var(--laundry-success-dark);
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+
+
+// ============================================================================
+// Information panel
+// ============================================================================
+
+.laundry-information-card {
+    flex: 0 0 auto;
+
+    margin: 0 1.1rem 0.7rem;
+
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    border-radius: 14px;
+
+    background: var(--laundry-surface);
+    box-shadow: var(--laundry-shadow-soft);
+}
+
+.laundry-information-grid {
+    display: grid;
+    grid-template-columns:
+        minmax(220px, 1.5fr)
+        repeat(3, minmax(135px, 1fr));
+
+    padding: 0.7rem;
+}
+
+.laundry-information-item {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+
+    min-width: 0;
+    padding: 0.2rem 0.75rem;
+
+    border-left: 1px solid var(--laundry-border);
+
+    &:first-child {
+        padding-left: 0.2rem;
+        border-left: 0;
+    }
+}
+
+.laundry-information-icon {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+
+    width: 40px;
+    height: 40px;
+
+    border-radius: 11px;
+
+    font-size: 1rem;
+
+    &.customer {
+        color: #ffffff;
+
+        background:
+            linear-gradient(
+                135deg,
+                var(--laundry-primary),
+                var(--laundry-purple)
+            );
+    }
+
+    &.items {
+        color: #7c3aed;
+        background: var(--laundry-purple-soft);
+    }
+
+    &.amount {
+        color: var(--laundry-success-dark);
+        background: var(--laundry-success-soft);
+    }
+
+    &.pos {
+        color: #0f766e;
+        background: var(--laundry-teal-soft);
+    }
+}
+
+.laundry-information-content {
+    min-width: 0;
+}
+
+.laundry-information-label {
+    margin-bottom: 0.08rem;
+
+    color: var(--laundry-text-secondary);
+    font-size: 0.7rem;
+}
+
+.laundry-information-value {
+    overflow: hidden;
+
+    color: var(--laundry-text);
+    font-size: 0.88rem;
+    font-weight: 800;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.laundry-information-secondary {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+
+    margin-top: 0.1rem;
+
+    overflow: hidden;
+
+    color: var(--laundry-text-secondary);
+    font-size: 0.7rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+// ============================================================================
+// Compact status confirmation
+// ============================================================================
+
+.laundry-status-confirmation {
+    flex: 0 0 auto;
+
+    margin: 0 1.1rem 0.65rem;
+    padding: 0.7rem 0.8rem;
+
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    border-radius: 14px;
+
+    background: var(--laundry-surface);
+    box-shadow: var(--laundry-shadow-soft);
+}
+
+.laundry-status-heading {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+
+    margin-bottom: 0.55rem;
+
+    h3 {
+        margin: 0;
+
+        color: var(--laundry-text);
+        font-size: 0.95rem;
+        font-weight: 800;
+    }
+
+    p {
+        margin: 0.05rem 0 0;
+
+        color: var(--laundry-text-secondary);
+        font-size: 0.7rem;
+        line-height: 1.25;
+    }
+}
+
+.laundry-status-heading-icon {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+
+    width: 32px;
+    height: 32px;
+
+    border-radius: 10px;
+
+    color: var(--laundry-primary-dark);
+    font-size: 0.85rem;
+
+    background: var(--laundry-primary-soft);
+}
+
+.laundry-status-transition {
+    display: grid;
+    grid-template-columns:
+        minmax(0, 1fr)
+        64px
+        minmax(0, 1fr);
+
+    align-items: stretch;
+    gap: 0.55rem;
+}
+
+.laundry-status-card {
+    display: flex;
+    min-height: 105px;
+    flex-direction: column;
+
+    padding: 0.65rem 0.75rem;
+
+    border: 1px solid var(--laundry-border);
+    border-radius: 12px;
+
+    background: #ffffff;
+
+    &.current {
+        border-color: rgba(100, 116, 139, 0.24);
+
+        background:
+            linear-gradient(
+                180deg,
+                #ffffff,
+                #f8fafc
+            );
+    }
+
+    &.next {
+        border-color: rgba(59, 130, 246, 0.4);
+
+        background:
+            linear-gradient(
+                180deg,
+                #ffffff,
+                var(--laundry-primary-soft)
+            );
+
+        box-shadow:
+            0 7px 16px rgba(59, 130, 246, 0.1);
+    }
+}
+
+.laundry-status-card-label {
+    color: var(--laundry-text-secondary);
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.laundry-status-card-body {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+
+    margin-top: 0.45rem;
+}
+
+.laundry-status-card-icon {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+
+    width: 38px;
+    height: 38px;
+
+    border-radius: 11px;
+
+    font-size: 1rem;
+
+    &.current {
+        color: #475569;
+        background: #f1f5f9;
+    }
+
+    &.next {
+        color: #ffffff;
+
+        background:
+            linear-gradient(
+                135deg,
+                var(--laundry-primary),
+                var(--laundry-primary-dark)
+            );
+
+        box-shadow:
+            0 6px 14px rgba(59, 130, 246, 0.2);
+    }
+}
+
+.laundry-status-card-name {
+    color: var(--laundry-text);
+    font-size: 0.95rem;
+    font-weight: 800;
+    line-height: 1.15;
+}
+
+.laundry-status-card.next {
+    .laundry-status-card-name {
+        color: var(--laundry-primary-dark);
+    }
+}
+
+.laundry-status-card-description {
+    margin-top: 0.1rem;
+
+    color: var(--laundry-text-secondary);
+    font-size: 0.66rem;
+    line-height: 1.2;
+}
+
+.laundry-status-card-footer {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+
+    margin-top: auto;
+    padding-top: 0.35rem;
+
+    color: var(--laundry-text-secondary);
+    font-size: 0.62rem;
+    line-height: 1.2;
+
+    &.enabled {
+        color: var(--laundry-success-dark);
+        font-weight: 700;
+    }
+}
+
+.laundry-transition-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.laundry-transition-line {
+    height: 1px;
+    flex: 1;
+
+    background: var(--laundry-border-dark);
+}
+
+.laundry-transition-circle {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+
+    width: 30px;
+    height: 30px;
+
+    border-radius: 50%;
+
+    color: #ffffff;
+    font-size: 0.95rem;
+
+    background: var(--laundry-primary);
+
+    box-shadow:
+        0 5px 12px rgba(59, 130, 246, 0.18);
+}
+
+.laundry-status-warning {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+
+    margin-top: 0.5rem;
+    padding: 0.45rem 0.65rem;
+
+    border: 1px solid rgba(59, 130, 246, 0.15);
+    border-radius: 10px;
+
+    background: var(--laundry-primary-soft);
+}
+
+.laundry-status-warning-icon {
+    flex: 0 0 auto;
+
+    color: var(--laundry-primary-dark);
+    font-size: 0.95rem;
+}
+
+.laundry-status-warning-title {
+    display: inline;
+
+    color: var(--laundry-primary-dark);
+    font-size: 0.68rem;
+    font-weight: 800;
+}
+
+.laundry-status-warning-text {
+    display: inline;
+
+    margin-top: 0;
+    margin-left: 0.2rem;
+
+    color: #475569;
+    font-size: 0.66rem;
+    line-height: 1.2;
+}
+
+
+// ============================================================================
+// Error message
+// ============================================================================
+
+.laundry-error-message {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: flex-start;
+    gap: 0.65rem;
+
+    margin: 0 1.1rem 0.65rem;
+    padding: 0.65rem 0.8rem;
+
+    border: 1px solid rgba(239, 68, 68, 0.28);
+    border-radius: 11px;
+
+    background: var(--laundry-danger-soft);
+}
+
+.laundry-error-icon {
+    color: var(--laundry-danger-dark);
+    font-size: 1rem;
+}
+
+.laundry-error-title {
+    color: var(--laundry-danger-dark);
+    font-size: 0.76rem;
+    font-weight: 800;
+}
+
+.laundry-error-text {
+    margin-top: 0.1rem;
+
+    color: #7f1d1d;
+    font-size: 0.72rem;
+}
+
+
+// ============================================================================
+// Scan information
+// ============================================================================
+
+.laundry-scan-information {
+    display: grid;
+    flex: 0 0 auto;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.7rem;
+
+    margin: 0 1.1rem 0.7rem;
+    padding: 0.65rem 0.85rem;
+
+    border: 1px solid rgba(59, 130, 246, 0.14);
+    border-radius: 14px;
+
+    background:
+        linear-gradient(
+            90deg,
+            rgba(239, 246, 255, 0.92),
+            rgba(255, 255, 255, 0.98)
+        );
+}
+
+.laundry-scan-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+
+    min-width: 0;
+}
+
+.laundry-scan-icon {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+
+    width: 36px;
+    height: 36px;
+
+    border-radius: 10px;
+
+    &.operator {
+        color: var(--laundry-primary-dark);
+        background: var(--laundry-primary-soft);
+    }
+
+    &.time {
+        color: #7c3aed;
+        background: var(--laundry-purple-soft);
+    }
+
+    &.device {
+        color: #0f766e;
+        background: var(--laundry-teal-soft);
+    }
+}
+
+.laundry-scan-label {
+    color: var(--laundry-text-secondary);
+    font-size: 0.68rem;
+}
+
+.laundry-scan-value {
+    margin-top: 0.05rem;
+
+    overflow: hidden;
+
+    color: var(--laundry-text);
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+// ============================================================================
+// Footer
+// ============================================================================
+
+.laundry-status-footer {
+    position: relative;
+    z-index: 10;
+
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+
+    padding: 0.7rem 1.1rem;
+
+    border-top: 1px solid var(--laundry-border);
+
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(12px);
+
+    box-shadow:
+        0 -8px 20px rgba(15, 23, 42, 0.05);
+}
+
+.laundry-keyboard-help {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    color: var(--laundry-text-secondary);
+    font-size: 0.74rem;
+}
+
+.laundry-footer-actions {
+    display: flex;
+    gap: 0.65rem;
+}
+
+.laundry-button {
+    display: inline-flex;
+    min-height: 42px;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+
+    padding: 0.55rem 1.1rem;
+
+    border-radius: 11px;
+
+    font-size: 0.85rem;
+    font-weight: 800;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.15s ease,
+        box-shadow 0.15s ease,
+        border-color 0.15s ease,
+        background-color 0.15s ease;
+
+    &:hover:not(:disabled) {
+        transform: translateY(-1px);
+    }
+
+    &:focus-visible {
+        outline: 3px solid rgba(59, 130, 246, 0.25);
+        outline-offset: 2px;
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.55;
+    }
+}
+
+.laundry-button-cancel {
+    border: 1px solid var(--laundry-border-dark);
+
+    color: #475569;
+    background: #ffffff;
+
+    &:hover:not(:disabled) {
+        border-color: #94a3b8;
+        background: #f8fafc;
+    }
+}
+
+.laundry-button-confirm {
+    min-width: 150px;
+
+    border: 1px solid var(--laundry-primary);
+
+    color: #ffffff;
+
+    background:
+        linear-gradient(
+            135deg,
+            var(--laundry-primary),
+            var(--laundry-primary-dark)
+        );
+
+    box-shadow:
+        0 7px 16px rgba(59, 130, 246, 0.18);
+
+    &:hover:not(:disabled) {
+        box-shadow:
+            0 9px 20px rgba(37, 99, 235, 0.24);
+    }
+}
+
+
+// ============================================================================
+// Medium screens
+// ============================================================================
+
+@media (max-width: 991.98px) {
+    .laundry-information-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.55rem;
+    }
+
+    .laundry-information-item {
+        padding: 0.35rem;
+        border-left: 0;
+    }
+
+    .laundry-status-transition {
+        grid-template-columns:
+            minmax(0, 1fr)
+            52px
+            minmax(0, 1fr);
+    }
+}
+
+
+// ============================================================================
+// Tablet and mobile screens
+// ============================================================================
+
+@media (max-width: 767.98px) {
+    .laundry-status-dialog {
+        width: 98vw;
+        margin: 0.25rem auto;
+
+        .modal-body {
+            max-height: 98vh;
+            overflow-y: auto;
+        }
+    }
+
+    .laundry-status-popup {
+        max-height: none;
+        overflow: visible;
+    }
+
+    .laundry-status-header {
+        padding: 0.6rem 0.8rem;
+    }
+
+    .laundry-popup-title {
+        font-size: 1.05rem;
+    }
+
+    .laundry-popup-subtitle {
+        display: none;
+    }
+
+    .scanner-active-badge {
+        padding: 0.4rem 0.55rem;
+
+        span:last-child {
+            display: none;
+        }
+    }
+
+    .laundry-order-heading {
+        flex-direction: column;
+        align-items: stretch;
+
+        padding: 0.7rem 0.8rem;
+    }
+
+    .laundry-order-number {
+        font-size: 1.25rem;
+    }
+
+    .laundry-barcode-summary {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .laundry-information-card,
+    .laundry-status-confirmation,
+    .laundry-scan-information,
+    .laundry-error-message {
+        margin-right: 0.8rem;
+        margin-left: 0.8rem;
+    }
+
+    .laundry-information-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .laundry-status-transition {
+        grid-template-columns: 1fr;
+    }
+
+    .laundry-transition-arrow {
+        min-height: 36px;
+        flex-direction: column;
+    }
+
+    .laundry-transition-line {
+        width: 1px;
+        min-height: 5px;
+        flex: 1;
+    }
+
+    .laundry-transition-circle {
+        transform: rotate(90deg);
+    }
+
+    .laundry-scan-information {
+        grid-template-columns: 1fr;
+    }
+
+    .laundry-status-footer {
+        flex-direction: column;
+        align-items: stretch;
+
+        padding: 0.65rem 0.8rem;
+    }
+
+    .laundry-keyboard-help {
+        justify-content: center;
+    }
+
+    .laundry-footer-actions {
+        width: 100%;
+    }
+
+    .laundry-button {
+        flex: 1;
+    }
+}
+
+
+// ============================================================================
+// Small mobile screens
+// ============================================================================
+
+@media (max-width: 480px) {
+    .laundry-header-icon {
+        width: 38px;
+        height: 38px;
+    }
+
+    .laundry-header-actions {
+        gap: 0.3rem;
+    }
+
+    .laundry-information-card,
+    .laundry-status-confirmation,
+    .laundry-scan-information,
+    .laundry-error-message {
+        margin-right: 0.55rem;
+        margin-left: 0.55rem;
+    }
+
+    .laundry-status-card {
+        min-height: 100px;
+    }
+
+    .laundry-footer-actions {
+        flex-direction: column-reverse;
+    }
+
+    .laundry-button {
+        width: 100%;
+    }
+}
+
+
+// ============================================================================
+// Scanner animation
+// ============================================================================
+
+@keyframes laundryScannerPulse {
+    0% {
+        box-shadow:
+            0 0 0 0 rgba(34, 197, 94, 0.34);
+    }
+
+    70% {
+        box-shadow:
+            0 0 0 7px rgba(34, 197, 94, 0);
+    }
+
+    100% {
+        box-shadow:
+            0 0 0 0 rgba(34, 197, 94, 0);
+    }
+}

@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="pos_laundry.LaundryStatusPopup">
+
+        <Dialog
+            title="props.title"
+            size="'md'"
+            t-on-keydown="onKeydown">
+
+            <!-- ========================================================= -->
+            <!-- Order Information -->
+            <!-- ========================================================= -->
+
+            <div class="mb-3">
+
+                <table class="table table-sm table-borderless mb-0">
+
+                    <tbody>
+
+                        <tr>
+                            <th width="35%">Order</th>
+                            <td>
+                                <strong>
+                                    <t t-esc="order.name"/>
+                                </strong>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th>Customer</th>
+                            <td>
+                                <t t-esc="order.customer_name"/>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th>Order Type</th>
+                            <td>
+                                <t t-esc="order.order_type_name"/>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th>Current Status</th>
+                            <td>
+                                <span class="badge bg-primary">
+                                    <t t-esc="order.status_name"/>
+                                </span>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th>Payment</th>
+                            <td>
+                                <t t-esc="order.payment_status_name"/>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th>Total</th>
+                            <td>
+                                <strong>
+                                    <t t-esc="formatAmount(order.total_amount)"/>
+                                </strong>
+                            </td>
+                        </tr>
+
+                        <tr t-if="order.origin_pos_name">
+
+                            <th>Origin POS</th>
+
+                            <td>
+                                <t t-esc="order.origin_pos_name"/>
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+            <!-- ========================================================= -->
+            <!-- Status Selection -->
+            <!-- ========================================================= -->
+
+            <div class="mb-3">
+
+                <label class="form-label fw-bold">
+                    Select New Status
+                </label>
+
+                <div
+                    t-if="hasStatuses"
+                    class="d-grid gap-2">
+
+                    <t
+                        t-foreach="statuses"
+                        t-as="status"
+                        t-key="status.id">
+
+                        <button
+                            type="button"
+                            class="btn text-start"
+
+                            t-att-class="{
+                                'btn-primary': isSelected(status.id),
+                                'btn-outline-secondary': !isSelected(status.id)
+                            }"
+
+                            t-att-style="getStatusStyle(status)"
+
+                            t-on-click="() => selectStatus(status.id)">
+
+                            <div class="d-flex justify-content-between align-items-center">
+
+                                <div>
+
+                                    <strong>
+                                        <t t-esc="status.name"/>
+                                    </strong>
+
+                                </div>
+
+                                <div>
+
+                                    <span
+                                        t-if="isCurrent(status.id)"
+                                        class="badge bg-info">
+
+                                        Current
+
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                        </button>
+
+                    </t>
+
+                </div>
+
+                <div
+                    t-else=""
+                    class="alert alert-warning">
+
+                    No available status.
+
+                </div>
+
+            </div>
+
+            <!-- ========================================================= -->
+            <!-- Error -->
+            <!-- ========================================================= -->
+
+            <div
+                t-if="state.errorMessage"
+                class="alert alert-danger">
+
+                <t t-esc="state.errorMessage"/>
+
+            </div>
+
+            <!-- ========================================================= -->
+            <!-- Footer -->
+            <!-- ========================================================= -->
+
+            <t t-set-slot="footer">
+
+                <button
+                    class="btn btn-secondary"
+                    t-att-disabled="state.processing"
+                    t-on-click="cancel">
+
+                    Cancel
+
+                </button>
+
+                <button
+                    class="btn btn-primary"
+
+                    t-att-disabled="!canConfirm"
+
+                    t-on-click="confirm">
+
+                    <i
+                        t-if="state.processing"
+                        class="fa fa-spinner fa-spin me-1"/>
+
+                    <t t-esc="confirmButtonLabel"/>
+
+                </button>
+
+            </t>
+
+        </Dialog>
+
+    </t>
+
+</templates>

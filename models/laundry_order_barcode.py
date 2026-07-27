@@ -295,13 +295,56 @@ class LaundryOrderBarcode(models.Model):
         return True
 
     def _barcode_update_status(
-        self,
-        new_status_id,
-        scanned_barcode,
-        source="pos",
-        scanning_pos=False,
+    self,
+    new_status_id,
+    scanned_barcode,
+    source="pos",
+    scanning_pos=False,
     ):
         self.ensure_one()
+
+        old_status = self.status_id
+
+        if not old_status:
+            raise UserError(
+                _("The order does not have a current status.")
+            )
+
+        if old_status.is_terminal:
+            raise UserError(
+                _(
+                    "A terminal order cannot be updated "
+                    "using barcode scanning."
+                )
+            )
+
+        expected_status = old_status.next_status_id
+
+        if not expected_status:
+            raise UserError(
+                _(
+                    "No next status is configured for '%s'."
+                )
+                % old_status.display_name
+            )
+
+        if not expected_status.active:
+            raise UserError(
+                _(
+                    "The configured next status '%s' "
+                    "is inactive."
+                )
+                % expected_status.display_name
+            )
+
+        if not expected_status.allow_barcode_update:
+            raise UserError(
+                _(
+                    "The next status '%s' does not allow "
+                    "barcode updates."
+                )
+                % expected_status.display_name
+            )
 
         try:
             status_id = int(new_status_id)
@@ -316,51 +359,14 @@ class LaundryOrderBarcode(models.Model):
 
         if not new_status:
             raise UserError(
-                _(
-                    "The selected status was not found."
-                )
+                _("The selected status was not found.")
             )
 
-        if not new_status.active:
-            raise UserError(
-                _("The selected status is inactive.")
-            )
-
-        if not new_status.allow_barcode_update:
+        if new_status != expected_status:
             raise UserError(
                 _(
-                    "The selected status cannot be "
-                    "assigned using barcode scanning."
-                )
-            )
-
-        old_status = self.status_id
-
-        if old_status == new_status:
-            self._record_barcode_activity(
-                action="status_unchanged",
-                source=source,
-                scanning_pos=scanning_pos,
-            )
-
-            return {
-                "success": True,
-                "action": "status_unchanged",
-                "close_popup": False,
-                "message": _(
-                    "The order already has the "
-                    "selected status."
-                ),
-            }
-
-        if (
-            old_status
-            and old_status.is_terminal
-        ):
-            raise UserError(
-                _(
-                    "A terminal order cannot be "
-                    "updated using barcode scanning."
+                    "The selected status is not the "
+                    "configured next status."
                 )
             )
 
@@ -391,52 +397,75 @@ class LaundryOrderBarcode(models.Model):
             "barcode": (
                 scanned_barcode or self.barcode or ""
             ),
-            "old_status_id": (
-                old_status.id
-                if old_status
-                else False
-            ),
-            "old_status_name": (
-                old_status.display_name
-                if old_status
-                else ""
-            ),
+            "old_status_id": old_status.id,
+            "old_status_name": old_status.display_name,
             "new_status_id": new_status.id,
-            "new_status_name":
-                new_status.display_name,
+            "new_status_name": new_status.display_name,
             "message": _(
-                "The laundry order status "
-                "was updated."
-            ),
+                "The laundry order status was updated "
+                "from '%(old_status)s' to '%(new_status)s'."
+            )
+            % {
+                "old_status": old_status.display_name,
+                "new_status": new_status.display_name,
+            },
         }
 
     def _prepare_barcode_popup_data(
-        self,
-        source="pos",
-        scanning_pos=False,
+    self,
+    source="pos",
+    scanning_pos=False,
     ):
         """
-        Prepare the response used by the barcode
-        status-change popup.
+        Prepare the barcode confirmation popup.
 
-        This method only prepares data. It does not
-        change the order status.
+        Only the configured next status is returned,
+        provided it is active and allows barcode updates.
         """
         self.ensure_one()
 
-        available_statuses = self.env[
-            "laundry.order.status"
-        ].search(
-            [
-                ("active", "=", True),
-                (
-                    "allow_barcode_update",
-                    "=",
-                    True,
-                ),
-            ],
-            order="sequence, id",
-        )
+        current_status = self.status_id
+
+        if not current_status:
+            raise UserError(
+                _("The order does not have a current status.")
+            )
+
+        if current_status.is_terminal:
+            raise UserError(
+                _(
+                    "This order is already in a terminal "
+                    "status and cannot be updated by barcode."
+                )
+            )
+
+        next_status = current_status.next_status_id
+
+        if not next_status:
+            raise UserError(
+                _(
+                    "No next status is configured for '%s'."
+                )
+                % current_status.display_name
+            )
+
+        if not next_status.active:
+            raise UserError(
+                _(
+                    "The configured next status '%s' "
+                    "is inactive."
+                )
+                % next_status.display_name
+            )
+
+        if not next_status.allow_barcode_update:
+            raise UserError(
+                _(
+                    "The next status '%s' does not allow "
+                    "barcode updates."
+                )
+                % next_status.display_name
+            )
 
         currency = (
             self.currency_id
@@ -447,20 +476,12 @@ class LaundryOrderBarcode(models.Model):
             else self.company_id.currency_id
         )
 
-        current_status_id = (
-            self.status_id.id
-            if self.status_id
-            else False
-        )
-
         return {
             "success": True,
             "action": "status_popup",
             "message": _("Laundry order found."),
             "popup_data": {
-                "title": _(
-                    "Update Laundry Order Status"
-                ),
+                "title": _("Confirm Status Update"),
                 "order": {
                     "id": self.id,
                     "name": self.display_name,
@@ -485,13 +506,6 @@ class LaundryOrderBarcode(models.Model):
                         if self.order_type_id
                         else ""
                     ),
-                    "status_id":
-                        current_status_id,
-                    "status_name": (
-                        self.status_id.display_name
-                        if self.status_id
-                        else ""
-                    ),
                     "payment_status_id": (
                         self.payment_status_id.id
                         if self.payment_status_id
@@ -502,9 +516,7 @@ class LaundryOrderBarcode(models.Model):
                         if self.payment_status_id
                         else ""
                     ),
-                    "total_amount": (
-                        self.total_amount or 0.0
-                    ),
+                    "total_amount": self.total_amount or 0.0,
                     "currency": {
                         "id": currency.id,
                         "name": currency.name,
@@ -535,27 +547,22 @@ class LaundryOrderBarcode(models.Model):
                     ),
                     "source": source,
                 },
-                "current_status_id":
-                    current_status_id,
-                "available_statuses": [
-                    {
-                        "id": status.id,
-                        "name":
-                            status.display_name,
-                        "color": (
-                            status.color
-                            or "text-primary"
-                        ),
-                        "sequence":
-                            status.sequence,
-                        "is_current": (
-                            status.id
-                            == current_status_id
-                        ),
-                    }
-                    for status
-                    in available_statuses
-                ],
+                "current_status": {
+                    "id": current_status.id,
+                    "name": current_status.display_name,
+                    "color": (
+                        current_status.color
+                        or "text-primary"
+                    ),
+                },
+                "next_status": {
+                    "id": next_status.id,
+                    "name": next_status.display_name,
+                    "color": (
+                        next_status.color
+                        or "text-primary"
+                    ),
+                },
             },
         }
 

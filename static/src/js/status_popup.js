@@ -32,13 +32,13 @@ export class LaundryStatusPopup extends Component {
             optional: true,
         },
 
-        availableStatuses: {
-            type: Array,
+        currentStatus: {
+            type: Object,
             optional: true,
         },
 
-        currentStatusId: {
-            type: [Number, Boolean],
+        nextStatus: {
+            type: Object,
             optional: true,
         },
 
@@ -48,21 +48,15 @@ export class LaundryStatusPopup extends Component {
     };
 
     static defaultProps = {
-        title: _t("Laundry Order Status"),
+        title: _t("Confirm Status Update"),
         order: {},
-        availableStatuses: [],
-        currentStatusId: false,
+        currentStatus: {},
+        nextStatus: {},
     };
 
     setup() {
         this.state = useState({
-            selectedStatusId:
-                Number(
-                    this.props.currentStatusId || 0
-                ) || false,
-
             processing: false,
-
             errorMessage: "",
         });
     }
@@ -75,43 +69,24 @@ export class LaundryStatusPopup extends Component {
         return this.props.order || {};
     }
 
-    get statuses() {
-        return (
-            this.props.availableStatuses ||
-            []
-        );
+    get currentStatus() {
+        return this.props.currentStatus || {};
     }
 
-    get hasStatuses() {
-        return this.statuses.length > 0;
+    get nextStatus() {
+        return this.props.nextStatus || {};
     }
 
-    get selectedStatusId() {
-        return Number(
-            this.state.selectedStatusId || 0
-        );
-    }
-
-    get currentStatusId() {
-        return Number(
-            this.props.currentStatusId ||
-            this.order.status_id ||
-            0
+    get hasNextStatus() {
+        return Boolean(
+            Number(this.nextStatus.id || 0)
         );
     }
 
     get canConfirm() {
-        return Boolean(
-            this.selectedStatusId &&
+        return (
+            this.hasNextStatus &&
             !this.state.processing
-        );
-    }
-
-    get selectedStatus() {
-        return this.statuses.find(
-            (status) =>
-                Number(status.id) ===
-                this.selectedStatusId
         );
     }
 
@@ -120,43 +95,7 @@ export class LaundryStatusPopup extends Component {
             return _t("Updating...");
         }
 
-        if (
-            this.selectedStatusId ===
-            this.currentStatusId
-        ) {
-            return _t("Confirm Status");
-        }
-
-        return _t("Update Status");
-    }
-
-    // ---------------------------------------------------------------------
-    // Status selection
-    // ---------------------------------------------------------------------
-
-    selectStatus(statusId) {
-        if (this.state.processing) {
-            return;
-        }
-
-        this.state.selectedStatusId =
-            Number(statusId || 0);
-
-        this.state.errorMessage = "";
-    }
-
-    isSelected(statusId) {
-        return (
-            Number(statusId) ===
-            this.selectedStatusId
-        );
-    }
-
-    isCurrent(statusId) {
-        return (
-            Number(statusId) ===
-            this.currentStatusId
-        );
+        return _t("Confirm");
     }
 
     // ---------------------------------------------------------------------
@@ -165,10 +104,10 @@ export class LaundryStatusPopup extends Component {
 
     async confirm() {
         if (!this.canConfirm) {
-            if (!this.selectedStatusId) {
+            if (!this.hasNextStatus) {
                 this.state.errorMessage =
                     _t(
-                        "Please select an order status."
+                        "No barcode-enabled next status is available."
                     );
             }
 
@@ -181,16 +120,12 @@ export class LaundryStatusPopup extends Component {
         try {
             const result =
                 await this.props.onConfirm(
-                    this.selectedStatusId
+                    Number(this.nextStatus.id)
                 );
 
-            /*
-             * Keep the popup open when the backend explicitly
-             * reports a failure.
-             */
             if (!result || result.success !== true) {
                 this.state.errorMessage =
-                    result.message ||
+                    result?.message ||
                     _t(
                         "The status could not be updated."
                     );
@@ -198,10 +133,6 @@ export class LaundryStatusPopup extends Component {
                 return;
             }
 
-            /*
-             * The service already displays the success
-             * notification after status_updated.
-             */
             this.props.close();
         } catch (error) {
             console.error(
@@ -260,16 +191,6 @@ export class LaundryStatusPopup extends Component {
             return "";
         }
 
-        /*
-         * Supports values returned as CSS-compatible colors,
-         * such as:
-         *
-         *     #28a745
-         *     rgb(40, 167, 69)
-         *
-         * Numeric Odoo color indexes should be displayed
-         * using CSS classes in the XML instead.
-         */
         const color =
             String(status.color || "").trim();
 

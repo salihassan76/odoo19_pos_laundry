@@ -48,6 +48,7 @@
             "pos_laundry/static/src/xml/pos_pendingscreen.xml",
             "pos_laundry/static/src/css/pos_laundry.css",
             "pos_laundry/static/src/css/laundry_payment_screen.scss",
+            "pos_laundry/static/src/css/status_popup.scss",
             "pos_laundry/static/src/xml/pos_ordertype.xml",
             "pos_laundry/static/src/xml/pos_productprice.xml",
             "pos_laundry/static/src/xml/pos_orderlistscreen.xml",

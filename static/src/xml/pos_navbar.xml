@@ -91,6 +91,18 @@
                     </span>
 
                 </button>
+                <button class="btn btn-light lh-lg d-flex align-items-center justify-content-center gap-2"
+                    title="Manual Barcode"
+                    t-on-click="() => this.pos.openManualBarcode()">
+
+                <i class="fa fa-barcode text-primary fs-3"/>
+
+                <span class="d-none d-md-inline">
+                    Manual Barcode
+                </span>
+
+            </button>
+
 
             </t>
 
