@@ -27,9 +27,10 @@
                         </div>
 
                         <div>
-                            <h2 class="laundry-popup-title">
-                                Confirm Status Update
-                            </h2>
+                            <h2
+                                class="laundry-popup-title"
+                                t-esc="props.title"
+                            />
 
                             <div class="laundry-popup-subtitle">
                                 Review the order before confirming
@@ -40,10 +41,19 @@
 
                     <div class="laundry-header-actions">
 
-                        <div class="scanner-active-badge">
+                        <div
+                            t-attf-class="
+                                scanner-active-badge
+                                #{state.processing ? 'processing' : 'active'}
+                            "
+                        >
                             <span class="scanner-active-dot"/>
 
-                            <span>
+                            <span t-if="state.processing">
+                                Updating Status
+                            </span>
+
+                            <span t-else="">
                                 Scanner Active
                             </span>
                         </div>
@@ -75,19 +85,36 @@
                             Laundry Order
                         </div>
 
-                        <h1 class="laundry-order-number">
-                            WS/2026/000482
-                        </h1>
+                        <h1
+                            class="laundry-order-number"
+                            t-esc="order.name || order.order_name || '-'"
+                        />
 
                         <div class="laundry-order-badges">
 
-                            <span class="laundry-badge laundry-badge-payment">
-                                Unpaid
-                            </span>
+                            <span
+                                t-if="
+                                    order.payment_status_name ||
+                                    order.payment_status?.name
+                                "
+                                class="laundry-badge laundry-badge-payment"
+                                t-esc="
+                                    order.payment_status_name ||
+                                    order.payment_status?.name
+                                "
+                            />
 
-                            <span class="laundry-badge laundry-badge-type">
-                                Washing &amp; Ironing
-                            </span>
+                            <span
+                                t-if="
+                                    order.order_type_name ||
+                                    order.order_type?.name
+                                "
+                                class="laundry-badge laundry-badge-type"
+                                t-esc="
+                                    order.order_type_name ||
+                                    order.order_type?.name
+                                "
+                            />
 
                         </div>
 
@@ -100,9 +127,10 @@
                         </div>
 
                         <div>
-                            <div class="laundry-barcode-value">
-                                LND0000000482
-                            </div>
+                            <div
+                                class="laundry-barcode-value"
+                                t-esc="props.scannedBarcode || '-'"
+                            />
 
                             <div class="laundry-barcode-caption">
                                 Barcode scanned successfully
@@ -136,13 +164,42 @@
                                     Customer
                                 </div>
 
-                                <div class="laundry-information-value">
-                                    Ahmed Ali
+                                <div
+                                    class="laundry-information-value"
+                                    t-esc="
+                                        order.customer_name ||
+                                        order.partner_name ||
+                                        order.customer?.name ||
+                                        '-'
+                                    "
+                                />
+
+                                <div
+                                    t-if="
+                                        order.customer_phone ||
+                                        order.partner_phone ||
+                                        order.customer?.phone ||
+                                        order.customer?.mobile
+                                    "
+                                    class="laundry-information-secondary"
+                                >
+                                    <i class="fa fa-phone"/>
+
+                                    <span
+                                        t-esc="
+                                            order.customer_phone ||
+                                            order.partner_phone ||
+                                            order.customer?.phone ||
+                                            order.customer?.mobile
+                                        "
+                                    />
                                 </div>
 
-                                <div class="laundry-information-secondary">
-                                    <i class="fa fa-phone"/>
-                                    <span>+973 3600 1234</span>
+                                <div
+                                    t-else=""
+                                    class="laundry-information-secondary"
+                                >
+                                    No phone number
                                 </div>
 
                             </div>
@@ -165,12 +222,27 @@
                                 </div>
 
                                 <div class="laundry-information-value">
-                                    12 Items
+                                    <t
+                                        t-esc="
+                                            order.item_count ??
+                                            order.total_items ??
+                                            order.quantity ??
+                                            0
+                                        "
+                                    />
+                                    <span>
+                                        Items
+                                    </span>
                                 </div>
 
-                                <div class="laundry-information-secondary">
-                                    Washing &amp; Ironing
-                                </div>
+                                <div
+                                    class="laundry-information-secondary"
+                                    t-esc="
+                                        order.order_type_name ||
+                                        order.order_type?.name ||
+                                        'Laundry Service'
+                                    "
+                                />
 
                             </div>
 
@@ -191,13 +263,25 @@
                                     Total Amount
                                 </div>
 
-                                <div class="laundry-information-value">
-                                    BD 4.800
-                                </div>
+                                <div
+                                    class="laundry-information-value"
+                                    t-esc="
+                                        formatAmount(
+                                            order.total_amount ??
+                                            order.amount_total ??
+                                            0
+                                        )
+                                    "
+                                />
 
-                                <div class="laundry-information-secondary">
-                                    Payment pending
-                                </div>
+                                <div
+                                    class="laundry-information-secondary"
+                                    t-esc="
+                                        order.payment_status_name ||
+                                        order.payment_status?.name ||
+                                        'Payment status unavailable'
+                                    "
+                                />
 
                             </div>
 
@@ -218,13 +302,25 @@
                                     Origin POS
                                 </div>
 
-                                <div class="laundry-information-value">
-                                    POS-01
-                                </div>
+                                <div
+                                    class="laundry-information-value"
+                                    t-esc="
+                                        order.pos_config_name ||
+                                        order.pos_name ||
+                                        order.pos_config?.name ||
+                                        '-'
+                                    "
+                                />
 
-                                <div class="laundry-information-secondary">
-                                    Front Counter
-                                </div>
+                                <div
+                                    class="laundry-information-secondary"
+                                    t-esc="
+                                        order.pos_description ||
+                                        order.branch_name ||
+                                        order.company_name ||
+                                        'Laundry POS'
+                                    "
+                                />
 
                             </div>
 
@@ -261,11 +357,20 @@
                     </div>
 
 
-                    <div class="laundry-status-transition">
+                    <div
+                        t-if="hasNextStatus"
+                        class="laundry-status-transition"
+                    >
 
                         <!-- Current Status -->
 
-                        <div class="laundry-status-card current">
+                        <div
+                            t-attf-class="
+                                laundry-status-card current
+                                #{getStatusColorClass(currentStatus)}
+                            "
+                            t-att-style="getStatusStyle(currentStatus)"
+                        >
 
                             <div class="laundry-status-card-label">
                                 Current Status
@@ -274,27 +379,53 @@
                             <div class="laundry-status-card-body">
 
                                 <div class="laundry-status-card-icon current">
-                                    <i class="fa fa-spinner"/>
+                                    <i
+                                        t-att-class="
+                                            currentStatus.icon_class ||
+                                            currentStatus.icon ||
+                                            'fa fa-spinner'
+                                        "
+                                    />
                                 </div>
 
                                 <div>
-                                    <div class="laundry-status-card-name">
-                                        In Progress
-                                    </div>
+                                    <div
+                                        class="laundry-status-card-name"
+                                        t-esc="currentStatus.name || '-'"
+                                    />
 
-                                    <div class="laundry-status-card-description">
-                                        Order is currently being processed
-                                    </div>
+                                    <div
+                                        class="laundry-status-card-description"
+                                        t-esc="
+                                            currentStatus.description ||
+                                            'The order is currently in this status.'
+                                        "
+                                    />
                                 </div>
 
                             </div>
 
-                            <div class="laundry-status-card-footer">
+                            <div
+                                t-if="
+                                    currentStatus.since ||
+                                    currentStatus.changed_at ||
+                                    currentStatus.status_date
+                                "
+                                class="laundry-status-card-footer"
+                            >
                                 <i class="fa fa-clock-o"/>
 
                                 <span>
-                                    Since 21 Jul 2026, 10:20 AM
+                                    Since
                                 </span>
+
+                                <span
+                                    t-esc="
+                                        currentStatus.since ||
+                                        currentStatus.changed_at ||
+                                        currentStatus.status_date
+                                    "
+                                />
                             </div>
 
                         </div>
@@ -317,7 +448,13 @@
 
                         <!-- Next Status -->
 
-                        <div class="laundry-status-card next">
+                        <div
+                            t-attf-class="
+                                laundry-status-card next
+                                #{getStatusColorClass(nextStatus)}
+                            "
+                            t-att-style="getStatusStyle(nextStatus)"
+                        >
 
                             <div class="laundry-status-card-label">
                                 Next Status
@@ -326,17 +463,28 @@
                             <div class="laundry-status-card-body">
 
                                 <div class="laundry-status-card-icon next">
-                                    <i class="fa fa-check"/>
+                                    <i
+                                        t-att-class="
+                                            nextStatus.icon_class ||
+                                            nextStatus.icon ||
+                                            'fa fa-check'
+                                        "
+                                    />
                                 </div>
 
                                 <div>
-                                    <div class="laundry-status-card-name">
-                                        Ready
-                                    </div>
+                                    <div
+                                        class="laundry-status-card-name"
+                                        t-esc="nextStatus.name || '-'"
+                                    />
 
-                                    <div class="laundry-status-card-description">
-                                        Order is ready for customer pickup
-                                    </div>
+                                    <div
+                                        class="laundry-status-card-description"
+                                        t-esc="
+                                            nextStatus.description ||
+                                            'The order will move to this status.'
+                                        "
+                                    />
                                 </div>
 
                             </div>
@@ -354,7 +502,33 @@
                     </div>
 
 
-                    <div class="laundry-status-warning">
+                    <!-- No next status available -->
+
+                    <div
+                        t-else=""
+                        class="laundry-no-next-status"
+                    >
+                        <div class="laundry-no-next-status-icon">
+                            <i class="fa fa-exclamation-circle"/>
+                        </div>
+
+                        <div>
+                            <div class="laundry-no-next-status-title">
+                                No next status available
+                            </div>
+
+                            <div class="laundry-no-next-status-text">
+                                This order does not have a barcode-enabled next
+                                workflow status.
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div
+                        t-if="hasNextStatus"
+                        class="laundry-status-warning"
+                    >
 
                         <div class="laundry-status-warning-icon">
                             <i class="fa fa-info-circle"/>
@@ -367,7 +541,16 @@
 
                             <div class="laundry-status-warning-text">
                                 Confirming will change the order status from
-                                In Progress to Ready.
+
+                                <strong
+                                    t-esc="currentStatus.name || '-'"
+                                />
+
+                                to
+
+                                <strong
+                                    t-esc="nextStatus.name || '-'"
+                                />.
                             </div>
                         </div>
 
@@ -418,9 +601,15 @@
                                 Operator
                             </div>
 
-                            <div class="laundry-scan-value">
-                                Sayed Ali Hassan
-                            </div>
+                            <div
+                                class="laundry-scan-value"
+                                t-esc="
+                                    order.operator_name ||
+                                    order.user_name ||
+                                    order.cashier_name ||
+                                    '-'
+                                "
+                            />
                         </div>
 
                     </div>
@@ -437,9 +626,14 @@
                                 Scan Time
                             </div>
 
-                            <div class="laundry-scan-value">
-                                21 Jul 2026, 11:25 AM
-                            </div>
+                            <div
+                                class="laundry-scan-value"
+                                t-esc="
+                                    order.scan_time ||
+                                    order.scanned_at ||
+                                    '-'
+                                "
+                            />
                         </div>
 
                     </div>
@@ -456,9 +650,15 @@
                                 Device
                             </div>
 
-                            <div class="laundry-scan-value">
-                                POS-01
-                            </div>
+                            <div
+                                class="laundry-scan-value"
+                                t-esc="
+                                    order.device_name ||
+                                    order.pos_config_name ||
+                                    order.pos_name ||
+                                    '-'
+                                "
+                            />
                         </div>
 
                     </div>
@@ -510,11 +710,23 @@
                                 </span>
                             </t>
 
-                            <t t-else="">
+                            <t t-elif="hasNextStatus">
                                 <i class="fa fa-check"/>
 
                                 <span>
-                                    Confirm Ready
+                                    Confirm
+                                </span>
+
+                                <span
+                                    t-esc="nextStatus.name"
+                                />
+                            </t>
+
+                            <t t-else="">
+                                <i class="fa fa-ban"/>
+
+                                <span>
+                                    No Next Status
                                 </span>
                             </t>
 

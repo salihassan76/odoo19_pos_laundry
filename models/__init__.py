@@ -13,6 +13,7 @@ from . import laundry_order_account
 from . import laundry_order_dashboard
 from . import laundry_order_barcode
 from . import laundry_order_scan_log
+from . import laundry_order_print
 
 
 

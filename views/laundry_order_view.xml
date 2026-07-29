@@ -30,6 +30,16 @@
         <field name="model">laundry.order</field>
         <field name="arch" type="xml">
             <form string="Laundry Order">
+                <header>
+                    <button
+                        name="action_print_laundry_order"
+                        type="object"
+                        string="Print Order"
+                        icon="fa-print"
+                        class="oe_highlight"
+                    />
+                </header>
+
                 <sheet>
 
                     <!-- ==============================

@@ -1,0 +1,96 @@
+.laundry-receipt {
+    width: 100%;
+    padding: 0;
+    font-size: 13px;
+    line-height: 1.35;
+
+    .laundry-receipt__header {
+        text-align: center;
+    }
+
+    .laundry-receipt__company {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+
+    .laundry-receipt__title {
+        text-align: center;
+        font-size: 15px;
+        font-weight: 700;
+        margin-bottom: 2px;
+    }
+
+    .laundry-receipt__order-number {
+        text-align: center;
+        font-size: 18px;
+        font-weight: 700;
+    }
+
+    .laundry-receipt__barcode-value {
+        text-align: center;
+        font-size: 12px;
+        letter-spacing: 1px;
+        margin-top: 3px;
+    }
+
+    .laundry-receipt__separator {
+        border-top: 1px dashed #000;
+        margin: 8px 0;
+    }
+
+    .laundry-receipt__row {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 3px;
+
+        span:last-child {
+            text-align: right;
+            overflow-wrap: anywhere;
+        }
+    }
+
+    .laundry-receipt__service-name {
+        font-weight: 700;
+        text-transform: uppercase;
+        margin: 7px 0 4px;
+    }
+
+    .laundry-receipt__line {
+        margin-bottom: 6px;
+    }
+
+    .laundry-receipt__product {
+        font-weight: 600;
+    }
+
+    .laundry-receipt__line-values {
+        display: flex;
+        justify-content: space-between;
+        padding-left: 8px;
+    }
+
+    .laundry-receipt__totals {
+        margin-top: 4px;
+    }
+
+    .laundry-receipt__total {
+        font-size: 16px;
+        font-weight: 700;
+    }
+
+    .laundry-receipt__balance {
+        font-weight: 700;
+    }
+
+    .laundry-receipt__note {
+        overflow-wrap: anywhere;
+    }
+
+    .laundry-receipt__footer {
+        text-align: center;
+        font-weight: 600;
+        margin-top: 8px;
+    }
+}

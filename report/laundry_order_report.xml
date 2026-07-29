@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record
+        id="action_report_laundry_order"
+        model="ir.actions.report"
+    >
+        <field name="name">Laundry Order</field>
+        <field name="model">laundry.order</field>
+        <field name="report_type">qweb-pdf</field>
+
+        <field name="report_name">pos_laundry.report_laundry_order_document</field>
+
+        <field name="report_file">pos_laundry.report_laundry_order_document</field>
+
+        <field
+            name="binding_model_id"
+            ref="model_laundry_order"
+        />
+
+        <field name="binding_type">report</field>
+
+        <field name="print_report_name">
+            'Laundry Order - %s' % (object.name or '')
+        </field>
+    </record>
+
+</odoo>

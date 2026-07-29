@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<templates id="template" xml:space="preserve">
+
+    <t t-name="pos_laundry.LaundryReceipt">
+
+        <div class="pos-receipt laundry-receipt">
+
+            <!-- Company -->
+            <div class="laundry-receipt__header">
+
+                <div class="laundry-receipt__company">
+                    <t t-esc="props.receipt.company_name"/>
+                </div>
+
+                <div t-if="props.receipt.company_phone">
+                    Tel:
+                    <t t-esc="props.receipt.company_phone"/>
+                </div>
+
+                <div t-if="props.receipt.company_email">
+                    <t t-esc="props.receipt.company_email"/>
+                </div>
+
+            </div>
+
+            <div class="laundry-receipt__separator"/>
+
+            <!-- Order -->
+            <div class="laundry-receipt__title">
+                Laundry Order
+            </div>
+
+            <div class="laundry-receipt__order-number">
+                <t t-esc="props.receipt.order_name"/>
+            </div>
+
+            <!-- Temporary barcode text -->
+            <div
+                t-if="props.receipt.barcode"
+                class="laundry-receipt__barcode-value"
+            >
+                <t t-esc="props.receipt.barcode"/>
+            </div>
+
+            <div class="laundry-receipt__separator"/>
+
+            <!-- Information -->
+            <div class="laundry-receipt__info">
+
+                <div class="laundry-receipt__row">
+                    <span>Date</span>
+                    <span>
+                        <t t-esc="props.receipt.date"/>
+                    </span>
+                </div>
+
+                <div class="laundry-receipt__row">
+                    <span>Customer</span>
+                    <span>
+                        <t t-esc="props.receipt.customer_name"/>
+                    </span>
+                </div>
+
+                <div
+                    t-if="props.receipt.customer_phone"
+                    class="laundry-receipt__row"
+                >
+                    <span>Phone</span>
+                    <span>
+                        <t t-esc="props.receipt.customer_phone"/>
+                    </span>
+                </div>
+
+                <div class="laundry-receipt__row">
+                    <span>Order Type</span>
+                    <span>
+                        <t t-esc="props.receipt.order_type"/>
+                    </span>
+                </div>
+
+                <div class="laundry-receipt__row">
+                    <span>Status</span>
+                    <span>
+                        <t t-esc="props.receipt.status"/>
+                    </span>
+                </div>
+
+                <div class="laundry-receipt__row">
+                    <span>Payment</span>
+                    <span>
+                        <t t-esc="props.receipt.payment_status"/>
+                    </span>
+                </div>
+
+            </div>
+
+            <div class="laundry-receipt__separator"/>
+
+            <!-- Services -->
+            <t
+                t-foreach="props.receipt.services || []"
+                t-as="service"
+                t-key="service.name"
+            >
+
+                <div class="laundry-receipt__service-name">
+                    <t t-esc="service.name"/>
+                </div>
+
+                <t
+                    t-foreach="service.lines || []"
+                    t-as="line"
+                    t-key="line.id"
+                >
+
+                    <div class="laundry-receipt__line">
+
+                        <div class="laundry-receipt__product">
+                            <t t-esc="line.product_name"/>
+                        </div>
+
+                        <div class="laundry-receipt__line-values">
+
+                            <span>
+                                <t t-esc="line.qty"/>
+                                ×
+                                <t t-esc="line.price_unit"/>
+                            </span>
+
+                            <span>
+                                <t t-esc="line.subtotal"/>
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </t>
+
+            </t>
+
+            <div class="laundry-receipt__separator"/>
+
+            <!-- Totals -->
+            <div class="laundry-receipt__totals">
+
+                <div
+                    class="
+                        laundry-receipt__row
+                        laundry-receipt__total
+                    "
+                >
+                    <span>Total</span>
+
+                    <span>
+                        <t t-if="
+                            props.receipt.currency_position
+                            === 'before'
+                        ">
+                            <t t-esc="
+                                props.receipt.currency_symbol
+                            "/>
+                        </t>
+
+                        <t t-esc="props.receipt.total"/>
+
+                        <t t-if="
+                            props.receipt.currency_position
+                            !== 'before'
+                        ">
+                            <t t-esc="
+                                props.receipt.currency_symbol
+                            "/>
+                        </t>
+                    </span>
+                </div>
+
+                <div class="laundry-receipt__row">
+                    <span>Paid</span>
+
+                    <span>
+                        <t t-esc="props.receipt.paid_amount"/>
+                    </span>
+                </div>
+
+                <div
+                    class="
+                        laundry-receipt__row
+                        laundry-receipt__balance
+                    "
+                >
+                    <span>Balance</span>
+
+                    <span>
+                        <t t-esc="props.receipt.balance"/>
+                    </span>
+                </div>
+
+            </div>
+
+            <!-- Notes -->
+            <div
+                t-if="props.receipt.note"
+                class="laundry-receipt__note"
+            >
+
+                <div class="laundry-receipt__separator"/>
+
+                <strong>Customer Note</strong>
+
+                <div>
+                    <t t-esc="props.receipt.note"/>
+                </div>
+
+            </div>
+
+            <div class="laundry-receipt__separator"/>
+
+            <div class="laundry-receipt__footer">
+                Thank you
+            </div>
+
+        </div>
+
+    </t>
+
+</templates>

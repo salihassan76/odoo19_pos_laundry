@@ -1,5 +1,4 @@
 import logging
-from collections import OrderedDict
 from datetime import timedelta
 
 from odoo import _, api, fields, models
@@ -785,8 +784,6 @@ class LaundryOrder(models.Model):
     ):
         return response
 
-    def _extend_receipt_data(self, receipt):
-        return receipt
 
     def _extend_laundry_order_for_pos_data(
         self,
@@ -795,76 +792,7 @@ class LaundryOrder(models.Model):
     ):
         return data
 
-    # -------------------------------------------------------------------------
-    # RECEIPTS
-    # -------------------------------------------------------------------------
-
-    def _get_receipt_data(self):
-        self.ensure_one()
-
-        company = self.env.company
-        services = OrderedDict()
-
-        for line in self.order_line_ids:
-            service = (
-                line.product_id.pos_categ_ids[:1].name
-                if line.product_id.pos_categ_ids
-                else _("Other")
-            )
-
-            if service not in services:
-                services[service] = {
-                    "name": service,
-                    "lines": [],
-                }
-
-            services[service]["lines"].append({
-                "product_name": (
-                    line.product_id.display_name
-                ),
-                "qty": line.quantity,
-                "price_unit": line.price_unit,
-                "subtotal": line.price_subtotal,
-            })
-
-        receipt = {
-            "company_name": company.name,
-            "company_phone": company.phone or "",
-            "company_email": company.email or "",
-            "order_name": self.name,
-            "date": fields.Datetime.to_string(
-                self.order_datetime
-            ),
-            "customer_name": self.customer_id.name,
-            "customer_mobile": (
-                self.customer_id.phone or ""
-            ),
-            "order_type": self.order_type_id.name,
-            "payment_status": (
-                self.payment_status_id.name
-            ),
-            "status": self.status_id.name,
-            "total": self.total_amount,
-            "note": self.order_note or "",
-            "services": list(services.values()),
-        }
-
-        return self._extend_receipt_data(receipt)
-
-    def action_get_receipt_data(self):
-        self.ensure_one()
-
-        config = self.pos_config_id
-
-        return {
-            "receipt": self._get_receipt_data(),
-            "direct_print": bool(
-                config.direct_print
-            ),
-            "show_receipt_preview": bool(
-                config.show_receipt_preview
-            ),
-        }
+   
 
     # -------------------------------------------------------------------------
     # POS HOME
