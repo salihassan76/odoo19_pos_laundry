@@ -131,20 +131,15 @@ class PosConfig(models.Model):
         default=True,
     )
 
-    barcode_scan_behavior = fields.Selection(
-        [
-            ("popup", "Open Status Popup"),
-            ("direct", "Apply Action Directly"),
-        ],
-        default="popup",
-    )
 
     barcode_order_access = fields.Selection(
         [
             ("own_pos", "Orders Created by This POS"),
             ("same_company", "All Company Orders"),
         ],
-        default="same_company",
+        string="Barcode Order Access",
+        default="own_pos",
+        required=True,
     )
 
     duplicate_scan_delay = fields.Integer(
@@ -152,10 +147,7 @@ class PosConfig(models.Model):
         default=2,
     )
 
-    allow_backend_scan = fields.Boolean(
-        string="Allow Backend Barcode Processing",
-        default=True,
-    )
+    
 
 
     # -------------------------------------------------------------------------
@@ -188,10 +180,8 @@ class PosConfig(models.Model):
             "ready_order_status_id",
             "enable_laundry_barcode",
             "continuous_barcode_scan",
-            "barcode_scan_behavior",
             "barcode_order_access",
-            "duplicate_scan_delay",
-            "allow_backend_scan"
+            "duplicate_scan_delay"
 
         ]
 

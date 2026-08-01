@@ -1,5 +1,5 @@
 from odoo import api, fields, models, _
-from odoo.exceptions import AccessError, UserError
+from odoo.exceptions import AccessError, UserError, ValidationError
 
 
 class LaundryOrderBarcode(models.Model):
@@ -57,10 +57,6 @@ class LaundryOrderBarcode(models.Model):
         ),
     ]
 
-    # -------------------------------------------------------------------------
-    # ORM
-    # -------------------------------------------------------------------------
-
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
@@ -73,82 +69,40 @@ class LaundryOrderBarcode(models.Model):
 
         return super().create(vals_list)
 
-    # -------------------------------------------------------------------------
-    # Public barcode entry points
-    # -------------------------------------------------------------------------
-
     @api.model
-    def process_pos_barcode(
+    def process_laundry_barcode(
         self,
         scanned_barcode,
-        pos_config_id,
+        source="pos",
+        pos_config_id=False,
         requested_status_id=False,
     ):
         """
-        Process a barcode scan originating from the POS.
+        Process a laundry-order barcode.
 
-        The source is determined by this method and cannot be supplied or
-        changed by the RPC caller.
+        Initial scan:
+            Find the order and return the status-change popup.
+
+        Status confirmation:
+            Validate and update the selected order status.
         """
-        scanning_pos = self._get_authorized_scanning_pos(
-            pos_config_id=pos_config_id,
-        )
 
-        return self._process_barcode_internal(
-            scanned_barcode=scanned_barcode,
-            source="pos",
-            scanning_pos=scanning_pos,
-            requested_status_id=requested_status_id,
-        )
+        allowed_sources = {
+            "pos",
+            "backend",
+            "logistics",
+            "portal",
+            "delivery_portal",
+        }
 
-    @api.model
-    def process_backend_barcode(
-        self,
-        scanned_barcode,
-        requested_status_id=False,
-    ):
-        """
-        Process a barcode scan originating from the Odoo backend.
-
-        Only authenticated internal users may use this entry point. Normal
-        model ACLs, record rules, and company restrictions still apply.
-        """
-        if not self.env.user._is_internal():
-            raise AccessError(
+        if source not in allowed_sources:
+            raise ValidationError(
                 _(
-                    "Only internal users can use "
-                    "backend barcode scanning."
+                    "Unsupported barcode scan source: %(source)s"
                 )
-            )
-
-        return self._process_barcode_internal(
-            scanned_barcode=scanned_barcode,
-            source="backend",
-            scanning_pos=self.env["pos.config"],
-            requested_status_id=requested_status_id,
-        )
-
-    # -------------------------------------------------------------------------
-    # Shared internal processor
-    # -------------------------------------------------------------------------
-
-    @api.model
-    def _process_barcode_internal(
-        self,
-        scanned_barcode,
-        source,
-        scanning_pos=False,
-        requested_status_id=False,
-    ):
-        """
-        Shared internal barcode processor.
-
-        This method is private and must only be called by trusted public entry
-        points that set the source themselves.
-        """
-        if source not in {"pos", "backend"}:
-            raise AccessError(
-                _("Unsupported barcode processing channel.")
+                % {
+                    "source": source,
+                }
             )
 
         parsed = self._parse_laundry_barcode(
@@ -159,14 +113,16 @@ class LaundryOrderBarcode(models.Model):
             parsed["order_barcode"]
         )
 
+        scanning_pos = self.env["pos.config"]
+
+        if source == "pos":
+            scanning_pos = self._get_scanning_pos(
+                pos_config_id=pos_config_id,
+            )
+
         order._check_barcode_access(
             source=source,
             scanning_pos=scanning_pos,
-            operation=(
-                "write"
-                if requested_status_id
-                else "read"
-            ),
         )
 
         if requested_status_id:
@@ -177,22 +133,16 @@ class LaundryOrderBarcode(models.Model):
                 scanning_pos=scanning_pos,
             )
 
-        popup_data = order._prepare_barcode_popup_data(
-            source=source,
-            scanning_pos=scanning_pos,
-        )
-
         order._record_barcode_activity(
             action="status_popup",
             source=source,
             scanning_pos=scanning_pos,
         )
 
-        return popup_data
-
-    # -------------------------------------------------------------------------
-    # Barcode parsing and order lookup
-    # -------------------------------------------------------------------------
+        return order._prepare_barcode_popup_data(
+            source=source,
+            scanning_pos=scanning_pos,
+        )
 
     @api.model
     def _parse_laundry_barcode(
@@ -253,20 +203,13 @@ class LaundryOrderBarcode(models.Model):
 
         return order
 
-    # -------------------------------------------------------------------------
-    # POS authorization
-    # -------------------------------------------------------------------------
-
     @api.model
-    def _get_authorized_scanning_pos(
+    def _get_scanning_pos(
         self,
         pos_config_id=False,
     ):
-        """
-        Return a validated POS configuration for a POS barcode request.
-        """
         if not pos_config_id:
-            raise AccessError(
+            raise UserError(
                 _(
                     "The scanning POS configuration "
                     "is required."
@@ -276,7 +219,7 @@ class LaundryOrderBarcode(models.Model):
         try:
             config_id = int(pos_config_id)
         except (TypeError, ValueError):
-            raise AccessError(
+            raise UserError(
                 _(
                     "The scanning POS configuration "
                     "is invalid."
@@ -288,54 +231,10 @@ class LaundryOrderBarcode(models.Model):
         ].browse(config_id).exists()
 
         if not pos_config:
-            raise AccessError(
+            raise UserError(
                 _(
                     "The scanning POS configuration "
                     "was not found."
-                )
-            )
-
-        self._check_record_access(
-            pos_config,
-            operation="read",
-        )
-
-        if (
-            "active" in pos_config._fields
-            and not pos_config.active
-        ):
-            raise AccessError(
-                _("The POS configuration is inactive.")
-            )
-
-        if (
-            "enable_laundry_workflow"
-            in pos_config._fields
-            and not pos_config.enable_laundry_workflow
-        ):
-            raise AccessError(
-                _(
-                    "The laundry workflow is disabled "
-                    "for this POS."
-                )
-            )
-
-        if not pos_config.enable_laundry_barcode:
-            raise AccessError(
-                _(
-                    "Barcode scanning is disabled "
-                    "for this POS."
-                )
-            )
-
-        if (
-            pos_config.company_id
-            not in self.env.user.company_ids
-        ):
-            raise AccessError(
-                _(
-                    "You are not authorized to use "
-                    "this POS configuration."
                 )
             )
 
@@ -345,84 +244,17 @@ class LaundryOrderBarcode(models.Model):
         self,
         source,
         scanning_pos=False,
-        operation="read",
     ):
-        """
-        Enforce channel-specific order authorization.
-
-        The method fails closed for unknown sources, invalid access modes,
-        unavailable companies, and missing POS configurations.
-        """
         self.ensure_one()
 
-        if operation not in {"read", "write"}:
-            raise AccessError(
-                _("Unsupported barcode operation.")
-            )
-
-        self._check_record_access(
-            self,
-            operation=operation,
-        )
-
-        if (
-            self.company_id
-            and self.company_id
-            not in self.env.user.company_ids
-        ):
-            raise AccessError(
-                _(
-                    "You are not authorized to access "
-                    "orders from this company."
-                )
-            )
-
-        if source == "backend":
-            if not self.env.user._is_internal():
-                raise AccessError(
-                    _(
-                        "Only internal users can use "
-                        "backend barcode scanning."
-                    )
-                )
-
+        if source != "pos":
             return True
 
-        if source != "pos":
-            raise AccessError(
-                _("Unauthorized barcode source.")
-            )
-
-        if not scanning_pos or len(scanning_pos) != 1:
+        if not scanning_pos:
             raise AccessError(
                 _(
-                    "A valid scanning POS configuration "
+                    "The scanning POS configuration "
                     "is required."
-                )
-            )
-
-        self._check_record_access(
-            scanning_pos,
-            operation="read",
-        )
-
-        if (
-            "active" in scanning_pos._fields
-            and not scanning_pos.active
-        ):
-            raise AccessError(
-                _("The POS configuration is inactive.")
-            )
-
-        if (
-            "enable_laundry_workflow"
-            in scanning_pos._fields
-            and not scanning_pos.enable_laundry_workflow
-        ):
-            raise AccessError(
-                _(
-                    "The laundry workflow is disabled "
-                    "for this POS."
                 )
             )
 
@@ -434,106 +266,51 @@ class LaundryOrderBarcode(models.Model):
                 )
             )
 
+        access_mode = (
+            scanning_pos.barcode_order_access
+        )
+
         if (
-            scanning_pos.company_id
-            not in self.env.user.company_ids
+            access_mode == "own_pos"
+            and self.pos_config_id != scanning_pos
         ):
             raise AccessError(
                 _(
-                    "You are not authorized to use "
-                    "this POS configuration."
+                    "This order belongs to another POS."
                 )
             )
 
-        if self.company_id != scanning_pos.company_id:
+        if (
+            access_mode == "same_company"
+            and self.company_id
+            != scanning_pos.company_id
+        ):
             raise AccessError(
                 _(
-                    "The order and scanning POS belong "
-                    "to different companies."
-                )
-            )
-
-        access_mode = (
-            scanning_pos.barcode_order_access
-            or ""
-        )
-
-        if access_mode == "own_pos":
-            if not self.pos_config_id:
-                raise AccessError(
-                    _(
-                        "This order is not assigned "
-                        "to a POS configuration."
-                    )
-                )
-
-            if self.pos_config_id != scanning_pos:
-                raise AccessError(
-                    _(
-                        "This order belongs to another POS."
-                    )
-                )
-
-        elif access_mode == "same_company":
-            # Company equality was already checked above.
-            pass
-
-        else:
-            raise AccessError(
-                _(
-                    "The POS barcode access policy "
-                    "is invalid."
+                    "This order belongs to another "
+                    "company."
                 )
             )
 
         return True
 
-    @api.model
-    def _check_record_access(
-        self,
-        record,
-        operation="read",
+    def _barcode_update_status(
+    self,
+    new_status_id,
+    scanned_barcode,
+    source="pos",
+    scanning_pos=False,
     ):
-        """
-        Apply standard Odoo ACLs and record rules.
-
-        Kept in one helper for compatibility and to avoid accidentally using
-        sudo in barcode processing.
-        """
-        record.check_access_rights(
-            operation,
-            raise_exception=True,
-        )
-        record.check_access_rule(
-            operation,
-        )
-
-        return True
-
-    # -------------------------------------------------------------------------
-    # Status transition validation
-    # -------------------------------------------------------------------------
-
-    def _get_allowed_barcode_next_status(
-        self,
-    ):
-        """
-        Return the single configured next status after validating the existing
-        PR-1 workflow rules.
-
-        PR 2 can replace this method with channel-specific transition records
-        without changing the popup or status-update methods.
-        """
         self.ensure_one()
 
-        current_status = self.status_id
+        old_status = self.status_id
 
-        if not current_status:
+        if not old_status:
             raise UserError(
                 _("The order does not have a current status.")
             )
 
-        if current_status.is_terminal:
+        if old_status.is_terminal:
             raise UserError(
                 _(
                     "A terminal order cannot be updated "
@@ -541,60 +318,33 @@ class LaundryOrderBarcode(models.Model):
                 )
             )
 
-        next_status = current_status.next_status_id
+        expected_status = old_status.next_status_id
 
-        if not next_status:
+        if not expected_status:
             raise UserError(
                 _(
                     "No next status is configured for '%s'."
                 )
-                % current_status.display_name
+                % old_status.display_name
             )
 
-        if not next_status.active:
+        if not expected_status.active:
             raise UserError(
                 _(
                     "The configured next status '%s' "
                     "is inactive."
                 )
-                % next_status.display_name
+                % expected_status.display_name
             )
 
-        if not next_status.allow_barcode_update:
+        if not expected_status.allow_barcode_update:
             raise UserError(
                 _(
                     "The next status '%s' does not allow "
                     "barcode updates."
                 )
-                % next_status.display_name
+                % expected_status.display_name
             )
-
-        return next_status
-
-    # -------------------------------------------------------------------------
-    # Status update
-    # -------------------------------------------------------------------------
-
-    def _barcode_update_status(
-        self,
-        new_status_id,
-        scanned_barcode,
-        source="pos",
-        scanning_pos=False,
-    ):
-        self.ensure_one()
-
-        # Defence in depth: never rely only on the popup-load authorization.
-        self._check_barcode_access(
-            source=source,
-            scanning_pos=scanning_pos,
-            operation="write",
-        )
-
-        old_status = self.status_id
-        expected_status = (
-            self._get_allowed_barcode_next_status()
-        )
 
         try:
             status_id = int(new_status_id)
@@ -661,27 +411,61 @@ class LaundryOrderBarcode(models.Model):
             },
         }
 
-    # -------------------------------------------------------------------------
-    # Popup data
-    # -------------------------------------------------------------------------
-
     def _prepare_barcode_popup_data(
-        self,
-        source="pos",
-        scanning_pos=False,
+    self,
+    source="pos",
+    scanning_pos=False,
     ):
         """
         Prepare the barcode confirmation popup.
 
-        Only the configured next status is returned, provided it is active and
-        allows barcode updates.
+        Only the configured next status is returned,
+        provided it is active and allows barcode updates.
         """
         self.ensure_one()
 
         current_status = self.status_id
-        next_status = (
-            self._get_allowed_barcode_next_status()
-        )
+
+        if not current_status:
+            raise UserError(
+                _("The order does not have a current status.")
+            )
+
+        if current_status.is_terminal:
+            raise UserError(
+                _(
+                    "This order is already in a terminal "
+                    "status and cannot be updated by barcode."
+                )
+            )
+
+        next_status = current_status.next_status_id
+
+        if not next_status:
+            raise UserError(
+                _(
+                    "No next status is configured for '%s'."
+                )
+                % current_status.display_name
+            )
+
+        if not next_status.active:
+            raise UserError(
+                _(
+                    "The configured next status '%s' "
+                    "is inactive."
+                )
+                % next_status.display_name
+            )
+
+        if not next_status.allow_barcode_update:
+            raise UserError(
+                _(
+                    "The next status '%s' does not allow "
+                    "barcode updates."
+                )
+                % next_status.display_name
+            )
 
         currency = (
             self.currency_id
@@ -782,10 +566,6 @@ class LaundryOrderBarcode(models.Model):
             },
         }
 
-    # -------------------------------------------------------------------------
-    # Activity tracking
-    # -------------------------------------------------------------------------
-
     def _record_barcode_activity(
         self,
         action,
@@ -824,20 +604,15 @@ class LaundryOrderBarcode(models.Model):
         source_map = {
             "pos": "pos",
             "backend": "backend",
+            "logistics": "logistics",
+            "portal": "portal",
+            "delivery_portal": "portal",
         }
 
-        normalized_source = source_map.get(source)
-
-        if not normalized_source:
-            raise AccessError(
-                _("Unsupported barcode source.")
-            )
-
-        return normalized_source
-
-    # -------------------------------------------------------------------------
-    # Extension hook
-    # -------------------------------------------------------------------------
+        return source_map.get(
+            source,
+            "backend",
+        )
 
     def _barcode_status_changed_hook(
         self,
@@ -847,10 +622,11 @@ class LaundryOrderBarcode(models.Model):
         scanning_pos=False,
     ):
         """
-        Central extension hook for future modules.
+        Central extension hook for other modules.
 
-        WhatsApp, logistics, and portal modules can override this method
-        without putting integration-specific logic inside the core barcode
-        workflow.
+        Future modules such as WhatsApp notifications
+        and logistics integrations can override this
+        method without adding their logic directly to
+        the barcode workflow.
         """
         return True

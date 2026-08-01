@@ -180,11 +180,10 @@ export class LaundryBarcodeService {
 
         return await this.orm.call(
             "laundry.order",
-            "process_laundry_barcode",
+            "process_pos_barcode",
             [],
             {
                 scanned_barcode: barcode,
-                source: "pos",
                 pos_config_id: posConfigId,
                 requested_status_id:
                     requestedStatusId || false,

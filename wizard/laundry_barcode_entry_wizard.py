@@ -27,9 +27,8 @@ class LaundryBarcodeEntryWizard(
 
         result = self.env[
             "laundry.order"
-        ].process_laundry_barcode(
+        ].process_backend_barcode(
             scanned_barcode=barcode,
-            source="backend",
         )
 
         order_data = (

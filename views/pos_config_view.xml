@@ -68,8 +68,6 @@
                                 <field name="continuous_barcode_scan"
                                     invisible="not enable_laundry_barcode"/>
 
-                                <field name="barcode_scan_behavior"
-                                    invisible="not enable_laundry_barcode"/>
 
 
                                 <field name="barcode_order_access"
@@ -78,8 +76,7 @@
                                 <field name="duplicate_scan_delay"
                                     invisible="not enable_laundry_barcode"/>
 
-                                <field name="allow_backend_scan"
-                                    invisible="not enable_laundry_barcode"/>
+                                
 
                             </group>
                             
