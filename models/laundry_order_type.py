@@ -45,17 +45,6 @@ class LaundryOrderType(models.Model):
         readonly=True
     )
 
-    is_delivery = fields.Boolean(
-        string="Is Delivery",   
-        help="Check if this order type is for delivery orders.",
-        default=False)
-    
-    is_pickup = fields.Boolean(
-        string="Is Pickup",
-        help="Check if this order type is for pickup orders.",
-        default=False
-    )
-    
     
     is_hidden = fields.Boolean(
         string="Is Hidden from Screen",

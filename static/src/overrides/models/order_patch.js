@@ -8,6 +8,7 @@ patch(Order.prototype, {
         super.setup(...arguments);
         this.uiState.laundry_order_id = this.uiState.laundry_order_id || false;
         this.uiState.laundry_order_name = this.uiState.laundry_order_name || "";
+        this.uiState.laundry_order_barcode = this.uiState.laundry_order_barcode || "";
         this.uiState.laundry_order_type_id = this.uiState.laundry_order_type_id || false;
         this.uiState.laundry_order_type_name = this.uiState.laundry_order_type_name || "";
         this.uiState.laundry_order_type_prefix = this.uiState.laundry_order_type_prefix || "";

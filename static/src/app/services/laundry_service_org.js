@@ -439,13 +439,6 @@ export const laundryService = {
                             .laundry_order_id
                     );
 
-                const hasLaundryOrderBarcode =
-                    Object.prototype
-                        .hasOwnProperty.call(
-                            values,
-                            "laundry_order_barcode"
-                        );
-
                 order.uiState
                     .laundry_order_id =
                     values
@@ -459,17 +452,9 @@ export const laundryService = {
                     "";
                 order.uiState
                     .laundry_order_barcode =
-                    hasLaundryOrderBarcode
-                        ? (
-                            values
-                                .laundry_order_barcode ||
-                            ""
-                        )
-                        : (
-                            order.uiState
-                                .laundry_order_barcode ||
-                            ""
-                        );
+                    values
+                        .laundry_order_barcode ||
+                    "";
 
                 order.uiState.is_saved =
                     isSaved;
@@ -1178,9 +1163,6 @@ export const laundryService = {
                     laundry_order_name:
                         data.name || "",
 
-                    laundry_order_barcode:
-                        data.barcode || "",
-
                     laundry_order_type_id:
                         data
                             .order_type_id ||
@@ -1279,13 +1261,6 @@ export const laundryService = {
                             .laundry_order_name ||
                         order.uiState
                             .laundry_order_name,
-
-                    laundry_order_barcode:
-                        result
-                            .laundry_order_barcode ||
-                        order.uiState
-                            .laundry_order_barcode ||
-                        "",
 
                     laundry_status_id:
                         result.status_id ||

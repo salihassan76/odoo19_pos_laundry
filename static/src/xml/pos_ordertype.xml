@@ -3,22 +3,36 @@
     <t t-name="pos_laundry.OrderSummaryExtension" t-inherit="point_of_sale.OrderSummary" t-inherit-mode="extension">
         <xpath expr="//OrderDisplay" position="before">
             <t t-if="pos.config.enable_laundry_workflow">
-                <div class="laundry-order-info p-2">
-                    <div class="d-flex justify-content-between">
-                        <span>
-                            <strong>Laundry Type:</strong>
-                            <t t-esc="pos.getOrder()?.uiState?.laundry_order_type_name || 'N/A'"/>
+                <div class="laundry-order-info border-bottom px-2 py-1">
+                    <div class="d-flex align-items-center justify-content-between gap-3">
+                        <span class="d-inline-flex align-items-center text-nowrap">
+                            <span class="fw-bold">Laundry Type:</span>
+                            <span class="ms-1">
+                                <t t-esc="pos.getOrder()?.uiState?.laundry_order_type_name || 'N/A'"/>
+                            </span>
                         </span>
 
                         <t t-if="pos.getOrder()?.uiState?.laundry_order_name">
-                            <span class="text-primary">
-                                <strong>Order:</strong>
-                                <t t-esc="pos.getOrder()?.uiState?.laundry_order_name"/>
-                            </span>
+
+                            <button type="button"
+                                    class="btn btn-link d-inline-flex align-items-center text-primary p-0 text-decoration-none text-nowrap"
+                                    t-on-click.stop="() => this.openLaundryStatusPopup()">
+
+                                <span class="fw-bold">Order:</span>
+
+                                <span class="ms-1">
+                                    <t t-esc="pos.getOrder()?.uiState?.laundry_order_name"/>
+                                </span>
+
+                                <i class="fa fa-barcode ms-1"/>
+
+                            </button>
+
                         </t>
                         <t t-else="">
-                            <span class="text-success">
-                                <strong>Order:</strong> New
+                            <span class="d-inline-flex align-items-center text-success text-nowrap">
+                                <span class="fw-bold">Order:</span>
+                                <span class="ms-1">New</span>
                             </span>
                         </t>
                     </div>

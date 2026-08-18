@@ -66,6 +66,14 @@ export class PosHomeScreen extends Component {
         });
     }
 
+    formatAmount(value) {
+        const amount = Number.parseFloat(value);
+
+        return Number.isFinite(amount)
+            ? amount.toFixed(3)
+            : "0.000";
+    }
+
     openPendingOrders() {
         this.pos.navigate("pos_pendingscreen");
     }

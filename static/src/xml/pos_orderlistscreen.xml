@@ -33,10 +33,10 @@
 
                     <button type="button"
                             class="btn btn-outline-primary btn-lg"
-                            t-on-click="openCustomerScreen">
+                            t-on-click="() => this.pos.navigate('pos_customerscreen')">
 
-                        <i class="fa fa-users me-2"/>
-                        Customers
+                        <i class="fa fa-plus-circle me-2"/>
+                        New Orders
 
                     </button>
 

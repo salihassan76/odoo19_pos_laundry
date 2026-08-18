@@ -44,6 +44,7 @@
             "pos_laundry/static/src/app/services/barcode_service.js",
             "pos_laundry/static/src/overrides/pos_startup.js",
             "pos_laundry/static/src/overrides/pos_patch.js",
+            "pos_laundry/static/src/overrides/order_summary_barcode_patch.js",
             "pos_laundry/static/src/overrides/paymentscreen_patch.js",
             "pos_laundry/static/src/overrides/actionpad_extension.js",
             "pos_laundry/static/src/xml/pos_navbar.xml",

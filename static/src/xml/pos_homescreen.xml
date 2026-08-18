@@ -20,131 +20,166 @@
                                 <div class="o_form_sheet p-4 mx-auto"
                                      style="max-width: 1100px;">
 
-                                    <!-- TWO COLUMN LAYOUT -->
-                                    <div class="row g-4">
+                                    <!-- CUSTOMER DETAILS -->
+                                    <div class="mb-4">
 
-                                        <!-- LEFT COLUMN -->
-                                        <div class="col-lg-3">
-
-                                            <!-- Customer Info -->
-                                            <div class="mb-4 border rounded p-3 bg-light cursor-pointer"
-                                            t-on-click="openCustomerDetails"
-                                            style="
+                                        <div class="border rounded p-3 bg-light"
+                                             t-on-click="openCustomerDetails"
+                                             style="
                                                 cursor: pointer;
                                                 transition: all 0.2s ease;
-                                            "
-                                            onmouseover="this.classList.add('shadow-sm','border-primary')"
-                                            onmouseout="this.classList.remove('shadow-sm','border-primary')">
+                                             "
+                                             onmouseover="this.classList.add('shadow-sm','border-primary')"
+                                             onmouseout="this.classList.remove('shadow-sm','border-primary')">
 
-                                                <t t-if="state.customer">
+                                            <t t-if="state.customer">
 
-                                                    <h3 class="mb-1">
-                                                        <t t-out="state.customer.name"/>
-                                                    </h3>
+                                                <div class="d-flex align-items-center justify-content-between">
 
-                                                    <div class="text-muted">
-                                                        Customer ID:
-                                                        <t t-out="state.customer.id"/>
-                                                    </div>
+                                                    <!-- Customer Name -->
+                                                    <div class="d-flex align-items-center gap-3">
 
-                                                    <div class="text-muted">
-                                                        Contact:
-                                                        <t t-out="state.customer.mobile || state.customer.phone || '-'"/>
-                                                    </div>
+                                                        <i class="fa fa-user-circle fa-2x text-primary"/>
 
-                                                </t>
-                                                <t t-if="!state.customer">
+                                                        <div>
 
-                                                    <h3 class="mb-1 text-muted">
-                                                        No Customer Selected
-                                                    </h3>
+                                                            <h4 class="mb-0">
+                                                                <t t-out="state.customer.name"/>
+                                                            </h4>
 
-                                                </t>
-                                            </div>
+                                                            <div class="text-muted small">
+                                                                Customer ID:
+                                                                <t t-out="state.customer.id"/>
+                                                            </div>
 
-                                            <!-- Customer Stats -->
-                                            <div class="d-flex flex-column gap-3">
-
-                                                <!-- Outstanding -->
-                                               <div class="border rounded px-4 py-3 bg-light d-flex justify-content-between align-items-center">
-
-                                                    <div class="text-muted small mb-0">
-                                                        Outstanding
-                                                    </div>
-
-                                                    <div class="fs-4 fw-bold text-danger mb-0">
-                                                        BD 12.500
-                                                    </div>
-
-                                                </div>
-
-                                                <!-- Loyalty -->
-                                                <div class="border rounded px-4 py-3 bg-light d-flex justify-content-between align-items-center">
-
-                                                    <div class="text-muted small mb-0">
-                                                        Loyalty Points
-                                                    </div>
-
-                                                    <div class="fs-4 fw-bold text-primary">
-                                                        1,250
-                                                    </div>
-
-                                                </div>
-
-                                                <!-- Membership -->
-                                                <div class="border rounded px-4 py-3 bg-light d-flex justify-content-between align-items-center">
-
-                                                    <div class="text-muted small mb-0">
-                                                        Membership
-                                                    </div>
-
-                                                    <div class="fs-5 fw-bold text-success">
-                                                        Gold Member
-                                                    </div>
-
-                                                </div>
-
-                                            </div>
-
-                                        </div>
-
-                                        <!-- RIGHT COLUMN -->
-                                        <div class="col-lg-9">
-
-                                            <!-- Orders -->
-                                            <t t-foreach="state.ordersByStatus" t-as="status" t-key="status.status_id">
-                                                <t t-if="status.orders.length">
-                                                    <div class="mb-4">
-                                                        <h5 t-att-class="'border-bottom pb-2 mb-3 text-' + (status.status_color || 'primary')">
-                                                            <t t-esc="status.status_name"/>
-                                                            <small class="text-muted ms-1">
-                                                                (<t t-esc="status.period_label"/>)
-                                                            </small>
-                                                        </h5>
-
-                                                        <div class="d-flex flex-wrap gap-2">
-                                                            <t t-foreach="status.orders" t-as="order" t-key="order.id">
-                                                                <button class="btn btn-light border shadow-sm text-start px-3 py-2"
-                                                                        style="min-width:240px"
-                                                                        t-on-click="() => this.openLaundryOrder(order)">
-                                                                    <div class="fw-bold">
-                                                                        <i t-att-class="'fa ' + order.order_type_icon + ' me-2 ' + order.order_type_color"/>
-                                                                        <t t-esc="order.name"/>
-                                                                    </div>
-                                                                    <div class="small text-muted">
-                                                                        <t t-esc="order.order_datetime"/>
-                                                                    </div>
-                                                                    <div class="fw-bold text-success">
-                                                                        BD <t t-esc="order.total_amount"/>
-                                                                    </div>
-                                                                </button>
-                                                            </t>
                                                         </div>
+
                                                     </div>
-                                                </t>
+
+                                                    <!-- Contact -->
+                                                    <div class="text-end">
+
+                                                        <div class="text-muted small">
+                                                            Contact
+                                                        </div>
+
+                                                        <div class="fw-bold">
+                                                            <t t-out="state.customer.phone || '-'"/>
+                                                        </div>
+
+                                                    </div>
+
+                                                </div>
+
                                             </t>
-                                            
+
+                                            <t t-else="">
+
+                                                <div class="d-flex align-items-center gap-3">
+
+                                                    <i class="fa fa-user-circle fa-2x text-muted"/>
+
+                                                    <div>
+
+                                                        <h4 class="mb-0 text-muted">
+                                                            No Customer Selected
+                                                        </h4>
+
+                                                        <div class="text-muted small">
+                                                            Select a customer to view their orders
+                                                        </div>
+
+                                                    </div>
+
+                                                </div>
+
+                                            </t>
+
                                         </div>
+
+                                    </div>
+
+
+                                    <!-- ORDERS SUMMARY -->
+                                    <div>
+
+                                        <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+
+                                            <h4 class="mb-0">
+
+                                                <i class="fa fa-list-alt me-2 text-primary"/>
+
+                                                Orders
+
+                                            </h4>
+
+                                        </div>
+
+
+                                        <!-- Orders grouped by status -->
+                                        <t t-foreach="state.ordersByStatus"
+                                           t-as="status"
+                                           t-key="status.status_id">
+
+                                            <t t-if="status.orders.length">
+
+                                                <div class="mb-4">
+
+                                                    <!-- Status Header -->
+                                                    <h5 t-att-class="'border-bottom pb-2 mb-3 text-' + (status.status_color || 'primary')">
+
+                                                        <t t-esc="status.status_name"/>
+
+                                                        <small class="text-muted ms-1">
+                                                            (<t t-esc="status.period_label"/>)
+                                                        </small>
+
+                                                    </h5>
+
+
+                                                    <!-- Order Cards -->
+                                                    <div class="d-flex flex-wrap gap-2">
+
+                                                        <t t-foreach="status.orders"
+                                                           t-as="order"
+                                                           t-key="order.id">
+
+                                                            <button class="btn btn-light border shadow-sm text-start px-3 py-2"
+                                                                    style="min-width: 240px;"
+                                                                    t-on-click="() => this.openLaundryOrder(order)">
+
+                                                                <div class="fw-bold">
+
+                                                                    <i t-att-class="'fa ' + order.order_type_icon + ' me-2 ' + order.order_type_color"/>
+
+                                                                    <t t-esc="order.name"/>
+
+                                                                </div>
+
+                                                                <div class="small text-muted">
+
+                                                                    <t t-esc="order.order_datetime"/>
+
+                                                                </div>
+
+                                                                <div class="fw-bold text-success">
+
+                                                                    BD
+                                                                    <t t-esc="formatAmount(order.total_amount)"/>
+
+                                                                </div>
+
+                                                            </button>
+
+                                                        </t>
+
+                                                    </div>
+
+                                                </div>
+
+                                            </t>
+
+                                        </t>
 
                                     </div>
 
@@ -160,41 +195,42 @@
 
             </div>
 
-            <!-- ACTION BUTTONS  -->
 
+            <!-- ACTION BUTTONS -->
+            <!-- Kept unchanged -->
 
             <div class="border-top bg-view p-3">
 
-            <div class="row g-3 justify-content-center">
+                <div class="row g-3 justify-content-center">
 
-                <t t-foreach="state.orderTypes"
-                t-as="orderType"
-                t-key="orderType.id">
+                    <t t-foreach="state.orderTypes"
+                       t-as="orderType"
+                       t-key="orderType.id">
 
-                    <div class="col-6 col-md-4 col-xl-2">
+                        <div class="col-6 col-md-4 col-xl-2">
 
-                        <button class="btn btn-light border w-100 h-100 py-4 shadow-sm"
-                                t-on-click="() => this.selectOrderType(orderType)">
+                            <button class="btn btn-light border w-100 h-100 py-4 shadow-sm"
+                                    t-on-click="() => this.selectOrderType(orderType)">
 
-                            <div class="d-flex flex-column align-items-center">
+                                <div class="d-flex flex-column align-items-center">
 
-                                <i t-att-class="'fa ' + (orderType.icon_class || 'fa-shopping-basket') + ' ' + (orderType.icon_color || 'text-primary') + ' fa-2x mb-2'"/>
+                                    <i t-att-class="'fa ' + (orderType.icon_class || 'fa-shopping-basket') + ' ' + (orderType.icon_color || 'text-primary') + ' fa-2x mb-2'"/>
 
-                                <span class="fw-bold">
-                                    <t t-esc="orderType.name"/>
-                                </span>
+                                    <span class="fw-bold">
+                                        <t t-esc="orderType.name"/>
+                                    </span>
 
-                            </div>
+                                </div>
 
-                        </button>
+                            </button>
 
-                    </div>
+                        </div>
 
-                </t>
+                    </t>
+
+                </div>
 
             </div>
-
-        </div>
 
         </div>
 

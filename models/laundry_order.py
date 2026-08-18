@@ -474,6 +474,7 @@ class LaundryOrder(models.Model):
             "laundry_order_id": laundry_order.id,
             "laundry_order_name": laundry_order.name,
             "pos_order_id": False,
+            "laundry_order_barcode": laundry_order.barcode,
 
             "direct_sale": (
                 laundry_order.order_type_id.direct_sale
@@ -937,6 +938,7 @@ class LaundryOrder(models.Model):
         data = {
             "id": order.id,
             "name": order.name,
+            "barcode": order.barcode or "",
 
             "partner_id": order.customer_id.id,
             "partner_name": (

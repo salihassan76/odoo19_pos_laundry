@@ -7,7 +7,7 @@ patch(PosStore.prototype, {
     get defaultPage() {
         if (this.config?.enable_laundry_workflow) {
             return {
-                page: "pos_customerscreen",
+                page: "pos_orderlistscreen",
                 params: {},
             };
         }

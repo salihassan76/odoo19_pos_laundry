@@ -44,7 +44,9 @@
                     - Returns to the laundry home screen
                 -->
                 
-                <button t-if="pos.router.state.current !== 'pos_homescreen' and pos.router.state.current !== 'pos_customerscreen'"
+                <button t-if="pos.router.state.current !== 'pos_homescreen' 
+                                and pos.router.state.current !== 'pos_customerscreen'
+                                and pos.router.state.current !== 'pos_orderlistscreen'"
                         class="btn btn-light lh-lg d-flex align-items-center justify-content-center gap-2"
                         title="Back"
                         t-on-click="() => pos.onClickBackButton()">
@@ -65,7 +67,7 @@
                 -->
                 <button class="btn btn-light lh-lg d-flex align-items-center justify-content-center gap-2"
                         title="Home"
-                        t-on-click="() => this.pos.navigate('pos_customerscreen')">
+                        t-on-click="() => this.pos.navigate('pos_orderlistscreen')">
 
                     <i class="fa fa-home text-warning fs-3"/>
 
@@ -82,12 +84,12 @@
                 -->
                 <button class="btn btn-light lh-lg d-flex align-items-center justify-content-center gap-2"
                         title="Orders List"
-                        t-on-click="() => this.pos.navigate('pos_orderlistscreen')">
+                        t-on-click="() => this.pos.navigate('pos_customerscreen')">
 
-                    <i class="fa fa-list-alt text-primary fs-3"/>
+                    <i class="fa fa-users text-primary fs-3"/>
 
                     <span class="d-none d-md-inline">
-                        Orders List
+                        Customers
                     </span>
 
                 </button>
