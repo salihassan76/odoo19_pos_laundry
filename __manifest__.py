@@ -1,6 +1,6 @@
 {
     "name": "POS Laundry",
-    "version": "1.0.4",
+    "version": "19.0.1.0.14",
     "depends": ["point_of_sale", "project", "sale_management","account"],
     "category": "Operations",
     "summary": "Production-ready Laundry POS System",
@@ -36,6 +36,11 @@
 
     ],
     "assets": {
+        "web.assets_backend": [
+            "pos_laundry/static/src/backend/laundry_landing.js",
+            "pos_laundry/static/src/backend/laundry_landing.xml",
+            "pos_laundry/static/src/backend/laundry_landing.scss",
+        ],
         "point_of_sale._assets_pos": [
             "pos_laundry/static/src/app/utils/receipt_service.js",
             "pos_laundry/static/src/js/barcode_parser.js",

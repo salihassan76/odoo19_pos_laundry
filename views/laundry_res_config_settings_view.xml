@@ -5,12 +5,15 @@
         <field name="name">res.config.settings.view.form.laundry.pos</field>
         <field name="model">res.config.settings</field>
         <field name="inherit_id" ref="point_of_sale.res_config_settings_view_form"/>
+        <!-- Explicitly reactivate databases where an earlier patch disabled it. -->
+        <field name="active" eval="True"/>
         <field name="arch" type="xml">
 
             <xpath expr="//setting[@id='is_restaurant']" position="after">
 
                 <setting id="is_laundry_workflow"
                          string="Laundry Workflow"
+                         invisible="not pos_config_id"
                          help="Enable the Laundry workflow for the selected Point of Sale.">
 
                     <field name="pos_enable_laundry_workflow"/>

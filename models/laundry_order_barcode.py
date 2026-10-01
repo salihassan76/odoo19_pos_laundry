@@ -320,7 +320,8 @@ class LaundryOrderBarcode(models.Model):
                 )
             )
 
-        if not pos_config.enable_laundry_barcode:
+        laundry_config = pos_config._get_laundry_configuration()
+        if not laundry_config or not laundry_config.enable_laundry_barcode:
             raise AccessError(
                 _(
                     "Barcode scanning is disabled "
@@ -426,7 +427,8 @@ class LaundryOrderBarcode(models.Model):
                 )
             )
 
-        if not scanning_pos.enable_laundry_barcode:
+        laundry_config = scanning_pos._get_laundry_configuration()
+        if not laundry_config or not laundry_config.enable_laundry_barcode:
             raise AccessError(
                 _(
                     "Barcode scanning is disabled "
@@ -454,7 +456,7 @@ class LaundryOrderBarcode(models.Model):
             )
 
         access_mode = (
-            scanning_pos.barcode_order_access
+            laundry_config.barcode_order_access
             or ""
         )
 

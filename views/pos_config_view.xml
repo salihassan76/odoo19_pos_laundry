@@ -1,94 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-
     <record id="view_pos_config_form_laundry_only" model="ir.ui.view">
         <field name="name">pos.config.form.laundry.only</field>
         <field name="model">pos.config</field>
+        <!--
+            Kept as an inactive compatibility record so upgrades deactivate the
+            former standalone form in existing databases.  A standalone
+            pos.config form can be selected by Odoo's "+ New Shop" action and
+            must not replace the standard Point of Sale creation dialog.
+        -->
+        <field name="active" eval="False"/>
         <field name="arch" type="xml">
-
-            <form string="Laundry Configuration"
-                  create="false"
-                  duplicate="false"
-                  delete="false">
-
+            <form string="Laundry POS" create="false" duplicate="false" delete="false">
                 <sheet>
-
-                    <div class="oe_title">
-                        <h1>
-                            <field name="name" readonly="1"/>
-                        </h1>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_laundry_configuration" type="object"
+                                class="oe_stat_button" icon="fa-cogs" string="Laundry Settings"/>
                     </div>
-
-                    <notebook>
-
-                        <page string="General">
-                            <group>
-                                
-                                <field name="direct_print"/>
-                                <field name="show_receipt_preview"/>
-                            </group>
-                        </page>
-
-                        <page string="Orders">
-                            <group>
-                                <field name="order_status_id"/>
-                                <field name="complete_order_status_id"/>
-                                <field name="refunded_order_status_id"/>
-                                <field name="cancelled_order_status_id"/>
-                                <field name="confirmed_order_status_id"/>
-                                <field name="ready_order_status_id"/>   
-                            </group>
-                        </page>
-
-                        <page string="Payments">
-                            <group>
-                                <field name="unpaid_payment_id"/>
-                                <field name="partial_payment_id"/>
-                                <field name="paid_payment_id"/>
-                                
-                                <field name="cancelled_payment_id"/>
-                                <field name="refund_payment_id"/>
-                            </group>
-                        </page>
-
-                        <page string="Project">
-                            <group>
-                                <field name="is_project"/>
-                                <field name="project_id"
-                                       invisible="not is_project"
-                                       required="is_project"/>
-                            </group>
-                        </page>
-                        <page string="Barcode Integration">
-                            
-                            <group>
-
-                                <field name="enable_laundry_barcode"/>
-
-                                <field name="continuous_barcode_scan"
-                                    invisible="not enable_laundry_barcode"/>
-
-
-
-                                <field name="barcode_order_access"
-                                    invisible="not enable_laundry_barcode"/>
-
-                                <field name="duplicate_scan_delay"
-                                    invisible="not enable_laundry_barcode"/>
-
-                                
-
-                            </group>
-                            
-                        </page>
-
-                    </notebook>
-
+                    <div class="oe_title"><h1><field name="name" readonly="1"/></h1></div>
+                    <group><field name="enable_laundry_workflow"/></group>
+                    <group string="Laundry Configuration" invisible="not enable_laundry_workflow">
+                        <field name="laundry_configuration_ids" readonly="1">
+                            <list create="false" delete="false">
+                                <field name="name"/>
+                                <field name="active"/>
+                            </list>
+                        </field>
+                    </group>
                 </sheet>
-
             </form>
-
         </field>
     </record>
-
 </odoo>

@@ -20,6 +20,12 @@ class LaundryOrderStatus(models.Model):
         required=True,
         translate=True,
     )
+    laundry_configuration_id = fields.Many2one(
+        "laundry.configuration",
+        string="Laundry Configuration",
+        index=True,
+        ondelete="cascade",
+    )
 
     active = fields.Boolean(
         default=True,
@@ -89,7 +95,7 @@ class LaundryOrderStatus(models.Model):
     next_status_id = fields.Many2one(
         comodel_name="laundry.order.status",
         string="Next Status",
-        domain="[('id', '!=', id), ('active', '=', True)]",
+        domain="[('id', '!=', id), ('active', '=', True), ('laundry_configuration_id', '=', laundry_configuration_id)]",
         ondelete="restrict",
         help=(
             "The status that normally follows this status when an "

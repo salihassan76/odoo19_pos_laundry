@@ -193,6 +193,7 @@ export const laundryService = {
                 return [
                     ["active", "=", true],
                     ["is_hidden", "=", false],
+                    ["laundry_configuration_id", "=", this.pos.config.laundry_configuration_id],
                 ];
             },
 
@@ -1904,7 +1905,7 @@ export const laundryService = {
                 return await this.orm.call(
                     "laundry.order",
                     "get_customer_orders_by_status_for_pos",
-                    [partnerId]
+                    [partnerId, this.pos.config.id]
                 );
             },
 

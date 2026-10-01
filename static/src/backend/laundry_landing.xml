@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="pos_laundry.LaundryLanding">
+        <div class="o_laundry_landing h-100 overflow-auto">
+            <div class="o_laundry_landing_header">
+                <div>
+                    <h1 class="mb-1">Laundry</h1>
+                    <p class="mb-0 text-muted" t-if="!state.selectedShop">
+                        Select the Laundry shop you want to manage.
+                    </p>
+                    <p class="mb-0 text-muted" t-else="">
+                        <t t-esc="state.selectedShop.name"/>
+                        <span t-if="state.selectedShop.company"> · <t t-esc="state.selectedShop.company"/></span>
+                    </p>
+                </div>
+                <button t-if="state.selectedShop" class="btn btn-outline-secondary"
+                        t-on-click="backToShops">
+                    <i class="fa fa-arrow-left me-2"/>Change Shop
+                </button>
+            </div>
+
+            <div t-if="state.loading" class="o_laundry_empty">
+                <i class="fa fa-spinner fa-spin fa-2x"/>
+            </div>
+
+            <div t-elif="!state.selectedShop" class="o_laundry_shop_grid">
+                <button t-foreach="state.shops" t-as="shop" t-key="shop.id"
+                        class="o_laundry_card o_laundry_shop_card"
+                        t-on-click="() => this.selectShop(shop)">
+                    <span class="o_laundry_icon"><i class="fa fa-building"/></span>
+                    <span class="o_laundry_card_text">
+                        <strong t-esc="shop.name"/>
+                        <small t-esc="shop.company"/>
+                    </span>
+                    <i class="fa fa-chevron-right text-muted"/>
+                </button>
+                <div t-if="!state.shops.length" class="o_laundry_empty">
+                    <i class="fa fa-info-circle fa-2x mb-3"/>
+                    <h3>No Laundry shops available</h3>
+                    <p>Enable Laundry Workflow for a shop in Point of Sale settings.</p>
+                </div>
+            </div>
+
+            <div t-else="" class="o_laundry_workspace">
+                <section t-foreach="state.groups" t-as="group" t-key="group.name" class="mb-4">
+                    <h3 class="o_laundry_group_title" t-esc="group.name"/>
+                    <div class="o_laundry_item_grid">
+                        <button t-foreach="group.items" t-as="item" t-key="item.key"
+                                class="o_laundry_card o_laundry_item_card"
+                                t-on-click="() => this.openItem(item)">
+                            <span class="o_laundry_icon"><i t-att-class="'fa ' + item.icon"/></span>
+                            <span class="o_laundry_card_text">
+                                <strong t-esc="item.name"/>
+                                <t t-if="item.key === 'settings'">
+                                    <span t-if="state.selectedShop.configuration_complete"
+                                          class="o_laundry_status o_laundry_status_complete">
+                                        <span class="text-muted">Configuration Status:</span>
+                                        <i class="fa fa-check-circle ms-1 me-1"/>Complete
+                                    </span>
+                                    <span t-else="" class="o_laundry_status o_laundry_status_incomplete"
+                                          t-att-title="state.selectedShop.configuration_missing_items.join(', ')">
+                                        <span class="text-muted">Configuration Status:</span>
+                                        <i class="fa fa-exclamation-circle ms-1 me-1"/>Incomplete
+                                        (<t t-esc="state.selectedShop.configuration_missing_count"/> missing)
+                                    </span>
+                                </t>
+                            </span>
+                        </button>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </t>
+</templates>

@@ -18,3 +18,17 @@ class LaundryOrderLines(models.Model):
     def _compute_price_subtotal(self):
         for line in self:
             line.price_subtotal = line.quantity * line.price_unit
+
+    @api.constrains("order_id", "product_id")
+    def _check_product_laundry_configuration(self):
+        for line in self:
+            if not line.order_id.pos_config_id or not line.product_id:
+                continue
+            configuration = line.order_id.pos_config_id._get_laundry_configuration()
+            if (
+                not configuration
+                or configuration not in line.product_id.product_tmpl_id.laundry_configuration_ids
+            ):
+                raise ValidationError(
+                    "The selected product does not belong to this POS Laundry configuration."
+                )

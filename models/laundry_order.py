@@ -242,6 +242,27 @@ class LaundryOrder(models.Model):
                 )
             )
 
+    @api.constrains("pos_config_id", "order_type_id", "status_id", "payment_status_id")
+    def _check_laundry_configuration_ownership(self):
+        for order in self:
+            if not order.pos_config_id:
+                continue
+            configuration = order.pos_config_id._get_laundry_configuration()
+            if not configuration:
+                raise ValidationError(_("The selected POS has no Laundry configuration."))
+            linked_records = (
+                order.order_type_id,
+                order.status_id,
+                order.payment_status_id,
+            )
+            if any(
+                record and record.laundry_configuration_id != configuration
+                for record in linked_records
+            ):
+                raise ValidationError(
+                    _("Order type and statuses must belong to the selected POS Laundry configuration.")
+                )
+
     # -------------------------------------------------------------------------
     # CREATE
     # -------------------------------------------------------------------------
@@ -309,11 +330,8 @@ class LaundryOrder(models.Model):
                 0.0,
             )
 
-        refund_payment_status = (
-            self.pos_config_id.refund_payment_id
-            if self.pos_config_id
-            else False
-        )
+        laundry_config = self.pos_config_id._get_laundry_configuration() if self.pos_config_id else False
+        refund_payment_status = laundry_config.refund_payment_id if laundry_config else False
 
         is_refunded = bool(
             refund_payment_status
@@ -369,6 +387,7 @@ class LaundryOrder(models.Model):
             )
 
         pos_config.check_laundry_configuration()
+        laundry_config = pos_config._get_laundry_configuration()
 
         lines = data.get("lines") or []
 
@@ -452,11 +471,9 @@ class LaundryOrder(models.Model):
         # CONFIRM ORDER AFTER SUCCESSFUL POS SAVE
         # New -> Confirmed
         # -------------------------------------------------------------
-        if pos_config.confirmed_order_status_id:
+        if laundry_config.confirmed_order_status_id:
             laundry_order.write({
-                "status_id": (
-                    pos_config.confirmed_order_status_id.id
-                ),
+                "status_id": laundry_config.confirmed_order_status_id.id,
             })
 
 
@@ -481,7 +498,7 @@ class LaundryOrder(models.Model):
             ),
 
             "direct_print": bool(
-                pos_config.direct_print
+                laundry_config.direct_print
             ),
 
             "receipt": (
@@ -489,7 +506,7 @@ class LaundryOrder(models.Model):
             ),
 
             "show_receipt_preview": bool(
-                pos_config.show_receipt_preview
+                laundry_config.show_receipt_preview
             ),
 
             # Order status
@@ -579,6 +596,27 @@ class LaundryOrder(models.Model):
         pos_config,
         context,
     ):
+        configuration = pos_config._get_laundry_configuration()
+        if not configuration:
+            raise ValidationError(_("The selected POS has no Laundry configuration."))
+        order_type = self.env["laundry.order.type"].browse(
+            data.get("laundry_order_type_id")
+        ).exists()
+        if not order_type or order_type.laundry_configuration_id != configuration:
+            raise ValidationError(_("The selected order type does not belong to this Laundry shop."))
+        product_ids = [
+            line.get("product_id")
+            for line in (data.get("lines") or [])
+            if line.get("product_id")
+        ]
+        invalid_products = self.env["product.product"].browse(product_ids).filtered(
+            lambda product: configuration not in product.product_tmpl_id.laundry_configuration_ids
+        )
+        if invalid_products:
+            raise ValidationError(
+                _("Some selected products do not belong to this Laundry shop: %s")
+                % ", ".join(invalid_products.mapped("display_name"))
+            )
         return True
 
     def _prepare_laundry_order_vals(
@@ -587,25 +625,26 @@ class LaundryOrder(models.Model):
         pos_config,
         context,
     ):
+        laundry_config = pos_config._get_laundry_configuration()
         vals = {
             "customer_id": data.get("partner_id"),
             "order_type_id": data.get(
                 "laundry_order_type_id"
             ),
             "order_note": data.get("notes") or "",
-            "status_id": pos_config.order_status_id.id,
+            "status_id": laundry_config.order_status_id.id,
             "payment_status_id": (
-                pos_config.unpaid_payment_id.id
+                laundry_config.unpaid_payment_id.id
             ),
             "pos_config_id": pos_config.id,
         }
 
         if (
-            pos_config.is_project
-            and pos_config.project_id
+            laundry_config.is_project
+            and laundry_config.project_id
         ):
             vals["project_id"] = (
-                pos_config.project_id.id
+                laundry_config.project_id.id
             )
 
         return vals
@@ -803,8 +842,14 @@ class LaundryOrder(models.Model):
     def get_customer_orders_by_status_for_pos(
         self,
         partner_id,
+        pos_config_id,
     ):
-        if not partner_id:
+        if not partner_id or not pos_config_id:
+            return []
+
+        pos_config = self.env["pos.config"].browse(pos_config_id).exists()
+        configuration = pos_config._get_laundry_configuration() if pos_config else False
+        if not configuration:
             return []
 
         statuses = self.env[
@@ -813,6 +858,7 @@ class LaundryOrder(models.Model):
             [
                 ("active", "=", True),
                 ("show_on_home", "=", True),
+                ("laundry_configuration_id", "=", configuration.id),
             ],
             order="sequence, id",
         )
@@ -823,6 +869,7 @@ class LaundryOrder(models.Model):
         for status in statuses:
             domain = [
                 ("customer_id", "=", partner_id),
+                ("pos_config_id", "=", pos_config.id),
                 ("status_id", "=", status.id),
             ]
 
@@ -1316,7 +1363,8 @@ class LaundryOrder(models.Model):
         self.ensure_one()
 
         invoice = self.invoice_id
-        config = self.pos_config_id
+        pos_config = self.pos_config_id
+        config = pos_config._get_laundry_configuration() if pos_config else False
 
         # -------------------------------------------------
         # 1. Validate order, configuration, and invoice
@@ -1674,7 +1722,8 @@ class LaundryOrder(models.Model):
         # Validate that the current dynamic status allows cancellation.
         self.status_id.check_action_allowed("cancel")
 
-        config = self.pos_config_id
+        pos_config = self.pos_config_id
+        config = pos_config._get_laundry_configuration() if pos_config else False
 
         if not config:
             raise UserError(

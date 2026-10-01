@@ -47,18 +47,4 @@ class ResConfigSettings(models.TransientModel):
     
     def action_open_laundry_pos_config(self):
         self.ensure_one()
-
-        return {
-            "type": "ir.actions.act_window",
-            "name": "Laundry Configuration",
-            "res_model": "pos.config",
-            "view_mode": "form",
-            "view_id": self.env.ref(
-                "pos_laundry.view_pos_config_form_laundry_only"
-            ).id,
-            "res_id": self.pos_config_id.id,
-            "target": "current",
-            "context": {
-                "form_view_initial_mode": "edit",
-            },
-        }
+        return self.pos_config_id.action_open_laundry_configuration()

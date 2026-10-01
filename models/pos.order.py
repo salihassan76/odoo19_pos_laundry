@@ -13,7 +13,8 @@ class PosOrder(models.Model):
             if not pos_order:
                 continue
 
-            complete_status = pos_order.config_id.complete_order_status_id
+            laundry_config = pos_order.config_id._get_laundry_configuration()
+            complete_status = laundry_config.complete_order_status_id if laundry_config else False
             if not complete_status:
                 continue
 

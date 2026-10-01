@@ -1,86 +1,60 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-
+    <record id="view_laundry_configuration_list" model="ir.ui.view">
+        <field name="name">laundry.configuration.list</field>
+        <field name="model">laundry.configuration</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/><field name="pos_config_id"/>
+                <field name="company_id" groups="base.group_multi_company"/><field name="active"/>
+            </list>
+        </field>
+    </record>
     <record id="view_laundry_configuration_form" model="ir.ui.view">
         <field name="name">laundry.configuration.form</field>
         <field name="model">laundry.configuration</field>
         <field name="arch" type="xml">
-
-            <form string="Laundry Settings"
-                  create="false"
-                  duplicate="false"
-                  delete="false">
-
+            <form string="Laundry Settings" duplicate="false">
                 <sheet>
-
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <field name="pos_config_id"/>
+                        <field name="company_id" groups="base.group_multi_company" readonly="1"/>
+                        <field name="active"/>
+                    </group>
                     <notebook>
-
-                        <page string="General">
-
-                            <group>
-
-
-                                <field name="direct_print"/>
-
-                                <field name="show_receipt_preview"/>
-
-                            </group>
-
-                        </page>
-
-                        <page string="Orders">
-
-                            <group>
-
-                                <field name="order_status_id"/>
-
-                            </group>
-
-                        </page>
-
-                        <page string="Payments">
-
-                            <group>
-
-                                <field name="unpaid_payment_id"/>
-                                <field name="partial_payment_id"/>
-                                <field name="paid_payment_id"/>
-                                <field name="cancelled_payment_id"/>
-                                <field name="refund_payment_id"/>
-
-                            </group>
-
-                        </page>
-
-                        <page string="Project">
-
-                            <group>
-
-                                <field name="is_project"/>
-
-                                <field name="project_id"
-                                       invisible="not is_project"/>
-
-                            </group>
-
-                        </page>
-
+                        <page string="General"><group>
+                            <field name="direct_print"/><field name="show_receipt_preview"/>
+                        </group></page>
+                        <page string="Orders"><group>
+                            <field name="order_status_id"/><field name="confirmed_order_status_id"/>
+                            <field name="ready_order_status_id"/><field name="complete_order_status_id"/>
+                            <field name="cancelled_order_status_id"/><field name="refunded_order_status_id"/>
+                        </group></page>
+                        <page string="Payments"><group>
+                            <field name="unpaid_payment_id"/><field name="partial_payment_id"/>
+                            <field name="paid_payment_id"/><field name="cancelled_payment_id"/>
+                            <field name="refund_payment_id"/>
+                        </group></page>
+                        <page string="Project"><group>
+                            <field name="is_project"/>
+                            <field name="project_id" invisible="not is_project" required="is_project"/>
+                        </group></page>
+                        <page string="Barcode"><group>
+                            <field name="enable_laundry_barcode"/>
+                            <field name="continuous_barcode_scan" invisible="not enable_laundry_barcode"/>
+                            <field name="barcode_order_access" invisible="not enable_laundry_barcode"/>
+                            <field name="duplicate_scan_delay" invisible="not enable_laundry_barcode"/>
+                        </group></page>
                     </notebook>
-
                 </sheet>
-
             </form>
-
         </field>
     </record>
-
     <record id="action_open_laundry_configuration" model="ir.actions.server">
         <field name="name">Laundry Settings</field>
         <field name="model_id" ref="model_laundry_configuration"/>
         <field name="state">code</field>
-        <field name="code">
-            action = env["laundry.configuration"].action_open_laundry_configuration()
-        </field>
+        <field name="code">action = env["laundry.configuration"].action_open_laundry_configuration()</field>
     </record>
-
 </odoo>

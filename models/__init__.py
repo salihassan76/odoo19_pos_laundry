@@ -1,5 +1,6 @@
 from . import laundry_order_type
 from . import laundry_configuration
+from . import laundry_catalog
 from . import res_config_settings
 from . import laundry_order_status
 from . import laundry_order_payment_status

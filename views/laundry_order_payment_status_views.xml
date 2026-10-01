@@ -24,6 +24,7 @@
                     <group>
                         <group>
                             <field name="name"/>
+                            <field name="laundry_configuration_id" required="1" options="{'no_create': True}"/>
                             <field name="active"/>
                             <field name="sequence"/>
                             

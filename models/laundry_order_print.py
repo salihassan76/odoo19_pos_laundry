@@ -219,7 +219,8 @@ class LaundryOrderPrint(models.Model):
         self.ensure_one()
         self._check_print_allowed()
 
-        config = self.pos_config_id
+        pos_config = self.pos_config_id
+        config = pos_config._get_laundry_configuration() if pos_config else False
 
         return {
             "receipt": self._get_receipt_data(),

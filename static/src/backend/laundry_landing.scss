@@ -1,0 +1,112 @@
+.o_laundry_landing {
+    background: #f6f7f9;
+    padding: 28px;
+}
+
+// The shop landing is intentionally distraction-free. The app switcher stays
+// available; only the current app's section menus are hidden until a shop is
+// selected.
+body.o_laundry_shop_landing .o_main_navbar .o_menu_sections {
+    display: none !important;
+}
+
+.o_laundry_landing_header {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    margin: 0 auto 28px;
+    max-width: 1180px;
+}
+
+.o_laundry_shop_grid,
+.o_laundry_workspace {
+    margin: 0 auto;
+    max-width: 1180px;
+}
+
+.o_laundry_shop_grid,
+.o_laundry_item_grid {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+}
+
+.o_laundry_card {
+    align-items: center;
+    background: #fff;
+    border: 1px solid #e2e5e9;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .04);
+    color: #263238;
+    display: flex;
+    gap: 14px;
+    min-height: 92px;
+    padding: 18px;
+    text-align: left;
+    transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+}
+
+.o_laundry_card:hover {
+    border-color: #714b67;
+    box-shadow: 0 7px 18px rgba(0, 0, 0, .09);
+    transform: translateY(-2px);
+}
+
+.o_laundry_icon {
+    align-items: center;
+    background: rgba(113, 75, 103, .12);
+    border-radius: 10px;
+    color: #714b67;
+    display: inline-flex;
+    flex: 0 0 48px;
+    font-size: 22px;
+    height: 48px;
+    justify-content: center;
+}
+
+.o_laundry_card_text {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.o_laundry_card_text small {
+    color: #6c757d;
+}
+
+.o_laundry_status {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.o_laundry_status_complete {
+    color: #198754;
+}
+
+.o_laundry_status_incomplete {
+    color: #dc3545;
+}
+
+.o_laundry_group_title {
+    font-size: 18px;
+    margin-bottom: 12px;
+}
+
+.o_laundry_empty {
+    align-items: center;
+    color: #6c757d;
+    display: flex;
+    flex-direction: column;
+    grid-column: 1 / -1;
+    justify-content: center;
+    min-height: 300px;
+    text-align: center;
+}
+
+@media (max-width: 576px) {
+    .o_laundry_landing { padding: 18px; }
+    .o_laundry_landing_header { align-items: flex-start; gap: 16px; }
+    .o_laundry_shop_grid,
+    .o_laundry_item_grid { grid-template-columns: 1fr; }
+}

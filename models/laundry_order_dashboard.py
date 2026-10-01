@@ -29,6 +29,10 @@ class LaundryOrder(models.Model):
         if not pos_config:
             return self._empty_pos_dashboard_data()
 
+        laundry_config = pos_config._get_laundry_configuration()
+        if not laundry_config:
+            return self._empty_pos_dashboard_data()
+
         company = pos_config.company_id
         currency = company.currency_id
 
@@ -126,6 +130,7 @@ class LaundryOrder(models.Model):
             [
                 ("active", "=", True),
                 ("show_on_home", "=", True),
+                ("laundry_configuration_id", "=", laundry_config.id),
             ],
             order="sequence, id",
         )
@@ -276,15 +281,16 @@ class LaundryOrder(models.Model):
         pos_config,
     ):
         payment_status_ids = []
+        laundry_config = pos_config._get_laundry_configuration()
 
-        if pos_config.unpaid_payment_id:
+        if laundry_config and laundry_config.unpaid_payment_id:
             payment_status_ids.append(
-                pos_config.unpaid_payment_id.id
+                laundry_config.unpaid_payment_id.id
             )
 
-        if pos_config.partial_payment_id:
+        if laundry_config and laundry_config.partial_payment_id:
             payment_status_ids.append(
-                pos_config.partial_payment_id.id
+                laundry_config.partial_payment_id.id
             )
 
         return payment_status_ids
@@ -299,6 +305,7 @@ class LaundryOrder(models.Model):
         ].search([
             ("active", "=", True),
             ("name", "ilike", "ready"),
+            ("laundry_configuration_id", "=", pos_config._get_laundry_configuration().id),
         ])
 
         return ready_statuses.ids

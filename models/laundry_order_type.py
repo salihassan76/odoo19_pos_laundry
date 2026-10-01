@@ -7,6 +7,12 @@ class LaundryOrderType(models.Model):
     _order = "sequence, id"
 
     name = fields.Char(required=True)
+    laundry_configuration_id = fields.Many2one(
+        "laundry.configuration",
+        string="Laundry Configuration",
+        index=True,
+        ondelete="cascade",
+    )
     prefix = fields.Char(required=True)
     sequence = fields.Integer(default=10)
     active = fields.Boolean(default=True)
@@ -35,6 +41,7 @@ class LaundryOrderType(models.Model):
     pos_category_ids = fields.Many2many(
         "pos.category",
         string="Allowed POS Categories",
+        domain="[('laundry_configuration_ids', 'in', laundry_configuration_id)]",
         help="Leave empty to show all POS categories."
     )
     
@@ -91,6 +98,9 @@ class LaundryOrderType(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        default_configuration_id = self.env.context.get("default_laundry_configuration_id")
+        for vals in vals_list:
+            vals.setdefault("laundry_configuration_id", default_configuration_id)
         records = super().create(vals_list)
 
         for record in records:

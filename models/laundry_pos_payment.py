@@ -223,8 +223,9 @@ class LaundryPosPayment(models.Model):
             order = payment.laundry_order_id
             invoice = order.invoice_id
             pos_config = order.pos_config_id
+            laundry_config = pos_config._get_laundry_configuration() if pos_config else False
 
-            if not order or not invoice or not pos_config:
+            if not order or not invoice or not pos_config or not laundry_config:
                 continue
 
             invoice.invalidate_recordset(["payment_state", "amount_residual"])
@@ -232,12 +233,12 @@ class LaundryPosPayment(models.Model):
             vals = {}
 
             if invoice.payment_state == "paid" or invoice.amount_residual <= 0:
-                if pos_config.paid_payment_id:
-                    vals["payment_status_id"] = pos_config.paid_payment_id.id
+                if laundry_config.paid_payment_id:
+                    vals["payment_status_id"] = laundry_config.paid_payment_id.id
 
             elif invoice.amount_residual > 0:
-                if pos_config.partial_payment_id:
-                    vals["payment_status_id"] = pos_config.partial_payment_id.id
+                if laundry_config.partial_payment_id:
+                    vals["payment_status_id"] = laundry_config.partial_payment_id.id
 
             if vals:
                 order.write(vals)
