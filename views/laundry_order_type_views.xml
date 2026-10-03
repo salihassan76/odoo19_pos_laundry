@@ -28,7 +28,7 @@
                     <group>
                         <group>
                             <field name="name"/>
-                            <field name="laundry_configuration_id" required="1" options="{'no_create': True}"/>
+                            <field name="laundry_configuration_id" invisible="1"/>
                             <field name="prefix"/>
                             <field name="icon_class"/>
                             <field name="icon_preview" widget="html"/>
@@ -67,7 +67,6 @@
             <search>
                 <field name="name"/>
                 <field name="prefix"/>
-                <field name="laundry_configuration_id"/>
 
                 <filter name="active"
                         string="Active"

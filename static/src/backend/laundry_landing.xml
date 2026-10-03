@@ -4,13 +4,13 @@
         <div class="o_laundry_landing h-100 overflow-auto">
             <div class="o_laundry_landing_header">
                 <div>
-                    <h1 class="mb-1">Laundry</h1>
+                    <h1 class="mb-1" t-if="state.selectedShop" t-esc="state.selectedShop.name"/>
+                    <h1 class="mb-1" t-else="">Laundry</h1>
                     <p class="mb-0 text-muted" t-if="!state.selectedShop">
                         Select the Laundry shop you want to manage.
                     </p>
                     <p class="mb-0 text-muted" t-else="">
-                        <t t-esc="state.selectedShop.name"/>
-                        <span t-if="state.selectedShop.company"> · <t t-esc="state.selectedShop.company"/></span>
+                        <t t-esc="state.selectedShop.company"/>
                     </p>
                 </div>
                 <button t-if="state.selectedShop" class="btn btn-outline-secondary"

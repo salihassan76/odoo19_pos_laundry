@@ -60,7 +60,7 @@ class PosConfig(models.Model):
         action = self.env["ir.actions.actions"]._for_xml_id(
             "pos_laundry.action_laundry_configuration"
         )
-        action["domain"] = [("id", "=", configuration.id)]
+        action["res_id"] = configuration.id
         action["context"] = {
             **self.env.context,
             "create": False,
@@ -190,7 +190,7 @@ class PosConfig(models.Model):
         if item_key == "orders":
             action["domain"] = [("pos_config_id", "=", shop.id)]
         elif item_key == "settings":
-            action["domain"] = [("id", "=", configuration.id)]
+            action["res_id"] = configuration.id
             context["create"] = False
             action["context"] = context
         elif item_key == "scan_logs":
@@ -225,7 +225,18 @@ class PosConfig(models.Model):
             "pos_laundry.selected_shop.%s" % self.env.user.id,
             shop.id,
         )
-        return True
+        return self._get_laundry_workspace_action(shop)
+
+    @api.model
+    def _get_laundry_workspace_action(self, shop):
+        """Return a shop-named workspace action for the breadcrumb root."""
+        return {
+            "type": "ir.actions.client",
+            "tag": "pos_laundry.landing",
+            "name": shop.display_name,
+            "params": {"pos_config_id": shop.id},
+            "target": "current",
+        }
 
     @api.model
     def _get_selected_laundry_shop(self):
@@ -249,13 +260,7 @@ class PosConfig(models.Model):
     @api.model
     def action_open_selected_laundry_workspace(self):
         shop = self._get_selected_laundry_shop()
-        return {
-            "type": "ir.actions.client",
-            "name": shop.display_name,
-            "tag": "pos_laundry.landing",
-            "params": {"pos_config_id": shop.id},
-            "target": "current",
-        }
+        return self._get_laundry_workspace_action(shop)
 
     @api.model
     def action_open_selected_laundry_item(self, item_key):

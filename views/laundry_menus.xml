@@ -41,6 +41,41 @@
         <field name="code">action = env["pos.config"].action_open_selected_laundry_item("settings")</field>
     </record>
 
+    <record id="action_laundry_selected_order_types" model="ir.actions.server">
+        <field name="name">Order Types</field>
+        <field name="model_id" ref="point_of_sale.model_pos_config"/>
+        <field name="state">code</field>
+        <field name="code">action = env["pos.config"].action_open_selected_laundry_item("order_types")</field>
+    </record>
+
+    <record id="action_laundry_selected_order_statuses" model="ir.actions.server">
+        <field name="name">Order Status</field>
+        <field name="model_id" ref="point_of_sale.model_pos_config"/>
+        <field name="state">code</field>
+        <field name="code">action = env["pos.config"].action_open_selected_laundry_item("order_statuses")</field>
+    </record>
+
+    <record id="action_laundry_selected_payment_statuses" model="ir.actions.server">
+        <field name="name">Order Payment Status</field>
+        <field name="model_id" ref="point_of_sale.model_pos_config"/>
+        <field name="state">code</field>
+        <field name="code">action = env["pos.config"].action_open_selected_laundry_item("payment_statuses")</field>
+    </record>
+
+    <record id="action_laundry_selected_categories" model="ir.actions.server">
+        <field name="name">POS Categories</field>
+        <field name="model_id" ref="point_of_sale.model_pos_config"/>
+        <field name="state">code</field>
+        <field name="code">action = env["pos.config"].action_open_selected_laundry_item("categories")</field>
+    </record>
+
+    <record id="action_laundry_selected_products" model="ir.actions.server">
+        <field name="name">Products</field>
+        <field name="model_id" ref="point_of_sale.model_pos_config"/>
+        <field name="state">code</field>
+        <field name="code">action = env["pos.config"].action_open_selected_laundry_item("products")</field>
+    </record>
+
 
 <!-- Main Laundry Menu -->
     <menuitem id="menu_laundry_root"
@@ -58,6 +93,7 @@
     <menuitem id="menu_laundry_orders_root"
               name="Orders"
               parent="menu_laundry_root"
+              active="False"
               sequence="10"/>
 
               <!-- Order Types -->
@@ -65,12 +101,14 @@
               name="Orders"
               parent="menu_laundry_orders_root"
               action="action_laundry_selected_orders"
+              active="False"
               sequence="10"/>
      <!-- Barcode Scan Logs -->
     <menuitem id="menu_laundry_order_scan_log"
               name="Barcode Scan Logs"
               parent="menu_laundry_orders_root"
               action="action_laundry_selected_scan_logs"
+              active="False"
               sequence="20"
               groups="point_of_sale.group_pos_manager"/>
     <menuitem
@@ -78,6 +116,7 @@
                 name="Enter Barcode"
                 parent="menu_laundry_root"
                 action="action_laundry_selected_barcode"
+                active="False"
                 sequence="30"
             />
               
@@ -88,41 +127,50 @@
     <menuitem id="menu_laundry_configuration"
               name="Configuration"
               parent="menu_laundry_root"
+              active="False"
               sequence="90"/>
 
     <menuitem id="menu_laundry_pos_order_title"
               name="Orders"
               parent="menu_laundry_configuration"
+              active="False"
               sequence="9"/>
 
     <!-- Order Types -->
     <menuitem id="menu_laundry_order_type"
               name="Order Types"
               parent="menu_laundry_pos_order_title"
-              action="action_laundry_order_type"
+              action="action_laundry_selected_order_types"
+              active="False"
               sequence="10"/>
 
      <menuitem id="menu_laundry_order_status"
               name="Order Status"
               parent="menu_laundry_pos_order_title"
-              action="action_laundry_order_status"
+              action="action_laundry_selected_order_statuses"
+              active="False"
               sequence="20"/>
     <menuitem id="menu_laundry_order_payment_status"
               name="Order Payment Status"
               parent="menu_laundry_pos_order_title"
-              action="action_laundry_order_payment_status"
+              action="action_laundry_selected_payment_statuses"
+              active="False"
               sequence="30"/>
 
    
      <menuitem id="menu_laundry_pos_product_title"
               name="Products"
               parent="menu_laundry_configuration"
+              active="False"
               sequence="10"/>          
     <!-- POS Categories Action -->
     <record id="action_laundry_pos_categories" model="ir.actions.act_window">
         <field name="name">POS Categories</field>
         <field name="res_model">pos.category</field>
         <field name="view_mode">list,form</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_laundry_pos_category_list')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_laundry_pos_category_form')})]"/>
     </record>
 
     <!-- Products Action -->
@@ -130,20 +178,24 @@
         <field name="name">Products</field>
         <field name="res_model">product.template</field>
         <field name="view_mode">list,form</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_laundry_product_template_list')})]"/>
     </record>
 
     <!-- POS Categories -->
     <menuitem id="menu_laundry_pos_categories"
               name="POS Categories"
               parent="menu_laundry_pos_product_title"
-              action="action_laundry_pos_categories"
+              action="action_laundry_selected_categories"
+              active="False"
               sequence="22"/>
 
     <!-- Products -->
     <menuitem id="menu_laundry_products"
               name="Products"
               parent="menu_laundry_pos_product_title"
-              action="action_laundry_products"
+              action="action_laundry_selected_products"
+              active="False"
               sequence="30"/>
 
     <!-- Laundry Settings uses the standard action defined with its views. -->
@@ -151,6 +203,7 @@
               name="Laundry Settings"
               parent="menu_laundry_configuration"
               action="action_laundry_selected_settings"
+              active="False"
               sequence="5"/>
     <!-- Settings -->
 

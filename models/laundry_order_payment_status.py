@@ -14,3 +14,11 @@ class LaundryOrderPayStatus(models.Model):
     )
     active = fields.Boolean(default=True)
     sequence = fields.Integer(default=10)
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        configuration_id = self.env.context.get("default_laundry_configuration_id")
+        for vals in vals_list:
+            if configuration_id:
+                vals.setdefault("laundry_configuration_id", configuration_id)
+        return super().create(vals_list)

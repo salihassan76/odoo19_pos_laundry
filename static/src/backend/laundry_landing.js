@@ -38,28 +38,17 @@ export class LaundryLanding extends Component {
     }
 
     async selectShop(shop) {
-        await this.orm.call("pos.config", "select_laundry_shop", [shop.id]);
-        await this.action.doAction(
-            {
-                type: "ir.actions.client",
-                tag: "pos_laundry.landing",
-                name: shop.name,
-                params: { pos_config_id: shop.id },
-            },
-            { clearBreadcrumbs: false }
-        );
+        const action = await this.orm.call("pos.config", "select_laundry_shop", [shop.id]);
+        // The selected shop is the root of its workspace. Replacing the landing
+        // breadcrumb keeps the shop name (for example, "Spinlab") as the parent
+        // of every page opened from this workspace.
+        await this.action.doAction(action, { clearBreadcrumbs: true });
     }
 
     async backToShops() {
-        await this.action.doAction(
-            {
-                type: "ir.actions.client",
-                tag: "pos_laundry.landing",
-                name: "Laundry",
-                params: {},
-            },
-            { clearBreadcrumbs: true }
-        );
+        await this.action.doAction("pos_laundry.action_laundry_landing", {
+            clearBreadcrumbs: true,
+        });
     }
 
     async openItem(item) {

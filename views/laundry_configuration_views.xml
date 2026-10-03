@@ -55,9 +55,8 @@
     <record id="action_laundry_configuration" model="ir.actions.act_window">
         <field name="name">Laundry Settings</field>
         <field name="res_model">laundry.configuration</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">form</field>
         <field name="view_ids" eval="[(5, 0, 0),
-            (0, 0, {'view_mode': 'list', 'view_id': ref('view_laundry_configuration_list')}),
             (0, 0, {'view_mode': 'form', 'view_id': ref('view_laundry_configuration_form')})]"/>
         <field name="context">{'create': False}</field>
     </record>

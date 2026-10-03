@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_laundry_pos_category_list" model="ir.ui.view">
+        <field name="name">pos.category.list.laundry</field>
+        <field name="model">pos.category</field>
+        <field name="arch" type="xml">
+            <list string="Laundry POS Categories">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="parent_id" optional="show"/>
+                <field name="laundry_pos_config_ids"
+                       string="POS Shops"
+                       widget="many2many_tags"
+                       readonly="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_laundry_pos_category_form" model="ir.ui.view">
+        <field name="name">pos.category.form.laundry</field>
+        <field name="model">pos.category</field>
+        <field name="arch" type="xml">
+            <form string="Laundry POS Category">
+                <sheet>
+                    <field name="image_512" widget="image" class="oe_avatar"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Wash and Iron"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="parent_id"/>
+                            <field name="sequence"/>
+                            <field name="color"/>
+                        </group>
+                        <group string="Laundry Availability">
+                            <field name="laundry_configuration_ids"
+                                   string="Laundry Shops"
+                                   widget="many2many_tags"
+                                   options="{'no_create': True}"/>
+                            <field name="laundry_pos_config_ids"
+                                   string="Assigned POS Shops"
+                                   widget="many2many_tags"
+                                   readonly="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_laundry_product_template_list" model="ir.ui.view">
+        <field name="name">product.template.list.laundry</field>
+        <field name="model">product.template</field>
+        <field name="arch" type="xml">
+            <list string="Laundry Products">
+                <field name="name"/>
+                <field name="default_code" optional="show"/>
+                <field name="pos_categ_ids" widget="many2many_tags" optional="show"/>
+                <field name="laundry_pos_config_ids"
+                       string="POS Shops"
+                       widget="many2many_tags"
+                       readonly="1"/>
+                <field name="list_price"/>
+                <field name="available_in_pos" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_product_template_form_laundry_shop" model="ir.ui.view">
+        <field name="name">product.template.form.laundry.shop</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="point_of_sale.product_template_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='pos_categ_ids']" position="attributes">
+                <attribute name="domain">context.get('laundry_configuration_id') and [('laundry_configuration_ids', 'in', [context.get('laundry_configuration_id')])] or []</attribute>
+            </xpath>
+            <xpath expr="//field[@name='pos_categ_ids']" position="after">
+                <field name="laundry_configuration_ids"
+                       string="Laundry Shops"
+                       widget="many2many_tags"
+                       options="{'no_create': True}"/>
+                <field name="laundry_pos_config_ids"
+                       string="Assigned POS Shops"
+                       widget="many2many_tags"
+                       readonly="1"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

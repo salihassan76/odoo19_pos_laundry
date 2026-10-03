@@ -1,6 +1,6 @@
 {
     "name": "POS Laundry",
-    "version": "19.0.1.0.15",
+    "version": "19.0.1.0.20",
     "depends": ["point_of_sale", "project", "sale_management","account"],
     "category": "Operations",
     "summary": "Production-ready Laundry POS System",
@@ -18,6 +18,7 @@
         "views/laundry_order_type_views.xml",
         "views/laundry_order_type_actions.xml",
         "views/laundry_configuration_views.xml",
+        "views/laundry_catalog_views.xml",
         "views/laundry_res_config_settings_view.xml",
         "views/laundry_res_config_settings_action.xml",
         "views/laundry_order_status_views.xml",

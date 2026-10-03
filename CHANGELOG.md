@@ -1,9 +1,58 @@
 # Changelog
 
+## 19.0.1.0.20 - 2026-10-03
+
+- Keep only the Laundry application entry in the backend navigation.
+- Deactivate all Laundry child menus so users navigate exclusively through the
+  selected-shop workspace.
+- Preserve the underlying actions used by workspace cards.
+- Allow extension modules to add workspace cards without exposing parallel
+  backend menus.
+
+## 19.0.1.0.19 - 2026-10-03
+
+- Restore the selected shop name as the Laundry workspace breadcrumb root.
+- Replace the generic Laundry landing breadcrumb when a shop is selected, so
+  child pages display paths such as **Spinlab / POS Categories**.
+- Keep the registered Laundry action for the main landing page and Change Shop.
+- Show the selected shop name as the workspace heading.
+
+## 19.0.1.0.18 - 2026-10-03
+
+- Remove the **Unnamed** breadcrumb by opening selected-shop workspaces through
+  the registered Laundry client action instead of an anonymous inline action.
+- Route Order Types, Order Status, Payment Status, POS Categories, and Products
+  desktop menus through selected-shop server actions.
+- Apply the same shop domains and creation defaults from both workspace tiles
+  and standard desktop menus.
+- Return to the registered Laundry landing action when changing shops.
+
+## 19.0.1.0.17 - 2026-10-03
+
+- Add dedicated Laundry POS Category list and form views showing assigned POS
+  shops.
+- Add a dedicated Laundry Product list showing assigned POS shops.
+- Show Laundry Shops and Assigned POS Shops on the POS product form.
+- Restrict a product's POS Categories to categories assigned to the currently
+  selected Laundry shop when opened from the Laundry workspace.
+- Keep the standard product category behavior unchanged outside the Laundry
+  workspace.
+
+## 19.0.1.0.16 - 2026-10-01
+
+- Keep POS Categories and Products shareable across Laundry shops through
+  `laundry.configuration` many-to-many assignments.
+- Automatically assign categories and products created from a Laundry
+  workspace to its selected shop at the model level.
+- Continue filtering Category and Product management actions to the selected
+  Laundry shop.
+- Preserve Order Type category filtering and order-product validation against
+  the selected shop's Laundry Configuration.
+
 ## 19.0.1.0.15 - 2026-10-01
 
-- Replace the dynamic Laundry Configuration form with a predefined standard
-  Odoo list/form action filtered to the selected shop.
+- Open the selected shop's Laundry Configuration directly through a predefined
+  standard Odoo form action.
 - Remove Laundry Configuration from Order Type, Order Status, and Payment
   Status list views.
 - Disable creating additional Laundry Configuration records from both list
@@ -13,6 +62,9 @@
 - Clarify Ready as **Ready for Collection / Delivery**, distinct from Complete.
 - Add a separate required **In Progress Order Status** configuration between
   Confirmed and Ready and include it in the POS configuration payload.
+- Automatically assign the selected shop's Laundry Configuration when creating
+  Order Types, Order Statuses, or Payment Statuses and hide the redundant
+  configuration selector from their forms and searches.
 
 ## 19.0.1.0.14 - 2026-09-26
 

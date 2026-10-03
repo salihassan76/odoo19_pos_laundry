@@ -36,7 +36,7 @@
                     <group>
                         <group string="Status">
                             <field name="name"/>
-                            <field name="laundry_configuration_id" required="1" options="{'no_create': True}"/>
+                            <field name="laundry_configuration_id" invisible="1"/>
                             <field name="sequence"/>
                             <field name="active"/>
                             <field
@@ -92,7 +92,6 @@
         <field name="arch" type="xml">
             <search>
                 <field name="name"/>
-                <field name="laundry_configuration_id"/>
 
                 <filter
                     name="active"

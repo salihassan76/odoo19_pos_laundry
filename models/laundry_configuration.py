@@ -99,7 +99,7 @@ class LaundryConfiguration(models.Model):
         action = self.env["ir.actions.actions"]._for_xml_id(
             "pos_laundry.action_laundry_configuration"
         )
-        action["domain"] = [("id", "=", config.id)]
+        action["res_id"] = config.id
         action["context"] = {
             **self.env.context,
             "create": False,
