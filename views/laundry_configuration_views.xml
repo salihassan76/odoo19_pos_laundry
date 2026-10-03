@@ -4,7 +4,7 @@
         <field name="name">laundry.configuration.list</field>
         <field name="model">laundry.configuration</field>
         <field name="arch" type="xml">
-            <list>
+            <list create="false">
                 <field name="name"/><field name="pos_config_id"/>
                 <field name="company_id" groups="base.group_multi_company"/><field name="active"/>
             </list>
@@ -14,7 +14,7 @@
         <field name="name">laundry.configuration.form</field>
         <field name="model">laundry.configuration</field>
         <field name="arch" type="xml">
-            <form string="Laundry Settings" duplicate="false">
+            <form string="Laundry Settings" create="false" duplicate="false">
                 <sheet>
                     <div class="oe_title"><h1><field name="name"/></h1></div>
                     <group>
@@ -28,6 +28,7 @@
                         </group></page>
                         <page string="Orders"><group>
                             <field name="order_status_id"/><field name="confirmed_order_status_id"/>
+                            <field name="in_progress_order_status_id"/>
                             <field name="ready_order_status_id"/><field name="complete_order_status_id"/>
                             <field name="cancelled_order_status_id"/><field name="refunded_order_status_id"/>
                         </group></page>
@@ -50,6 +51,15 @@
                 </sheet>
             </form>
         </field>
+    </record>
+    <record id="action_laundry_configuration" model="ir.actions.act_window">
+        <field name="name">Laundry Settings</field>
+        <field name="res_model">laundry.configuration</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_laundry_configuration_list')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_laundry_configuration_form')})]"/>
+        <field name="context">{'create': False}</field>
     </record>
     <record id="action_open_laundry_configuration" model="ir.actions.server">
         <field name="name">Laundry Settings</field>

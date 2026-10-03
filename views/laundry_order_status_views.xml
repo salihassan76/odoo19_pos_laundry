@@ -8,7 +8,6 @@
         <field name="arch" type="xml">
             <list string="Order Status">
                 <field name="sequence" widget="handle"/>
-                <field name="laundry_configuration_id"/>
                 <field name="name"/>
                 <field name="color" optional="show"/>
                 <field name="show_on_home" optional="show"/>

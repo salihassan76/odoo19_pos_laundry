@@ -36,8 +36,15 @@ class LaundryConfiguration(models.Model):
     refunded_order_status_id = fields.Many2one("laundry.order.status", string="Refunded Order Status", domain="[('laundry_configuration_id', '=', id)]")
     cancelled_order_status_id = fields.Many2one("laundry.order.status", string="Cancelled Order Status", domain="[('laundry_configuration_id', '=', id)]")
     confirmed_order_status_id = fields.Many2one("laundry.order.status", string="Confirmed Order Status", domain="[('laundry_configuration_id', '=', id)]")
+    in_progress_order_status_id = fields.Many2one(
+        "laundry.order.status",
+        string="In Progress Order Status",
+        domain="[('active', '=', True), ('laundry_configuration_id', '=', id)]",
+    )
     ready_order_status_id = fields.Many2one(
-        "laundry.order.status", string="Ready Order Status", domain="[('active', '=', True), ('laundry_configuration_id', '=', id)]"
+        "laundry.order.status",
+        string="Ready for Collection / Delivery Status",
+        domain="[('active', '=', True), ('laundry_configuration_id', '=', id)]",
     )
 
     direct_print = fields.Boolean(string="Print After Save/Validate", default=False)
@@ -89,15 +96,17 @@ class LaundryConfiguration(models.Model):
         config = self.search([("pos_config_id", "=", pos_config.id)], limit=1)
         if not config:
             config = self.create({"name": pos_config.display_name, "pos_config_id": pos_config.id})
-        return {
-            "type": "ir.actions.act_window",
-            "name": _("Laundry Settings"),
-            "res_model": "laundry.configuration",
-            "view_mode": "form",
-            "views": [(False, "form")],
-            "res_id": config.id,
-            "target": "current",
+        action = self.env["ir.actions.actions"]._for_xml_id(
+            "pos_laundry.action_laundry_configuration"
+        )
+        action["domain"] = [("id", "=", config.id)]
+        action["context"] = {
+            **self.env.context,
+            "create": False,
+            "default_pos_config_id": pos_config.id,
+            "pos_config_id": pos_config.id,
         }
+        return action
 
     def get_configuration_status(self):
         self.ensure_one()
@@ -111,7 +120,8 @@ class LaundryConfiguration(models.Model):
         add(_("Refunded Order Status"), self.refunded_order_status_id)
         add(_("Cancelled Order Status"), self.cancelled_order_status_id)
         add(_("Confirmed Order Status"), self.confirmed_order_status_id)
-        add(_("Ready Order Status"), self.ready_order_status_id)
+        add(_("In Progress Order Status"), self.in_progress_order_status_id)
+        add(_("Ready for Collection / Delivery Status"), self.ready_order_status_id)
         add(_("Unpaid Payment Status"), self.unpaid_payment_id)
         add(_("Partial Paid Payment Status"), self.partial_payment_id)
         add(_("Paid Payment Status"), self.paid_payment_id)
@@ -145,7 +155,8 @@ class LaundryConfiguration(models.Model):
             "is_project", "project_id", "unpaid_payment_id", "partial_payment_id",
             "paid_payment_id", "cancelled_payment_id", "refund_payment_id", "order_status_id",
             "complete_order_status_id", "refunded_order_status_id", "cancelled_order_status_id",
-            "confirmed_order_status_id", "ready_order_status_id", "direct_print",
+            "confirmed_order_status_id", "in_progress_order_status_id",
+            "ready_order_status_id", "direct_print",
             "show_receipt_preview", "enable_laundry_barcode", "continuous_barcode_scan",
             "barcode_order_access", "duplicate_scan_delay",
         ]

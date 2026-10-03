@@ -1,5 +1,19 @@
 # Changelog
 
+## 19.0.1.0.15 - 2026-10-01
+
+- Replace the dynamic Laundry Configuration form with a predefined standard
+  Odoo list/form action filtered to the selected shop.
+- Remove Laundry Configuration from Order Type, Order Status, and Payment
+  Status list views.
+- Disable creating additional Laundry Configuration records from both list
+  and form views.
+- Normalize workspace actions through Odoo's action loader to prevent missing
+  `views` metadata errors.
+- Clarify Ready as **Ready for Collection / Delivery**, distinct from Complete.
+- Add a separate required **In Progress Order Status** configuration between
+  Confirmed and Ready and include it in the POS configuration payload.
+
 ## 19.0.1.0.14 - 2026-09-26
 
 - Enforce selected-shop domains and creation defaults across every Laundry

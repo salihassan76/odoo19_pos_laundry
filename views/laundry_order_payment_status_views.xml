@@ -44,6 +44,7 @@
         <field name="arch" type="xml">
             <search>
                 <field name="name"/>
+                <field name="laundry_configuration_id"/>
                 <filter name="active"
                         string="Active"
                         domain="[('active','=',True)]"/>

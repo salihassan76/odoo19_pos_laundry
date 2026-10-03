@@ -57,15 +57,17 @@ class PosConfig(models.Model):
     def action_open_laundry_configuration(self):
         self.ensure_one()
         configuration = self._get_laundry_configuration(create=True)
-        return {
-            "type": "ir.actions.act_window",
-            "name": _("Laundry Configuration"),
-            "res_model": "laundry.configuration",
-            "view_mode": "form",
-            "views": [(False, "form")],
-            "res_id": configuration.id,
-            "target": "current",
+        action = self.env["ir.actions.actions"]._for_xml_id(
+            "pos_laundry.action_laundry_configuration"
+        )
+        action["domain"] = [("id", "=", configuration.id)]
+        action["context"] = {
+            **self.env.context,
+            "create": False,
+            "default_pos_config_id": self.id,
+            "pos_config_id": self.id,
         }
+        return action
 
     @api.model
     def get_laundry_landing_data(self):
@@ -150,10 +152,7 @@ class PosConfig(models.Model):
         ):
             raise UserError(_("This Laundry shop is not available."))
 
-        if item_key == "settings":
-            return shop.action_open_laundry_configuration()
-
-        configuration = shop._get_laundry_configuration()
+        configuration = shop._get_laundry_configuration(create=item_key == "settings")
         if not configuration and item_key not in {"orders", "barcode", "scan_logs"}:
             raise UserError(_("Open Laundry Settings first to create this shop's Laundry configuration."))
 
@@ -161,6 +160,7 @@ class PosConfig(models.Model):
             "orders": "pos_laundry.action_laundry_order",
             "barcode": "pos_laundry.action_laundry_barcode_entry_wizard",
             "scan_logs": "pos_laundry.action_laundry_order_scan_log",
+            "settings": "pos_laundry.action_laundry_configuration",
             "order_types": "pos_laundry.action_laundry_order_type",
             "order_statuses": "pos_laundry.action_laundry_order_status",
             "payment_statuses": "pos_laundry.action_laundry_order_payment_status",
@@ -173,7 +173,7 @@ class PosConfig(models.Model):
         if not action_record:
             raise UserError(_("The requested Laundry page is not available."))
 
-        action = action_record.read()[0]
+        action = self.env["ir.actions.actions"]._for_xml_id(xmlid)
         action["name"] = _("%(shop)s - %(page)s", shop=shop.display_name, page=action["name"])
         action["target"] = "current"
         context = dict(self.env.context)
@@ -189,6 +189,10 @@ class PosConfig(models.Model):
         action["context"] = context
         if item_key == "orders":
             action["domain"] = [("pos_config_id", "=", shop.id)]
+        elif item_key == "settings":
+            action["domain"] = [("id", "=", configuration.id)]
+            context["create"] = False
+            action["context"] = context
         elif item_key == "scan_logs":
             action["domain"] = [
                 "|",
