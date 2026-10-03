@@ -96,6 +96,30 @@ class LaundryOrderType(models.Model):
             else:
                 rec.icon_preview = ""
 
+    @api.model
+    def get_pos_allowed_category_ids(self, order_type_id, configuration_id):
+        """Resolve the shop-scoped category IDs used by the POS frontend."""
+        order_type = self.browse(order_type_id).exists()
+        configuration = self.env["laundry.configuration"].browse(
+            configuration_id
+        ).exists()
+        if (
+            not order_type
+            or not configuration
+            or order_type.laundry_configuration_id != configuration
+            or configuration.pos_config_id.company_id not in self.env.companies
+        ):
+            return []
+
+        categories = order_type.pos_category_ids.filtered(
+            lambda category: configuration in category.laundry_configuration_ids
+        )
+        if not categories:
+            categories = self.env["pos.category"].search(
+                [("laundry_configuration_ids", "in", [configuration.id])]
+            )
+        return categories.ids
+
     @api.model_create_multi
     def create(self, vals_list):
         default_configuration_id = self.env.context.get("default_laundry_configuration_id")

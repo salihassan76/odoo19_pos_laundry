@@ -114,6 +114,10 @@ export function setLaundryVisibility(order, values = {}) {
 export function getLaundryVisibility(pos) {
     const order = getCurrentOrder(pos);
     const state = order?.uiState?.laundry_visibility || {};
+    const stateCategoryIds = normalizeIds(state.allowedCategoryIds ?? []);
+    const orderCategoryIds = normalizeIds(
+        order?.uiState?.laundry_allowed_pos_category_ids ?? []
+    );
 
     return {
         order,
@@ -123,11 +127,9 @@ export function getLaundryVisibility(pos) {
             state.orderTypeId ??
             order?.uiState?.laundry_order_type_id ??
             false,
-        allowedCategoryIds: normalizeIds(
-            state.allowedCategoryIds ??
-            order?.uiState?.laundry_allowed_pos_category_ids ??
-            []
-        ),
+        allowedCategoryIds: stateCategoryIds.length
+            ? stateCategoryIds
+            : orderCategoryIds,
         isPackageUsage: Boolean(
             state.isPackageUsage ??
             order?.uiState?.is_package_usage ??

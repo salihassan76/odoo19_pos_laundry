@@ -1,10 +1,30 @@
 # Changelog
 
+## 19.0.1.1.2 - 2026-10-03
+
+- Resolve the active Order Type's allowed POS categories authoritatively from
+  the server when it is selected.
+- Validate that the Order Type and categories belong to the active Laundry
+  Configuration before opening the Product screen.
+- Synchronize the canonical POS visibility state immediately after selecting
+  an Order Type.
+- Fall back to the active order's category IDs when an older cached visibility
+  object contains an empty category list.
+
+## 19.0.1.1.1 - 2026-10-03
+
+- Restore POS categories and products when an Order Type has no explicit
+  category selection.
+- Interpret an empty Order Type category list as all POS categories assigned
+  to the active Laundry Configuration.
+- Keep the fallback shop-scoped so categories from other Laundry shops remain
+  hidden.
+
 ## 19.0.1.0.20 - 2026-10-03
 
 - Keep only the Laundry application entry in the backend navigation.
-- Deactivate all Laundry child menus so users navigate exclusively through the
-  selected-shop workspace.
+- Keep **Workspace** as the only Laundry child menu and deactivate the direct
+  operational and configuration menus.
 - Preserve the underlying actions used by workspace cards.
 - Allow extension modules to add workspace cards without exposing parallel
   backend menus.

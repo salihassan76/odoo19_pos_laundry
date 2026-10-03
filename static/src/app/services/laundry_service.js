@@ -223,6 +223,39 @@ export const laundryService = {
                             .getVisibleOrderTypeFields()
                     );
 
+                const configurationId = Number(
+                    this.pos.config.laundry_configuration_id || 0
+                );
+                let shopCategoryIds = [];
+
+                if (configurationId) {
+                    const shopCategories = await this.orm.searchRead(
+                        "pos.category",
+                        [[
+                            "laundry_configuration_ids",
+                            "in",
+                            [configurationId],
+                        ]],
+                        ["id"]
+                    );
+                    shopCategoryIds = this._normalizeCategoryIds(
+                        shopCategories.map((category) => category.id)
+                    );
+                }
+
+                // An empty Order Type category list means "all categories",
+                // but only within the active Laundry Configuration. This
+                // preserves the original POS behavior without leaking another
+                // shop's Laundry catalog into the current POS.
+                for (const orderType of orderTypes) {
+                    const explicitCategoryIds = this._normalizeCategoryIds(
+                        orderType.pos_category_ids || []
+                    );
+                    orderType.pos_category_ids = explicitCategoryIds.length
+                        ? explicitCategoryIds
+                        : [...shopCategoryIds];
+                }
+
                 return orderTypes.sort(
                     (a, b) =>
                         (a.sequence || 0) -
@@ -680,6 +713,20 @@ export const laundryService = {
                 orderType,
                 customer = null
             ) {
+                const configurationId = Number(
+                    this.pos.config.laundry_configuration_id || 0
+                );
+                const allowedCategoryIds = this._normalizeCategoryIds(
+                    await this.orm.call(
+                        "laundry.order.type",
+                        "get_pos_allowed_category_ids",
+                        [orderType.id, configurationId]
+                    )
+                );
+                const resolvedOrderType = {
+                    ...orderType,
+                    pos_category_ids: allowedCategoryIds,
+                };
                 const currentOrder =
                     this.getOrder();
 
@@ -709,7 +756,7 @@ export const laundryService = {
 
                 const stateValues =
                     this._prepareOrderTypeState(
-                        orderType
+                        resolvedOrderType
                     );
 
                 this._setLaundryOrderState(
@@ -717,14 +764,32 @@ export const laundryService = {
                     stateValues
                 );
 
+                setLaundryVisibility(
+                    order,
+                    {
+                        orderTypeId:
+                            stateValues
+                                .laundry_order_type_id,
+                        allowedCategoryIds:
+                            stateValues
+                                .allowed_category_ids,
+                        isPackageUsage:
+                            stateValues
+                                .is_package_usage,
+                        allowedPackageProductIds:
+                            stateValues
+                                .allowed_package_products,
+                    }
+                );
+
                 this.pos
                     .selected_laundry_order_type =
                     {
-                        ...orderType,
+                        ...resolvedOrderType,
 
                         pos_category_ids:
                             this._normalizeCategoryIds(
-                                orderType
+                                resolvedOrderType
                                     .pos_category_ids ||
                                 []
                             ),

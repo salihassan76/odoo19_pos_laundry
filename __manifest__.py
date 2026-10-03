@@ -1,6 +1,6 @@
 {
     "name": "POS Laundry",
-    "version": "19.0.1.0.20",
+    "version": "19.0.1.1.2",
     "depends": ["point_of_sale", "project", "sale_management","account"],
     "category": "Operations",
     "summary": "Production-ready Laundry POS System",
