@@ -1,6 +1,6 @@
 {
     "name": "POS Laundry",
-    "version": "19.0.1.1.2",
+    "version": "19.0.1.1.4",
     "depends": ["point_of_sale", "project", "sale_management","account"],
     "category": "Operations",
     "summary": "Production-ready Laundry POS System",
@@ -50,6 +50,7 @@
             "pos_laundry/static/src/app/services/barcode_service.js",
             "pos_laundry/static/src/overrides/pos_startup.js",
             "pos_laundry/static/src/overrides/pos_patch.js",
+            "pos_laundry/static/src/overrides/models/laundry_readonly_patch.js",
             "pos_laundry/static/src/overrides/order_summary_barcode_patch.js",
             "pos_laundry/static/src/overrides/paymentscreen_patch.js",
             "pos_laundry/static/src/overrides/actionpad_extension.js",

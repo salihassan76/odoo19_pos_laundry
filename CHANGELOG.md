@@ -1,5 +1,22 @@
 # Changelog
 
+## 19.0.1.1.3 - 2026-10-03
+
+- Replace separate frontend Order Type and category queries with one canonical,
+  shop-scoped Laundry POS payload.
+- Include the active configuration, Order Types, categories, and product
+  templates in that payload.
+- Filter POS products by both the active Order Type categories and the current
+  Laundry shop catalog.
+- Provide backend extension hooks so Packages and Logistics add fields without
+  replacing the core frontend query.
+- Treat explicitly selected Order Type categories as authoritative for the POS,
+  including categories created before Laundry shop ownership was introduced.
+- Automatically assign selected Order Type categories to the same Laundry
+  Configuration when the Order Type is saved.
+- Log the selected Order Type, Laundry Configuration, and resolved category IDs
+  when entering the Product screen.
+
 ## 19.0.1.1.2 - 2026-10-03
 
 - Resolve the active Order Type's allowed POS categories authoritatively from

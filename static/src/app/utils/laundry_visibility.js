@@ -140,7 +140,28 @@ export function getLaundryVisibility(pos) {
             order?.uiState?.allowed_package_products ??
             []
         ),
+        allowedProductTemplateIds: normalizeIds(
+            pos?.laundryFrontendData?.product_template_ids ?? []
+        ),
     };
+}
+
+export function getProductTemplateId(product) {
+    if (!product) {
+        return false;
+    }
+
+    const modelName = product.model?.name;
+    if (modelName === "product.template") {
+        return normalizeIds(product.id)[0] || false;
+    }
+
+    const templateValue =
+        product.product_tmpl_id ??
+        product.product_template_id ??
+        product.raw?.product_tmpl_id ??
+        false;
+    return normalizeIds(templateValue)[0] || false;
 }
 
 export function getProductCategoryIds(product) {
@@ -182,6 +203,7 @@ export function traceLaundryState(scope, pos, extra = {}) {
         allowedCategoryIds: visibility.allowedCategoryIds,
         isPackageUsage: visibility.isPackageUsage,
         allowedPackageProductIds: visibility.allowedPackageProductIds,
+        allowedProductTemplateIds: visibility.allowedProductTemplateIds,
         ...extra,
     });
     return visibility;

@@ -165,3 +165,66 @@ class LaundryConfiguration(models.Model):
             value = self[name]
             values[name] = value.id if isinstance(value, models.BaseModel) else value
         return values
+
+    def _get_pos_order_type_frontend_values(self, order_type, default_category_ids):
+        """Extension hook for the core, Packages, and Logistics payload."""
+        self.ensure_one()
+        allowed_category_ids = order_type.pos_category_ids.ids or default_category_ids
+        return {
+            "id": order_type.id,
+            "name": order_type.name,
+            "prefix": order_type.prefix or "",
+            "icon_class": order_type.icon_class or "",
+            "icon_color": order_type.icon_color or "",
+            "sequence": order_type.sequence,
+            "pos_category_ids": allowed_category_ids,
+            "allowed_category_ids": allowed_category_ids,
+            "direct_sale": order_type.direct_sale,
+            "billing_method": order_type.billing_method,
+            "allow_pay": order_type.allow_pay,
+            "allow_refund": order_type.allow_refund,
+        }
+
+    def get_pos_frontend_data(self):
+        """Return one authoritative, shop-scoped payload for the POS UI."""
+        self.ensure_one()
+        order_types = self.env["laundry.order.type"].search(
+            [
+                ("active", "=", True),
+                ("is_hidden", "=", False),
+                ("laundry_configuration_id", "=", self.id),
+            ],
+            order="sequence, id",
+        )
+
+        # Include explicit legacy Order Type selections as well as categories
+        # already assigned through the new Laundry Configuration relation.
+        categories = self.env["pos.category"].search(
+            [("laundry_configuration_ids", "in", [self.id])]
+        ) | order_types.mapped("pos_category_ids")
+        category_ids = categories.ids
+
+        product_domain = [
+            ("available_in_pos", "=", True),
+            ("sale_ok", "=", True),
+        ]
+        if category_ids:
+            product_domain += [
+                "|",
+                ("laundry_configuration_ids", "in", [self.id]),
+                ("pos_categ_ids", "in", category_ids),
+            ]
+        else:
+            product_domain.append(("laundry_configuration_ids", "in", [self.id]))
+        products = self.env["product.template"].search(product_domain)
+
+        return {
+            "configuration_id": self.id,
+            "pos_config_id": self.pos_config_id.id,
+            "category_ids": category_ids,
+            "product_template_ids": products.ids,
+            "order_types": [
+                self._get_pos_order_type_frontend_values(order_type, category_ids)
+                for order_type in order_types
+            ],
+        }

@@ -96,29 +96,17 @@ class LaundryOrderType(models.Model):
             else:
                 rec.icon_preview = ""
 
-    @api.model
-    def get_pos_allowed_category_ids(self, order_type_id, configuration_id):
-        """Resolve the shop-scoped category IDs used by the POS frontend."""
-        order_type = self.browse(order_type_id).exists()
-        configuration = self.env["laundry.configuration"].browse(
-            configuration_id
-        ).exists()
-        if (
-            not order_type
-            or not configuration
-            or order_type.laundry_configuration_id != configuration
-            or configuration.pos_config_id.company_id not in self.env.companies
-        ):
-            return []
-
-        categories = order_type.pos_category_ids.filtered(
-            lambda category: configuration in category.laundry_configuration_ids
-        )
-        if not categories:
-            categories = self.env["pos.category"].search(
-                [("laundry_configuration_ids", "in", [configuration.id])]
+    def _sync_pos_categories_to_configuration(self):
+        """Attach explicitly selected categories to this Order Type's shop."""
+        for order_type in self.filtered("laundry_configuration_id"):
+            configuration = order_type.laundry_configuration_id
+            missing_categories = order_type.pos_category_ids.filtered(
+                lambda category: configuration not in category.laundry_configuration_ids
             )
-        return categories.ids
+            if missing_categories:
+                missing_categories.write(
+                    {"laundry_configuration_ids": [(4, configuration.id)]}
+                )
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -140,4 +128,12 @@ class LaundryOrderType(models.Model):
 
             record.sequence_id = seq.id
 
+        records._sync_pos_categories_to_configuration()
+
         return records
+
+    def write(self, vals):
+        result = super().write(vals)
+        if {"laundry_configuration_id", "pos_category_ids"} & set(vals):
+            self._sync_pos_categories_to_configuration()
+        return result

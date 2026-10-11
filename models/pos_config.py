@@ -41,6 +41,22 @@ class PosConfig(models.Model):
             }
         return configuration.get_configuration_status()
 
+    @api.model
+    def get_laundry_pos_frontend_data(self, pos_config_id):
+        """Expose the current shop's canonical Laundry payload to its POS."""
+        pos_config = self.browse(pos_config_id).exists()
+        if (
+            not pos_config
+            or not pos_config.active
+            or not pos_config.enable_laundry_workflow
+            or pos_config.company_id not in self.env.companies
+        ):
+            raise UserError(_("This Laundry POS configuration is not available."))
+        configuration = pos_config._get_laundry_configuration()
+        if not configuration or not configuration.active:
+            raise UserError(_("This POS has no active Laundry Configuration."))
+        return configuration.get_pos_frontend_data()
+
     def check_laundry_configuration(self):
         for pos_config in self:
             if not pos_config.enable_laundry_workflow:

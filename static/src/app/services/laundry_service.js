@@ -5,6 +5,7 @@ import { _t } from "@web/core/l10n/translation";
 import { AlertDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 import { printLaundryReceipt } from "../utils/receipt_service";
 import {
+    laundryLog,
     setLaundryVisibility,
     traceLaundryState,
 } from "../utils/laundry_visibility";
@@ -189,78 +190,48 @@ export const laundryService = {
             // Order types
             // -------------------------------------------------------------
 
-            getVisibleOrderTypeDomain() {
-                return [
-                    ["active", "=", true],
-                    ["is_hidden", "=", false],
-                    ["laundry_configuration_id", "=", this.pos.config.laundry_configuration_id],
-                ];
-            },
-
-            getVisibleOrderTypeFields() {
-                return [
-                    "id",
-                    "name",
-                    "prefix",
-                    "icon_class",
-                    "icon_color",
-                    "sequence",
-                    "pos_category_ids",
-                    "direct_sale",
-                    "billing_method",
-                    "allow_pay",
-                    "allow_refund",
-                ];
+            async getFrontendData(forceReload = false) {
+                if (forceReload || !this._frontendDataPromise) {
+                    this._frontendDataPromise = this.orm.call(
+                        "pos.config",
+                        "get_laundry_pos_frontend_data",
+                        [this.pos.config.id]
+                    ).then((data) => {
+                        const normalizedData = {
+                            ...data,
+                            category_ids: this._normalizeCategoryIds(
+                                data.category_ids || []
+                            ),
+                            product_template_ids: this._normalizeCategoryIds(
+                                data.product_template_ids || []
+                            ),
+                            order_types: (data.order_types || []).map((orderType) => {
+                                const allowedCategoryIds = this._normalizeCategoryIds(
+                                    orderType.allowed_category_ids ||
+                                    orderType.pos_category_ids ||
+                                    []
+                                );
+                                return {
+                                    ...orderType,
+                                    allowed_category_ids: allowedCategoryIds,
+                                    pos_category_ids: allowedCategoryIds,
+                                };
+                            }),
+                        };
+                        this.pos.laundryFrontendData = normalizedData;
+                        laundryLog("FrontendData", "loaded", normalizedData);
+                        return normalizedData;
+                    }).catch((error) => {
+                        this._frontendDataPromise = null;
+                        throw error;
+                    });
+                }
+                return await this._frontendDataPromise;
             },
 
             async getVisibleOrderTypes() {
-                const orderTypes =
-                    await this.orm.searchRead(
-                        "laundry.order.type",
-                        this
-                            .getVisibleOrderTypeDomain(),
-                        this
-                            .getVisibleOrderTypeFields()
-                    );
-
-                const configurationId = Number(
-                    this.pos.config.laundry_configuration_id || 0
-                );
-                let shopCategoryIds = [];
-
-                if (configurationId) {
-                    const shopCategories = await this.orm.searchRead(
-                        "pos.category",
-                        [[
-                            "laundry_configuration_ids",
-                            "in",
-                            [configurationId],
-                        ]],
-                        ["id"]
-                    );
-                    shopCategoryIds = this._normalizeCategoryIds(
-                        shopCategories.map((category) => category.id)
-                    );
-                }
-
-                // An empty Order Type category list means "all categories",
-                // but only within the active Laundry Configuration. This
-                // preserves the original POS behavior without leaking another
-                // shop's Laundry catalog into the current POS.
-                for (const orderType of orderTypes) {
-                    const explicitCategoryIds = this._normalizeCategoryIds(
-                        orderType.pos_category_ids || []
-                    );
-                    orderType.pos_category_ids = explicitCategoryIds.length
-                        ? explicitCategoryIds
-                        : [...shopCategoryIds];
-                }
-
-                return orderTypes.sort(
-                    (a, b) =>
-                        (a.sequence || 0) -
-                        (b.sequence || 0)
-                );
+                const data = await this.getFrontendData();
+                return data.order_types;
             },
 
             // -------------------------------------------------------------
@@ -679,6 +650,26 @@ export const laundryService = {
                     order,
                     values
                 );
+
+                // Keep one canonical visibility object for every code path
+                // that creates, restores, or changes a Laundry order.
+                setLaundryVisibility(
+                    order,
+                    {
+                        orderTypeId:
+                            order.uiState
+                                .laundry_order_type_id,
+                        allowedCategoryIds:
+                            order.uiState
+                                .laundry_allowed_pos_category_ids,
+                        isPackageUsage:
+                            order.uiState
+                                .is_package_usage,
+                        allowedPackageProductIds:
+                            order.uiState
+                                .allowed_package_products,
+                    }
+                );
             },
 
             _prepareOrderTypeState(
@@ -713,20 +704,22 @@ export const laundryService = {
                 orderType,
                 customer = null
             ) {
-                const configurationId = Number(
-                    this.pos.config.laundry_configuration_id || 0
-                );
+                const frontendData = await this.getFrontendData();
+                const resolvedOrderType =
+                    frontendData.order_types.find(
+                        (candidate) => Number(candidate.id) === Number(orderType.id)
+                    ) || orderType;
                 const allowedCategoryIds = this._normalizeCategoryIds(
-                    await this.orm.call(
-                        "laundry.order.type",
-                        "get_pos_allowed_category_ids",
-                        [orderType.id, configurationId]
-                    )
+                    resolvedOrderType.allowed_category_ids ||
+                    resolvedOrderType.pos_category_ids ||
+                    []
                 );
-                const resolvedOrderType = {
-                    ...orderType,
-                    pos_category_ids: allowedCategoryIds,
-                };
+                laundryLog("OrderType", "resolved categories", {
+                    orderTypeId: resolvedOrderType.id,
+                    orderTypeName: resolvedOrderType.name,
+                    configurationId: frontendData.configuration_id,
+                    allowedCategoryIds,
+                });
                 const currentOrder =
                     this.getOrder();
 
@@ -1995,6 +1988,7 @@ export const laundryService = {
             async openLaundryOrder(
                 orderId
             ) {
+                const frontendData = await this.getFrontendData();
                 const data =
                     await this
                         .getLaundryOrderForPos(
@@ -2005,12 +1999,18 @@ export const laundryService = {
                     return;
                 }
 
-                const allowedCategoryIds =
-                    this._normalizeCategoryIds(
-                        data
-                            .allowed_category_ids ||
-                        []
-                    );
+                const configuredOrderType = frontendData.order_types.find(
+                    (orderType) => Number(orderType.id) === Number(data.order_type_id)
+                );
+                const savedCategoryIds = this._normalizeCategoryIds(data.allowed_category_ids || []);
+                const configuredCategoryIds = this._normalizeCategoryIds(
+                    configuredOrderType?.allowed_category_ids ||
+                    configuredOrderType?.pos_category_ids ||
+                    []
+                );
+                const allowedCategoryIds = savedCategoryIds.length
+                    ? savedCategoryIds
+                    : configuredCategoryIds;
 
                 const partner =
                     this._getModelRecord(
@@ -2105,6 +2105,8 @@ export const laundryService = {
 
                 this.setCurrentOrder(order);
 
+                order.uiState.laundry_restoring_lines = true;
+                try {
                 for (
                     const line of
                     data.lines || []
@@ -2152,6 +2154,10 @@ export const laundryService = {
                             },
                             false
                         );
+                }
+
+                } finally {
+                    order.uiState.laundry_restoring_lines = false;
                 }
 
                 this.setCurrentOrder(order);
